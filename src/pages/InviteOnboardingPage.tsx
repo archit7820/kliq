@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +26,7 @@ const InviteOnboardingPage = () => {
     uploading: false
   });
   const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,6 +69,7 @@ const InviteOnboardingPage = () => {
   const handleSubmit = async () => {
     if (!user) return;
     setSubmitting(true);
+    setErrorMsg(null);
     const { error } = await supabase.from('profiles').update({
       full_name: form.full_name,
       username: form.username,
@@ -80,7 +81,11 @@ const InviteOnboardingPage = () => {
 
     setSubmitting(false);
     if (error) {
-      toast({ title: "Profile update failed", description: error.message, variant: "destructive" });
+      if (error.code === '23505' && error.message.includes('profiles_username_key')) {
+        setErrorMsg("That username is taken. Please choose another.");
+      } else {
+        setErrorMsg(error.message || "Profile update failed");
+      }
     } else {
       toast({ title: "Welcome!", description: "Onboarding complete, enjoy Kelp 🎉" });
       navigate("/home");
@@ -155,6 +160,9 @@ const InviteOnboardingPage = () => {
             <Button className="w-full" onClick={handleSubmit} disabled={submitting}>
               {submitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : "Get Started"}
             </Button>
+            {errorMsg && (
+              <div className="text-red-500 text-xs mt-2 text-center">{errorMsg}</div>
+            )}
           </>
         )}
       </div>

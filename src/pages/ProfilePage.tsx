@@ -81,6 +81,7 @@ const ProfilePage = () => {
         avatar_url: '',
     });
     const [avatarUploading, setAvatarUploading] = React.useState(false);
+    const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         if (profile) {
@@ -95,7 +96,13 @@ const ProfilePage = () => {
     }, [profile]);
 
     const updateProfile = async () => {
+        setErrorMsg(null);
         if (!user) return;
+        // Username present & changed
+        if (!editForm.username) {
+            setErrorMsg("Username cannot be empty.");
+            return;
+        }
         const { error } = await supabase.from('profiles').update({
             full_name: editForm.full_name,
             username: editForm.username,
@@ -104,7 +111,12 @@ const ProfilePage = () => {
             avatar_url: editForm.avatar_url
         }).eq('id', user.id);
         if (error) {
-            toast({ title: "Update failed", description: error.message, variant: "destructive" });
+            if (error.code === '23505' && error.message.includes('profiles_username_key')) {
+                setErrorMsg("That username is taken. Please choose another.");
+            } else {
+                setErrorMsg(error.message || "Update failed");
+            }
+            return;
         } else {
             toast({ title: "Profile updated!" });
             setEditing(false);
@@ -226,6 +238,9 @@ const ProfilePage = () => {
                                     </div>
                                     <Button className="w-full mt-2" onClick={updateProfile}>Save Profile</Button>
                                     <Button variant="outline" className="w-full mt-2" onClick={() => setEditing(false)}>Cancel</Button>
+                                    {errorMsg && (
+                                        <div className="text-red-500 text-xs mt-2 text-center">{errorMsg}</div>
+                                    )}
                                 </>
                             ) : (
                                 <>
