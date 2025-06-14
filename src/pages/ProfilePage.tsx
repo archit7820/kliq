@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import BottomNav from '@/components/BottomNav';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, LoaderCircle } from 'lucide-react';
+import { LogOut, Settings, LoaderCircle, Award, Leaf, Users, MapPin, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,53 +73,109 @@ const ProfilePage = () => {
 
     if (profileLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-100">
-                <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
     
     if (!profile) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <p>Could not load profile.</p>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 text-center">
+                <p className="text-muted-foreground">Could not load profile. It might be that you just signed up.</p>
+                <p className="text-muted-foreground text-sm mb-4">Try refreshing the page in a bit.</p>
                 <Button onClick={() => navigate('/login')} className="mt-4">Go to Login</Button>
             </div>
         )
     }
 
+    const achievements = [
+        { icon: Award, title: 'First Steps', description: 'Logged your first activity.' },
+        { icon: Leaf, title: 'Eco-Warrior', description: 'Saved 100kg of CO2.' },
+        { icon: Users, title: 'Social Butterfly', description: 'Made 5 friends.' },
+    ];
+
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
-            <header className="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
-                <h1 className="text-2xl font-bold text-green-700">Profile</h1>
-                <div>
+        <div className="min-h-screen bg-background flex flex-col">
+            <header className="bg-card/80 backdrop-blur-sm p-4 sticky top-0 z-40 flex justify-between items-center border-b">
+                <h1 className="text-2xl font-bold text-primary">Profile</h1>
+                <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon">
-                        <Settings className="w-5 h-5" />
+                        <Settings className="w-5 h-5 text-muted-foreground" />
                     </Button>
-                    <Button onClick={handleLogout} variant="ghost" size="icon" className="text-gray-600 hover:text-red-500 ml-2">
+                    <Button onClick={handleLogout} variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
                         <LogOut className="w-5 h-5" />
                     </Button>
                 </div>
             </header>
-            <main className="flex-grow p-4 md:p-6 space-y-6 mb-16">
-                <Card>
-                    <CardContent className="pt-6 flex flex-col items-center text-center">
-                        <Avatar className="w-24 h-24 mb-4 border-4 border-green-200">
-                            <AvatarImage src={profile.avatar_url || undefined} />
-                            <AvatarFallback className="text-3xl">{profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <h2 className="text-2xl font-bold">{profile.full_name || `@${profile.username}`}</h2>
-                        <p className="text-gray-500">{user?.email}</p>
-                        <div className="flex gap-8 mt-4">
-                            <div className="text-center">
-                                <p className="font-bold text-xl">{activities?.length || 0}</p>
-                                <p className="text-sm text-gray-500">Activities</p>
+            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 mb-16">
+                <Card className="overflow-hidden border">
+                    <div className="bg-primary/10 h-24 sm:h-32" />
+                    <CardContent className="pt-0">
+                        <div className="flex flex-col items-center -mt-12 sm:-mt-16">
+                            <Avatar className="w-24 h-24 sm:w-32 sm:h-32 mb-2 border-4 border-background ring-2 ring-primary">
+                                <AvatarImage src={profile.avatar_url || undefined} />
+                                <AvatarFallback className="text-4xl bg-secondary">
+                                    {profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}
+                                </AvatarFallback>
+                            </Avatar>
+                            <h2 className="text-2xl font-bold mt-2">{profile.full_name || `@${profile.username}`}</h2>
+                            <p className="text-muted-foreground">{user?.email}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mt-6 text-center">
+                            <div className="p-4 bg-secondary rounded-lg">
+                                <p className="font-bold text-2xl text-primary">{activities?.length || 0}</p>
+                                <p className="text-sm text-muted-foreground">Activities</p>
                             </div>
-                            <div className="text-center">
-                                <p className="font-bold text-xl">{profile.kelp_points || 0}</p>
-                                <p className="text-sm text-gray-500">Kelp Points</p>
+                            <div className="p-4 bg-secondary rounded-lg">
+                                <p className="font-bold text-2xl text-primary">{profile.kelp_points || 0}</p>
+                                <p className="text-sm text-muted-foreground">Kelp Points</p>
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" /> About Me</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {profile.location && (
+                            <div className="flex items-center gap-3 text-sm">
+                                <MapPin className="w-4 h-4 text-muted-foreground" />
+                                <span>{profile.location}</span>
+                            </div>
+                        )}
+                        {(profile.lifestyle_tags && profile.lifestyle_tags.length > 0) ? (
+                            <div className="flex items-start gap-3 text-sm">
+                                <Tag className="w-4 h-4 text-muted-foreground mt-1" />
+                                <div className="flex flex-wrap gap-2">
+                                    {profile.lifestyle_tags.map(tag => (
+                                        <div key={tag} className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-medium">
+                                            {tag}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : <p className="text-sm text-muted-foreground">No lifestyle tags added yet.</p>}
+                        <Button variant="outline" className="w-full mt-2">Edit Profile</Button>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Award className="w-5 h-5 text-primary" /> Achievements</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {achievements.map((ach) => (
+                            <div key={ach.title} className="flex items-center gap-4 p-3 bg-secondary rounded-lg">
+                                <ach.icon className="w-8 h-8 text-primary" />
+                                <div>
+                                    <p className="font-semibold">{ach.title}</p>
+                                    <p className="text-sm text-muted-foreground">{ach.description}</p>
+                                </div>
+                            </div>
+                        ))}
                     </CardContent>
                 </Card>
 
@@ -128,15 +184,15 @@ const ProfilePage = () => {
                         <CardTitle>Recent Activity</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {activitiesLoading && <div className="flex justify-center"><LoaderCircle className="w-6 h-6 animate-spin text-green-600" /></div>}
+                        {activitiesLoading && <div className="flex justify-center"><LoaderCircle className="w-6 h-6 animate-spin text-primary" /></div>}
                         {activities && activities.length > 0 ? (
-                            <div className="space-y-8">
+                            <div className="space-y-4">
                                 {activities.map(item => (
                                     <ActivityCard key={item.id} activity={item} profile={item.profile} />
                                 ))}
                             </div>
                         ) : (
-                            !activitiesLoading && <p className="text-gray-500 text-center">No recent activities to show.</p>
+                            !activitiesLoading && <p className="text-muted-foreground text-center py-8">No recent activities to show.</p>
                         )}
                     </CardContent>
                 </Card>
