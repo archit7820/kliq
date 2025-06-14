@@ -7,17 +7,31 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 
-const generateCode = async (userId: string): Promise<string | null> => {
-  // Generates a random 8 digit code and sets it as referral_code for user.
+// Helper to generate a new code and persist
+const generateReferralCode = async (userId: string): Promise<string | null> => {
   const randomCode = Math.random().toString(36).slice(2, 10).toUpperCase();
   const { error } = await supabase
     .from("profiles")
     .update({ referral_code: randomCode })
     .eq("id", userId);
-  if (error) {
-    return null;
-  }
+  if (error) return null;
   return randomCode;
+};
+
+const fetchOrGenerateReferralCode = async (userId: string): Promise<string | null> => {
+  // Try to fetch code first
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("referral_code")
+    .eq("id", userId)
+    .single();
+
+  let code = data?.referral_code || null;
+  // If missing, generate and save
+  if (!code) {
+    code = await generateReferralCode(userId);
+  }
+  return code;
 };
 
 const FriendInviteModal = ({
@@ -36,17 +50,8 @@ const FriendInviteModal = ({
     if (user) {
       setLoading(true);
       setErrorMsg("");
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("referral_code")
-        .eq("id", user.id)
-        .single();
-      let code = data?.referral_code || null;
-      // If no referral code, generate one
-      if (!code) {
-        code = await generateCode(user.id);
-        if (!code) setErrorMsg("Could not generate invite code. Please try again.");
-      }
+      const code = await fetchOrGenerateReferralCode(user.id);
+      if (!code) setErrorMsg("Could not get your invite code. Try again.");
       setInviteCode(code);
       setLoading(false);
     }
@@ -63,8 +68,8 @@ const FriendInviteModal = ({
     if (inviteCode) {
       navigator.clipboard.writeText(inviteCode);
       toast({
-        title: "Copied!",
-        description: "Invite code copied to clipboard.",
+        title: "Copied Invite Code!",
+        description: "Share this with your friends so you both earn 50 Kelp Points!",
       });
     }
   };
@@ -73,10 +78,14 @@ const FriendInviteModal = ({
     if (!user) return;
     setLoading(true);
     setErrorMsg("");
-    const code = await generateCode(user.id);
-    if (!code) setErrorMsg("Could not generate invite code. Please try again.");
+    const code = await generateReferralCode(user.id);
+    if (!code) setErrorMsg("Could not generate invite code");
     setInviteCode(code);
     setLoading(false);
+    toast({
+      title: "Invite code regenerated!",
+      description: "Your new code is ready to share.",
+    });
   };
 
   return (
@@ -95,7 +104,7 @@ const FriendInviteModal = ({
               Invite a Friend
             </h2>
             <p className="text-gray-500 text-center text-sm mb-1">
-              Share your invite code for them to join!
+              Share your invite code. When a friend joins with it, <b>you both receive 50 Kelp Points!</b>
             </p>
             <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-xl font-mono text-lg text-green-800">
               {loading ? (
@@ -134,18 +143,18 @@ const FriendInviteModal = ({
                     `Join me on Kelp! Use my invite code: ${inviteCode} https://kelp.lovable.app/invite`
                   );
                   toast({
-                    title: "Copied!",
+                    title: "Invite Copied",
                     description:
-                      "Invite message copied. Paste it in any chat!",
+                      "The invite message is ready to paste in any chat. You both get 50 Kelp Points on join!",
                   });
                 }
               }}
               disabled={!inviteCode}
             >
-              Share Invite
+              Share Invite Message
             </Button>
-            <div className="mt-2 text-xs text-gray-500">
-              Both of you get 50 Kelp Points when your friend joins!
+            <div className="mt-2 text-xs text-green-700 text-center">
+              Every successful invite scores both accounts <b>50 Kelp Points!</b>
             </div>
           </div>
         </div>

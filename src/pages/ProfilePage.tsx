@@ -98,7 +98,6 @@ const ProfilePage = () => {
     const updateProfile = async () => {
         setErrorMsg(null);
         if (!user) return;
-        // Username present & changed
         if (!editForm.username) {
             setErrorMsg("Username cannot be empty.");
             return;
@@ -111,7 +110,7 @@ const ProfilePage = () => {
             avatar_url: editForm.avatar_url
         }).eq('id', user.id);
         if (error) {
-            if (error.code === '23505' && error.message.includes('profiles_username_key')) {
+            if (error.code === '23505' || (error.message && error.message?.toLowerCase().includes('username'))) {
                 setErrorMsg("That username is taken. Please choose another.");
             } else {
                 setErrorMsg(error.message || "Update failed");
@@ -137,12 +136,13 @@ const ProfilePage = () => {
         if (!file || !user) return;
         setAvatarUploading(true);
         const filePath = `avatars/${user.id}/${Date.now()}_${file.name}`;
-        const { data, error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+        const { error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
         if (error) {
             toast({ title: "Upload failed", description: error.message, variant: "destructive" });
         } else {
-            const url = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
-            setEditForm((curr) => ({ ...curr, avatar_url: url }));
+            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            setEditForm((curr) => ({ ...curr, avatar_url: data.publicUrl }));
+            toast({ title: "Profile image updated!" });
         }
         setAvatarUploading(false);
     };

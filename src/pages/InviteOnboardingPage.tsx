@@ -53,13 +53,13 @@ const InviteOnboardingPage = () => {
 
     setForm((f) => ({ ...f, uploading: true }));
     const filePath = `avatars/${user.id}/${Date.now()}_${file.name}`;
-    // Create a public bucket in Supabase Storage called "avatars"
-    const { data, error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+    const { error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
     if (error) {
       toast({ title: "Upload failed", description: error.message, variant: "destructive" });
     } else {
-      const url = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
-      setForm((f) => ({ ...f, avatar_url: url }));
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      setForm((f) => ({ ...f, avatar_url: data.publicUrl }));
+      toast({ title: "Avatar updated!" });
     }
     setForm((f) => ({ ...f, uploading: false }));
   };
@@ -81,7 +81,7 @@ const InviteOnboardingPage = () => {
 
     setSubmitting(false);
     if (error) {
-      if (error.code === '23505' && error.message.includes('profiles_username_key')) {
+      if (error.code === '23505' || (error.message && error.message.toLowerCase().includes('username'))) {
         setErrorMsg("That username is taken. Please choose another.");
       } else {
         setErrorMsg(error.message || "Profile update failed");
