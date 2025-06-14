@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, Mail, Lock, LogIn, UserPlus, AlertCircle } from 'lucide-react'; // Assuming Leaf is a suitable logo icon
+import { Leaf, Mail, Lock, LogIn, UserPlus, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
 
@@ -55,22 +55,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
     setIsLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    setError(null);
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-    if (oauthError) {
-      setError(oauthError.message);
-      toast({ title: "Google Sign-In Failed", description: oauthError.message, variant: "destructive" });
-      setIsLoading(false);
-    }
-    // On success, Supabase redirects and onAuthStateChange handles it.
-  };
+  // Removed handleGoogleSignIn function
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -125,6 +110,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
           </Button>
         </form>
 
+        {/* Removed the "Or continue with" divider and Google Sign-In button */}
+        {/*
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -139,6 +126,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
             Sign in with Google
           </Button>
         </div>
+        */}
       </div>
     </div>
   );
