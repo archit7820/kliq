@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LearnCard from '@/components/LearnCard';
 import BrandCard from '@/components/BrandCard';
+import DashboardSummary from "@/components/DashboardSummary";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
