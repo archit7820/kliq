@@ -54,7 +54,7 @@ serve(async (req) => {
     ]
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4-vision-preview',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
