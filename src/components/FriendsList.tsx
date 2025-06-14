@@ -58,38 +58,57 @@ const FriendsList = () => {
 
   return (
     <section>
-      <h2 className="font-extrabold text-xl mb-4 flex items-center gap-2 text-green-700">
-        <UsersRound className="w-5 h-5" />
-        Your Friends
+      <h2 className="font-extrabold text-xl mb-4 flex items-center gap-2 text-green-700 drop-shadow-sm tracking-wide">
+        <UsersRound className="w-6 h-6 text-green-400" />
+        <span className="bg-gradient-to-r from-green-500 to-teal-400 bg-clip-text text-transparent">Your Friends</span>
       </h2>
       <div className="space-y-3">
-        {loading && <div className="text-gray-300 animate-pulse">Loading...</div>}
-        {!loading && friends.length === 0 && (
-          <div className="text-gray-400 text-sm flex items-center gap-2 bg-gradient-to-r from-green-50 to-blue-50 border border-dashed border-green-200 rounded-xl py-6 justify-center">
-            <User className="w-8 h-8 text-green-200" />
-            No friends yet. Invite or add some!
+        {loading && (
+          <div className="flex items-center gap-2 animate-pulse px-4 py-8 justify-center">
+            <User className="w-8 h-8 text-green-200 animate-pulse" />
+            <div className="h-4 w-28 rounded bg-green-100" />
           </div>
         )}
-        <div className="grid gap-3 sm:grid-cols-2">
-        {friends.map((f) => (
-          <div key={f.id} className="bg-white/80 rounded-2xl shadow-lg px-5 py-4 flex items-center gap-4 border border-green-50 hover:shadow-xl hover:scale-[1.014] transition duration-150 ease-in-out">
-            {f.profile?.avatar_url
-              ? <img src={f.profile.avatar_url} alt="avatar" className="w-12 h-12 rounded-full border-2 border-green-300 shadow-sm object-cover" />
-              : <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 border-2 border-green-100">
+        {!loading && friends.length === 0 && (
+          <div className="flex flex-col items-center gap-2 bg-white p-8 rounded-2xl border-2 border-dashed border-green-200 shadow-[0_6px_40px_rgba(16,167,132,.07)] animate-fade-in">
+            <User className="w-12 h-12 text-green-200 mb-2" />
+            <span className="text-green-400 font-semibold text-base">You have no friends yet.</span>
+            <span className="text-gray-400 text-xs mb-2">Invite your first friend!</span>
+          </div>
+        )}
+        <div className="grid gap-5 sm:grid-cols-2">
+          {friends.map((f) => (
+            <div
+              key={f.id}
+              className="bg-gradient-to-br from-green-100/70 to-blue-100/60 rounded-3xl border border-green-200 shadow-xl px-6 py-5 flex items-center gap-4
+                hover:scale-105 hover:shadow-2xl transition-transform duration-200 ease-in-out group relative"
+            >
+              {f.profile?.avatar_url ? (
+                <img
+                  src={f.profile.avatar_url}
+                  alt="avatar"
+                  className="w-14 h-14 rounded-full border-2 border-green-400 shadow-inner object-cover"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-green-200 via-blue-200 to-green-100 flex items-center justify-center text-green-500 border-2 border-green-100">
                   <User className="w-7 h-7" />
                 </div>
-            }
-            <div className="flex-1 min-w-0">
-              <span className="block font-bold truncate text-green-800 text-base">
-                {f.profile?.full_name || f.profile?.username || "User"}
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="block font-bold truncate text-green-800 text-lg">
+                  {f.profile?.full_name || f.profile?.username || "User"}
+                </span>
+                <span className="block text-sm text-green-400 truncate font-mono">@{f.profile?.username}</span>
+              </div>
+              <span
+                className="flex flex-col items-center gap-1 cursor-not-allowed group-hover:scale-105"
+                title="Message (coming soon)"
+              >
+                <Mail className="w-6 h-6 text-blue-400 opacity-80 group-hover:text-blue-600 transition" />
+                <span className="text-[10px] text-blue-300 -mt-1">Soon</span>
               </span>
-              <span className="block text-xs text-gray-400 truncate">@{f.profile?.username}</span>
             </div>
-            <span title="Message (coming soon)">
-              <Mail className="w-5 h-5 text-green-400 opacity-80 hover:text-green-600 transition" />
-            </span>
-          </div>
-        ))}
+          ))}
         </div>
       </div>
     </section>
@@ -97,3 +116,4 @@ const FriendsList = () => {
 };
 
 export default FriendsList;
+
