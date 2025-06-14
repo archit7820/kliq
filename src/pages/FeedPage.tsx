@@ -33,7 +33,6 @@ const FeedPage = () => {
     queryFn: async () => {
         if (!user) return [];
         
-        // For larger scale apps, creating a database function (RPC) for aggregation would be more performant.
         const { data: activities, error } = await supabase
             .from('activities')
             .select('category, carbon_footprint_kg')
@@ -46,7 +45,7 @@ const FeedPage = () => {
         }
 
         const aggregated: { [key: string]: number } = {};
-        activities.forEach(activity => {
+        (activities || []).forEach(activity => {
             const category = activity.category || 'Other';
             const carbon = Number(activity.carbon_footprint_kg) || 0;
             if (aggregated[category]) {
@@ -85,7 +84,7 @@ const FeedPage = () => {
 
         <FriendsBar user={user} />
         
-        <FeedContent user={user} />
+        <FeedContent user={userProfile} />
       </main>
 
       <BottomNav />
@@ -94,3 +93,4 @@ const FeedPage = () => {
 };
 
 export default FeedPage;
+
