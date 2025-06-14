@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +11,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ActivityCard from '@/components/ActivityCard';
 import { Database } from '@/integrations/supabase/types';
+import { Upload } from 'lucide-react';
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -71,6 +71,69 @@ const ProfilePage = () => {
         }
     };
 
+    const [editing, setEditing] = React.useState(false);
+    const [editForm, setEditForm] = React.useState({
+        full_name: '',
+        username: '',
+        location: '',
+        lifestyle_tags: [] as string[],
+        avatar_url: '',
+    });
+    const [avatarUploading, setAvatarUploading] = React.useState(false);
+
+    React.useEffect(() => {
+        if (profile) {
+            setEditForm({
+                full_name: profile.full_name || '',
+                username: profile.username || '',
+                location: profile.location || '',
+                lifestyle_tags: profile.lifestyle_tags || [],
+                avatar_url: profile.avatar_url || '',
+            });
+        }
+    }, [profile]);
+
+    const updateProfile = async () => {
+        if (!user) return;
+        const { error } = await supabase.from('profiles').update({
+            full_name: editForm.full_name,
+            username: editForm.username,
+            location: editForm.location,
+            lifestyle_tags: editForm.lifestyle_tags,
+            avatar_url: editForm.avatar_url
+        }).eq('id', user.id);
+        if (error) {
+            toast({ title: "Update failed", description: error.message, variant: "destructive" });
+        } else {
+            toast({ title: "Profile updated!" });
+            setEditing(false);
+        }
+    };
+
+    const handleTagToggle = (tag: string) => {
+        setEditForm((curr) => ({
+            ...curr,
+            lifestyle_tags: curr.lifestyle_tags.includes(tag)
+                ? curr.lifestyle_tags.filter((t) => t !== tag)
+                : [...curr.lifestyle_tags, tag]
+        }));
+    };
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+        setAvatarUploading(true);
+        const filePath = `avatars/${user.id}/${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+        if (error) {
+            toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+        } else {
+            const url = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
+            setEditForm((curr) => ({ ...curr, avatar_url: url }));
+        }
+        setAvatarUploading(false);
+    };
+
     if (profileLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-background">
@@ -113,14 +176,71 @@ const ProfilePage = () => {
                     <div className="bg-primary/10 h-24 sm:h-32" />
                     <CardContent className="pt-0">
                         <div className="flex flex-col items-center -mt-12 sm:-mt-16">
-                            <Avatar className="w-24 h-24 sm:w-32 sm:h-32 mb-2 border-4 border-background ring-2 ring-primary">
-                                <AvatarImage src={profile.avatar_url || undefined} />
-                                <AvatarFallback className="text-4xl bg-secondary">
-                                    {profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}
-                                </AvatarFallback>
-                            </Avatar>
-                            <h2 className="text-2xl font-bold mt-2">{profile.full_name || `@${profile.username}`}</h2>
-                            <p className="text-muted-foreground">{user?.email}</p>
+                            {editing ? (
+                                <>
+                                    <label className="relative group cursor-pointer">
+                                        <img
+                                            src={editForm.avatar_url || ""}
+                                            alt="avatar"
+                                            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 object-cover border-background ring-2 ring-primary"
+                                        />
+                                        <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+                                        <span className="absolute bottom-2 right-2 bg-primary text-white rounded-full p-1">
+                                            <Upload className="w-5 h-5" />
+                                        </span>
+                                        {avatarUploading && <LoaderCircle className="absolute w-5 h-5 animate-spin top-2 right-2 text-muted-foreground" />}
+                                    </label>
+                                    <Input
+                                        className="mt-2"
+                                        placeholder="Full name"
+                                        value={editForm.full_name}
+                                        onChange={e => setEditForm({ ...editForm, full_name: e.target.value })}
+                                    />
+                                    <Input
+                                        className="mt-2"
+                                        placeholder="Username"
+                                        value={editForm.username}
+                                        onChange={e => setEditForm({ ...editForm, username: e.target.value.replace(/\W/g, '') })}
+                                    />
+                                    <Input
+                                        className="mt-2"
+                                        placeholder="Location"
+                                        value={editForm.location}
+                                        onChange={e => setEditForm({ ...editForm, location: e.target.value })}
+                                    />
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {[
+                                            "Vegetarian", "Vegan", "Cyclist", "Gardener", "Minimalist", "Composter",
+                                            "Zero Waste", "Car Free", "Parent", "Techie", "Student", "Remote Worker"
+                                        ].map(tag => (
+                                            <button
+                                                key={tag}
+                                                type="button"
+                                                className={`px-3 py-1 rounded-full border ${editForm.lifestyle_tags.includes(tag) ? 'bg-green-300 text-green-900 font-semibold border-green-400' : 'bg-gray-100 text-gray-600 border-gray-200'} transition-all`}
+                                                onClick={() => handleTagToggle(tag)}
+                                            >
+                                                {tag}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <Button className="w-full mt-2" onClick={updateProfile}>Save Profile</Button>
+                                    <Button variant="outline" className="w-full mt-2" onClick={() => setEditing(false)}>Cancel</Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Avatar className="w-24 h-24 sm:w-32 sm:h-32 mb-2 border-4 border-background ring-2 ring-primary">
+                                        <AvatarImage src={profile.avatar_url || undefined} />
+                                        <AvatarFallback className="text-4xl bg-secondary">
+                                            {profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <h2 className="text-2xl font-bold mt-2">{profile.full_name || `@${profile.username}`}</h2>
+                                    <p className="text-muted-foreground">{profile.username ? `@${profile.username}` : null}</p>
+                                    <Button variant="outline" size="sm" className="mt-2" onClick={() => setEditing(true)}>
+                                        Edit Profile
+                                    </Button>
+                                </>
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-4 mt-6 text-center">
                             <div className="p-4 bg-secondary rounded-lg">

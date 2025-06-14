@@ -34,7 +34,7 @@ const FeedHeader: React.FC<FeedHeaderProps> = ({ userProfile, onRefresh, isRefet
           <Link to="/profile">
             <Avatar className="w-9 h-9">
                 <AvatarImage src={userProfile?.avatar_url || undefined} />
-                <AvatarFallback>{userProfile?.full_name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                <AvatarFallback>{userProfile?.full_name?.charAt(0).toUpperCase() || userProfile?.username?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
           </Link>
       </div>

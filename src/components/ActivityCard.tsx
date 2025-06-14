@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -58,7 +57,9 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
               </Avatar>
             )}
             <div>
-              <p className="font-semibold text-sm text-primary">{profile?.full_name || `@${profile?.username}`}</p>
+              <p className="font-semibold text-sm text-primary">
+                {profile?.full_name || `@${profile?.username}` || 'User'}
+              </p>
               <p className="text-xs text-muted-foreground">{timeAgo}</p>
             </div>
           </div>
@@ -97,7 +98,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
               </span>
             </div>
           </div>
-          {activity.caption && <p className="text-sm mt-3"><span className="font-semibold text-primary">{profile?.username}</span> {activity.caption}</p>}
+          {activity.caption && <p className="text-sm mt-3"><span className="font-semibold text-primary">{profile?.username ? `@${profile?.username}` : profile?.full_name}</span> {activity.caption}</p>}
           <button onClick={handleComment} className="text-xs text-muted-foreground mt-2 underline hover:text-primary">View all comments</button>
         </CardContent>
       </Card>
