@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ActivityCard from '@/components/ActivityCard';
 import { Database } from '@/integrations/supabase/types';
 import { Upload } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
