@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { User, Mail, UsersRound } from "lucide-react";
+import { User, MessageSquare, UsersRound } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type Friend = {
   id: string;
@@ -77,38 +78,39 @@ const FriendsList = () => {
           </div>
         )}
         <div className="grid gap-5 sm:grid-cols-2">
-          {friends.map((f) => (
-            <div
-              key={f.id}
-              className="bg-gradient-to-br from-green-100/70 to-blue-100/60 rounded-3xl border border-green-200 shadow-xl px-6 py-5 flex items-center gap-4
-                hover:scale-105 hover:shadow-2xl transition-transform duration-200 ease-in-out group relative"
-            >
-              {f.profile?.avatar_url ? (
-                <img
-                  src={f.profile.avatar_url}
-                  alt="avatar"
-                  className="w-14 h-14 rounded-full border-2 border-green-400 shadow-inner object-cover"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-green-200 via-blue-200 to-green-100 flex items-center justify-center text-green-500 border-2 border-green-100">
-                  <User className="w-7 h-7" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <span className="block font-bold truncate text-green-800 text-lg">
-                  {f.profile?.full_name || f.profile?.username || "User"}
-                </span>
-                <span className="block text-sm text-green-400 truncate font-mono">@{f.profile?.username}</span>
-              </div>
-              <span
-                className="flex flex-col items-center gap-1 cursor-not-allowed group-hover:scale-105"
-                title="Message (coming soon)"
+          {friends.map((f) => {
+            const friendId = f.user1_id === user.id ? f.user2_id : f.user1_id;
+            return (
+              <div
+                key={f.id}
+                className="bg-gradient-to-br from-green-100/70 to-blue-100/60 rounded-3xl border border-green-200 shadow-xl px-6 py-5 flex items-center gap-4
+                  hover:scale-105 hover:shadow-2xl transition-transform duration-200 ease-in-out group relative"
               >
-                <Mail className="w-6 h-6 text-blue-400 opacity-80 group-hover:text-blue-600 transition" />
-                <span className="text-[10px] text-blue-300 -mt-1">Soon</span>
-              </span>
-            </div>
-          ))}
+                {f.profile?.avatar_url ? (
+                  <img
+                    src={f.profile.avatar_url}
+                    alt="avatar"
+                    className="w-14 h-14 rounded-full border-2 border-green-400 shadow-inner object-cover"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-green-200 via-blue-200 to-green-100 flex items-center justify-center text-green-500 border-2 border-green-100">
+                    <User className="w-7 h-7" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <span className="block font-bold truncate text-green-800 text-lg">
+                    {f.profile?.full_name || f.profile?.username || "User"}
+                  </span>
+                  <span className="block text-sm text-green-400 truncate font-mono">@{f.profile?.username}</span>
+                </div>
+                <Link to={`/chat/${friendId}`} title="Message friend">
+                  <span className="flex items-center justify-center p-2 rounded-full cursor-pointer group-hover:bg-blue-100/50 transition">
+                    <MessageSquare className="w-6 h-6 text-blue-400 opacity-80 group-hover:text-blue-600 transition" />
+                  </span>
+                </Link>
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>
@@ -116,4 +118,3 @@ const FriendsList = () => {
 };
 
 export default FriendsList;
-

@@ -3,7 +3,8 @@ import React from 'react';
 import { Database } from '@/integrations/supabase/types';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, MessageSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -24,6 +25,11 @@ const FeedHeader: React.FC<FeedHeaderProps> = ({ userProfile, onRefresh, isRefet
           <Button variant="ghost" size="icon" onClick={onRefresh} disabled={isRefetching}>
               <RefreshCw className={`w-5 h-5 text-gray-600 ${isRefetching ? 'animate-spin' : ''}`} />
           </Button>
+          <Link to="/messages">
+            <Button variant="ghost" size="icon">
+                <MessageSquare className="w-5 h-5 text-gray-600" />
+            </Button>
+          </Link>
           <Avatar>
               <AvatarImage src={userProfile?.avatar_url || undefined} />
               <AvatarFallback>{userProfile?.full_name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
