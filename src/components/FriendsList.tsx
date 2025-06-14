@@ -12,6 +12,12 @@ type Friend = {
   profile?: { full_name: string | null; username: string | null; avatar_url: string | null };
 };
 
+const DEFAULT_PROFILE = {
+  full_name: null,
+  username: null,
+  avatar_url: null,
+};
+
 const FriendsList = () => {
   const { user } = useAuthStatus();
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -20,18 +26,15 @@ const FriendsList = () => {
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    // Select all friend rows where user is user1 or user2, fetch friend's profile
     supabase
       .from("friends")
       .select("*")
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       .then(async ({ data, error }) => {
         if (error) return;
-        // For each friend row, figure out *who* the friend is
         const friendIds = (data || []).map(
           f => f.user1_id === user.id ? f.user2_id : f.user1_id
         );
-        // Fetch their profiles
         if (!friendIds.length) {
           setFriends([]);
           setLoading(false);
@@ -43,7 +46,7 @@ const FriendsList = () => {
           .in("id", friendIds);
         const friendsWithProfile = (data || []).map(f => {
           const fid = f.user1_id === user.id ? f.user2_id : f.user1_id;
-          const profile = profiles?.find((p) => p.id === fid) || {};
+          const profile = profiles?.find((p) => p.id === fid) || DEFAULT_PROFILE;
           return { ...f, profile };
         });
         setFriends(friendsWithProfile);
@@ -78,3 +81,4 @@ const FriendsList = () => {
 };
 
 export default FriendsList;
+
