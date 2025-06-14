@@ -17,11 +17,15 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
   const carbonFootprint = Number(activity.carbon_footprint_kg);
 
   const getCarbonIndicatorColor = (carbonFootprint: number) => {
-    if (carbonFootprint < 1) return 'bg-green-500';
-    if (carbonFootprint < 5) return 'bg-yellow-500';
-    if (carbonFootprint < 10) return 'bg-orange-500';
+    if (carbonFootprint < 0) return 'bg-cyan-400';
+    if (carbonFootprint <= 1) return 'bg-green-500';
+    if (carbonFootprint <= 5) return 'bg-yellow-500';
+    if (carbonFootprint <= 10) return 'bg-orange-500';
     return 'bg-red-500';
   };
+
+  const isOffset = carbonFootprint < 0;
+  const displayValue = isOffset ? Math.abs(carbonFootprint) : carbonFootprint;
 
   const imageUrl = activity.image_url || `https://picsum.photos/seed/${activity.id}/800/1000`;
 
@@ -50,12 +54,12 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
           <div className="flex items-center gap-1.5 text-right shrink-0">
              <div
               className={`w-3 h-3 rounded-full ${getCarbonIndicatorColor(carbonFootprint)}`}
-              title={`Carbon Footprint: ${carbonFootprint} kg CO₂e`}
+              title={`Carbon Footprint: ${carbonFootprint.toFixed(1)} kg CO₂e${isOffset ? ' offset' : ''}`}
             />
             <span className="font-bold text-lg">
-              {carbonFootprint.toFixed(1)}
+              {displayValue.toFixed(1)}
             </span>
-            <span className="text-xs self-end">kg</span>
+            <span className="text-xs self-end">{isOffset ? 'kg offset' : 'kg'}</span>
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import BottomNav from '@/components/BottomNav';
@@ -9,6 +10,7 @@ import { toast } from 'sonner';
 import { Upload, Sparkles, Image as ImageIcon, LoaderCircle, AlertTriangle, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
+import { useQueryClient } from '@tanstack/react-query';
 
 type AnalysisResult = {
   activity: string;
@@ -28,6 +30,7 @@ const LogActivityPage = () => {
 
   const navigate = useNavigate();
   const { user } = useAuthStatus();
+  const queryClient = useQueryClient();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -60,7 +63,7 @@ const LogActivityPage = () => {
     try {
       const image_b64 = await toBase64(selectedFile);
       const { data, error } = await supabase.functions.invoke('analyze-activity', {
-        body: { image_b64 },
+        body: { image_b64, caption },
       });
 
       if (error) {
@@ -90,6 +93,7 @@ const LogActivityPage = () => {
     setIsLogging(true);
 
     try {
+      // 1. Upload image
       const filePath = `${user.id}/${Date.now()}_${selectedFile.name}`;
       const { error: uploadError } = await supabase.storage
         .from('activity_images')
@@ -103,6 +107,7 @@ const LogActivityPage = () => {
 
       if (!publicUrl) throw new Error('Could not get public URL for the image.');
 
+      // 2. Insert new activity
       const { error: insertError } = await supabase.from('activities').insert({
         user_id: user.id,
         caption,
@@ -115,8 +120,33 @@ const LogActivityPage = () => {
 
       if (insertError) throw new Error(`Failed to log activity: ${insertError.message}`);
       
-      toast.success('Activity logged successfully!');
-      navigate('/home');
+      // 3. Update user's kelp points
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('kelp_points')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError) throw new Error(`Could not fetch profile: ${profileError.message}`);
+
+      const currentPoints = profileData?.kelp_points || 0;
+      const newPoints = currentPoints - result.carbon_footprint_kg;
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ kelp_points: newPoints })
+        .eq('id', user.id);
+        
+      if (updateError) throw new Error(`Failed to update kelp points: ${updateError.message}`);
+
+      // 4. Invalidate queries to refetch data elsewhere
+      await queryClient.invalidateQueries({ queryKey: ['user-activities', user.id] });
+      await queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+      await queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      await queryClient.invalidateQueries({ queryKey: ['feed', user.id] });
+
+      toast.success('Activity logged & Kelp Points updated!');
+      navigate('/feed');
 
     } catch (err: any) {
       toast.error('Failed to log activity', { description: err.message });
@@ -136,7 +166,7 @@ const LogActivityPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-600">
               <Upload className="w-6 h-6" />
-              Upload an Image
+              Upload & Analyze
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -154,6 +184,21 @@ const LogActivityPage = () => {
               </Button>
               {selectedFile && <p className="text-sm text-gray-500 mt-2">{selectedFile.name}</p>}
             </div>
+            
+            {selectedFile && !result && (
+              <div className="space-y-2 pt-2 animate-fade-in">
+                <label htmlFor="caption" className="font-medium text-gray-700">Add a caption (optional)</label>
+                <Textarea
+                  id="caption"
+                  placeholder="e.g., Cycled 10km to work today instead of driving!"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  className="bg-white"
+                  disabled={loading || !!result}
+                />
+                <p className="text-xs text-gray-500">Adding context helps us calculate the carbon footprint more accurately.</p>
+              </div>
+            )}
 
             <Button onClick={handleAnalyze} disabled={!selectedFile || loading || !!result} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3">
               {loading ? (
@@ -204,17 +249,12 @@ const LogActivityPage = () => {
                 <p className="text-sm font-medium text-gray-500">Explanation</p>
                 <p className="text-gray-600 italic">"{result.explanation}"</p>
               </div>
-
-              <div className="space-y-2 pt-4">
-                <label htmlFor="caption" className="font-medium text-gray-700">Add a caption</label>
-                <Textarea
-                  id="caption"
-                  placeholder="e.g., My delicious (but maybe not so green) lunch!"
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  className="bg-white"
-                />
-              </div>
+              {caption && (
+                  <div>
+                      <p className="text-sm font-medium text-gray-500">Your Caption</p>
+                      <p className="text-gray-600 italic">"{caption}"</p>
+                  </div>
+              )}
 
               <Button onClick={handleLogActivity} disabled={isLogging} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 mt-2">
                 {isLogging ? (

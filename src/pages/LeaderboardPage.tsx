@@ -3,19 +3,38 @@ import React from 'react';
 import BottomNav from '@/components/BottomNav';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Crown } from 'lucide-react';
-
-const dummyLeaderboard = [
-  { rank: 1, name: 'Eco Warrior', points: 2580, avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-  { rank: 2, name: 'Green Giant', points: 2410, avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e' },
-  { rank: 3, name: 'Captain Planet', points: 2350, avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f' },
-  { rank: 4, name: 'Recycle Queen', points: 2100, avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704a' },
-  { rank: 5, name: 'Solar Sam', points: 1980, avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704b' },
-  { rank: 6, name: 'You', points: 1850, avatar: '', isCurrentUser: true },
-  { rank: 7, name: 'Windy Wendy', points: 1700, avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704c' },
-];
+import { Crown, LoaderCircle, AlertTriangle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthStatus } from '@/hooks/useAuthStatus';
 
 const LeaderboardPage = () => {
+  const { user } = useAuthStatus();
+
+  const fetchLeaderboard = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, username, avatar_url, kelp_points')
+      .not('kelp_points', 'is', null)
+      .order('kelp_points', { ascending: false })
+      .limit(100);
+
+    if (error) throw new Error(error.message);
+    
+    return data.map((profile, index) => ({
+        rank: index + 1,
+        name: profile.full_name || profile.username || 'Anonymous',
+        points: profile.kelp_points || 0,
+        avatar: profile.avatar_url || '',
+        isCurrentUser: user?.id === profile.id
+    }));
+  };
+
+  const { data: leaderboard, isLoading, isError, error } = useQuery({
+      queryKey: ['leaderboard'],
+      queryFn: fetchLeaderboard
+  });
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-white shadow-sm p-4">
@@ -28,25 +47,39 @@ const LeaderboardPage = () => {
             <CardTitle>Top Kelp Contributors</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-4">
-              {dummyLeaderboard.map((user, index) => (
-                <li key={user.rank} className={`flex items-center p-3 rounded-lg ${user.isCurrentUser ? 'bg-green-100 border border-green-300' : 'bg-white'}`}>
-                  <div className="w-8 text-lg font-bold text-gray-500">{user.rank}</div>
-                  <Avatar className="w-10 h-10 mx-4">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-grow">
-                    <p className="font-semibold text-gray-800">{user.name}</p>
-                    <p className="text-sm text-gray-500">{user.points} Kelp Points</p>
-                  </div>
-                  {index < 3 && <Crown className={`w-6 h-6 ${
-                      index === 0 ? 'text-yellow-400' : 
-                      index === 1 ? 'text-gray-400' : 'text-yellow-600'
-                  }`} />}
-                </li>
-              ))}
-            </ul>
+            {isLoading && (
+              <div className="flex justify-center items-center py-10">
+                <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
+              </div>
+            )}
+            {isError && (
+              <div className="flex flex-col items-center justify-center py-10 text-red-600">
+                <AlertTriangle className="w-8 h-8 mb-2" />
+                <p>Could not load leaderboard.</p>
+                <p className="text-sm text-red-500">{error.message}</p>
+              </div>
+            )}
+            {leaderboard && (
+              <ul className="space-y-4">
+                {leaderboard.map((u, index) => (
+                  <li key={u.rank} className={`flex items-center p-3 rounded-lg ${u.isCurrentUser ? 'bg-green-100 border border-green-300' : 'bg-white'}`}>
+                    <div className="w-8 text-lg font-bold text-gray-500">{u.rank}</div>
+                    <Avatar className="w-10 h-10 mx-4">
+                      <AvatarImage src={u.avatar} />
+                      <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow">
+                      <p className="font-semibold text-gray-800">{u.name}</p>
+                      <p className="text-sm text-gray-500">{Math.round(u.points)} Kelp Points</p>
+                    </div>
+                    {index < 3 && <Crown className={`w-6 h-6 ${
+                        index === 0 ? 'text-yellow-400' : 
+                        index === 1 ? 'text-gray-400' : 'text-yellow-600'
+                    }`} />}
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </main>

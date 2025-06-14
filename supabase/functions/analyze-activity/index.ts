@@ -9,11 +9,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SYSTEM_PROMPT = `Analyze the image to identify the primary activity. Estimate its carbon footprint in kg CO2e.
+const SYSTEM_PROMPT = `Analyze the image and the accompanying caption to identify the primary activity. Estimate its carbon footprint in kg CO2e.
+Provide context-aware analysis. For example, if the caption says "cycling to work instead of driving", calculate the carbon saved and represent it as a negative value.
 Return a JSON object with:
-- "activity" (string): A descriptive name for the activity (e.g., "Eating a steak dinner", "Driving a gasoline car for 10km").
-- "carbon_footprint_kg" (number): The estimated carbon footprint.
-- "explanation" (string): A brief, one-sentence explanation for the estimate.
+- "activity" (string): A descriptive name for the activity (e.g., "Eating a steak dinner", "Cycling to work").
+- "carbon_footprint_kg" (number): The estimated carbon footprint. A positive number indicates emissions, a negative number indicates an offset/saving.
+- "explanation" (string): A brief, one-sentence explanation for the estimate, considering the caption.
 - "emoji" (string): A single emoji that represents the activity.
 
 If the activity is unclear or has a negligible carbon footprint (like drinking water), set carbon_footprint_kg to 0.
@@ -25,13 +26,30 @@ serve(async (req) => {
   }
 
   try {
-    const { image_b64 } = await req.json();
+    const { image_b64, caption } = await req.json();
 
     if (!openAIApiKey) {
       throw new Error("Missing OPENAI_API_KEY secret.");
     }
     if (!image_b64) {
       throw new Error("Missing image_b64 in request body.");
+    }
+
+    const userContent: any[] = [
+      {
+        type: 'image_url',
+        image_url: {
+          url: `data:image/jpeg;base64,${image_b64}`,
+          detail: 'low',
+        },
+      },
+    ];
+
+    if (caption) {
+      userContent.push({
+        type: 'text',
+        text: `User caption for additional context: "${caption}"`
+      });
     }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -49,15 +67,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: [
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${image_b64}`,
-                  detail: 'low',
-                },
-              },
-            ],
+            content: userContent,
           },
         ],
         max_tokens: 500,
