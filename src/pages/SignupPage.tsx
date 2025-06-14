@@ -1,5 +1,5 @@
 
-import { AuthForm } from '@/components/AuthForm';
+import AuthForm from '@/components/AuthForm';
 import { useAuthStatus } from '@/hooks/useAuthStatus'; // To check if already logged in
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
