@@ -11,7 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +44,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
   const imageUrl = activity.image_url || `https://picsum.photos/seed/${activity.id}/800/1000`;
 
   const handleLike = () => {
-    console.log(`Liking activity ${activity.id}`);
     // To implement like feature
   };
 

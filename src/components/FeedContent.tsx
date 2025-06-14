@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LoaderCircle } from "lucide-react";
@@ -112,11 +111,11 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
         </div>
       ) : (
         posts
-          .filter((activity) => !activity.archived)
+          .filter((activity) => !(activity as any).archived) // Typecast ensures we check archived correctly
           .map((activity) => (
             <ActivityCard
               key={activity.id}
-              activity={activity}
+              activity={activity as Activity} // ensure correct local type
               profile={profiles[activity.user_id]}
               currentUserId={user?.id}
             />
