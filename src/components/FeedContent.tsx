@@ -16,61 +16,111 @@ interface FeedContentProps {
 }
 
 const FeedContent: React.FC<FeedContentProps> = ({ user }) => {
-  const [activeTab, setActiveTab] = useState('friends');
+  const [activeTab, setActiveTab] = useState("friends");
   const [feedData, setFeedData] = useState<ActivityWithProfile[] | null>(null);
 
+  // Optimize: Friends' posts first, then communities, mobile-first tailwind container
   const fetchFeed = async (feedType: string): Promise<ActivityWithProfile[]> => {
     if (!user) return [];
+
+    let activities: ActivityWithProfile[] = [];
     let userIds: string[] = [];
+    let friendActivities: any[] = [];
+    let communityActivities: any[] = [];
 
-    if (feedType === 'friends') {
-        const { data: friendsData, error: friendsError } = await supabase
-            .from('friends')
-            .select('user1_id, user2_id')
-            .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-        
-        if (friendsError) {
-            console.error('Error fetching friends:', friendsError);
-            throw friendsError;
-        }
-        const friendIds = friendsData.map(f => (f.user1_id === user.id ? f.user2_id : f.user1_id));
-        userIds = [user.id, ...friendIds];
+    if (feedType === "friends") {
+      // 1. Fetch friend IDs
+      const { data: friendsData } = await supabase
+        .from("friends")
+        .select("user1_id, user2_id")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+      const friendIds = friendsData
+        ? friendsData.map(f => (f.user1_id === user.id ? f.user2_id : f.user1_id))
+        : [];
+      userIds = [user.id, ...friendIds];
+
+      // 2. Fetch activities from friends (most recent first)
+      const { data: friendsActs } = await supabase
+        .from("activities")
+        .select("*")
+        .in("user_id", userIds)
+        .order("created_at", { ascending: false })
+        .limit(30);
+
+      friendActivities = friendsActs || [];
+
+      // 3. Fetch community activities (most recent first, not already in friends' posts)
+      const { data: myMemberships } = await supabase
+        .from("community_memberships")
+        .select("community_id")
+        .eq("user_id", user.id);
+
+      const communityIds = myMemberships?.map(m => m.community_id) || [];
+
+      const { data: commActsRecords } = await supabase
+        .from("community_activities")
+        .select("activity_id, community_id, posted_at")
+        .in("community_id", communityIds)
+        .order("posted_at", { ascending: false })
+        .limit(30);
+
+      const commActIds = commActsRecords?.map(ca => ca.activity_id) || [];
+
+      const { data: commActs } = commActIds.length
+        ? await supabase
+            .from("activities")
+            .select("*")
+            .in("id", commActIds)
+            .not("user_id", "in", `(${userIds.join(",")})`)
+            .order("created_at", { ascending: false })
+        : { data: [] };
+
+      communityActivities = commActs || [];
+
+      // 4. Combine: friends first, then community
+      activities = [
+        ...friendActivities,
+        ...communityActivities.filter(
+          act => !friendActivities.find(a => a.id === act.id)
+        ),
+      ];
+    } else {
+      // Community-only: fetch all recent community activities (for discoverability)
+      const { data: commActsRecords } = await supabase
+        .from("community_activities")
+        .select("activity_id, community_id, posted_at")
+        .order("posted_at", { ascending: false })
+        .limit(50);
+
+      const commActIds = commActsRecords?.map(ca => ca.activity_id) || [];
+
+      const { data: acts } = commActIds.length
+        ? await supabase
+            .from("activities")
+            .select("*")
+            .in("id", commActIds)
+            .order("created_at", { ascending: false })
+        : { data: [] };
+
+      activities = acts || [];
     }
 
-    let query = supabase
-      .from('activities')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
+    // Get unique user ids for profile pulls
+    const authorIds = [
+      ...new Set(activities.map(a => a.user_id)),
+    ];
 
-    if (feedType === 'friends') {
-        query = query.in('user_id', userIds);
-    }
+    const { data: profilesData } = authorIds.length
+      ? await supabase
+          .from("profiles")
+          .select("*")
+          .in("id", authorIds)
+      : { data: [] };
 
-    const { data: activitiesData, error: activitiesError } = await query;
-
-    if (activitiesError) {
-        console.error('Error fetching activities:', activitiesError);
-        throw activitiesError;
-    }
-
-    if (!activitiesData?.length) return [];
-
-    const authorIds = [...new Set(activitiesData.map(a => a.user_id))];
-
-    const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', authorIds);
-
-    if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        throw profilesError;
-    }
-
-    return activitiesData.map(activity => ({
-        ...activity,
-        profile: profilesData.find(p => p.id === activity.user_id) || null,
+    return activities.map(activity => ({
+      ...activity,
+      profile: profilesData?.find(p => p.id === activity.user_id) || null,
     }));
   };
 
