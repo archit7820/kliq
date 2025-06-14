@@ -1,12 +1,14 @@
-
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Upload, Sparkles, Image as ImageIcon, LoaderCircle, AlertTriangle } from 'lucide-react';
+import { Upload, Sparkles, Image as ImageIcon, LoaderCircle, AlertTriangle, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStatus } from '@/hooks/useAuthStatus';
 
 type AnalysisResult = {
   activity: string;
@@ -21,6 +23,11 @@ const LogActivityPage = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [caption, setCaption] = useState('');
+  const [isLogging, setIsLogging] = useState(false);
+
+  const navigate = useNavigate();
+  const { user } = useAuthStatus();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -29,6 +36,7 @@ const LogActivityPage = () => {
       setPreviewUrl(URL.createObjectURL(file));
       setResult(null);
       setError(null);
+      setCaption('');
     }
   };
 
@@ -73,6 +81,50 @@ const LogActivityPage = () => {
     }
   };
 
+  const handleLogActivity = async () => {
+    if (!result || !selectedFile || !user) {
+      toast.error('Cannot log activity.', { description: 'Missing analysis result, file, or user session.' });
+      return;
+    }
+
+    setIsLogging(true);
+
+    try {
+      const filePath = `${user.id}/${Date.now()}_${selectedFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('activity_images')
+        .upload(filePath, selectedFile);
+
+      if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('activity_images')
+        .getPublicUrl(filePath);
+
+      if (!publicUrl) throw new Error('Could not get public URL for the image.');
+
+      const { error: insertError } = await supabase.from('activities').insert({
+        user_id: user.id,
+        caption,
+        activity: result.activity,
+        carbon_footprint_kg: result.carbon_footprint_kg,
+        explanation: result.explanation,
+        emoji: result.emoji,
+        image_url: publicUrl,
+      });
+
+      if (insertError) throw new Error(`Failed to log activity: ${insertError.message}`);
+      
+      toast.success('Activity logged successfully!');
+      navigate('/home');
+
+    } catch (err: any) {
+      toast.error('Failed to log activity', { description: err.message });
+    } finally {
+      setIsLogging(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white shadow-sm p-4">
@@ -103,7 +155,7 @@ const LogActivityPage = () => {
               {selectedFile && <p className="text-sm text-gray-500 mt-2">{selectedFile.name}</p>}
             </div>
 
-            <Button onClick={handleAnalyze} disabled={!selectedFile || loading} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3">
+            <Button onClick={handleAnalyze} disabled={!selectedFile || loading || !!result} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3">
               {loading ? (
                 <>
                   <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
@@ -139,7 +191,7 @@ const LogActivityPage = () => {
                 Analysis Result
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-gray-700">
+            <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Activity</p>
                 <p className="text-lg font-semibold">{result.activity}</p>
@@ -152,6 +204,31 @@ const LogActivityPage = () => {
                 <p className="text-sm font-medium text-gray-500">Explanation</p>
                 <p className="text-gray-600 italic">"{result.explanation}"</p>
               </div>
+
+              <div className="space-y-2 pt-4">
+                <label htmlFor="caption" className="font-medium text-gray-700">Add a caption</label>
+                <Textarea
+                  id="caption"
+                  placeholder="e.g., My delicious (but maybe not so green) lunch!"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  className="bg-white"
+                />
+              </div>
+
+              <Button onClick={handleLogActivity} disabled={isLogging} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 mt-2">
+                {isLogging ? (
+                  <>
+                    <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
+                    Logging...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Log this Activity
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         )}

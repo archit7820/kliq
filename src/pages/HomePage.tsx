@@ -6,17 +6,43 @@ import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { LogOut } from 'lucide-react';
+import { LogOut, LoaderCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import ActivityCard from '@/components/ActivityCard';
+import { Database } from '@/integrations/supabase/types';
+
+type Activity = Database['public']['Tables']['activities']['Row'];
 
 const HomePage = () => {
-  const { user, loading, session } = useAuthStatus();
+  const { user, loading: authLoading } = useAuthStatus();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate('/login');
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
+
+  const fetchActivities = async (): Promise<Activity[]> => {
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from('activities')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching activities:", error);
+      toast({ title: "Error", description: "Could not fetch your activities.", variant: "destructive" });
+      return [];
+    }
+    return data || [];
+  };
+
+  const { data: activities, isLoading: activitiesLoading } = useQuery<Activity[]>({
+    queryKey: ['activities', user?.id],
+    queryFn: fetchActivities,
+    enabled: !!user,
+  });
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -24,11 +50,11 @@ const HomePage = () => {
       toast({ title: "Logout Failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      navigate('/login'); // Ensure navigation happens after state updates
+      navigate('/login');
     }
   };
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="text-xl font-semibold text-gray-700">Loading Kelp...</div>
@@ -37,8 +63,6 @@ const HomePage = () => {
   }
   
   if (!user) {
-    // This case should ideally be handled by the useEffect redirect,
-    // but as a fallback or if navigation is slow:
     return null; 
   }
 
@@ -51,26 +75,31 @@ const HomePage = () => {
         </Button>
       </header>
       
-      <main className="flex-grow p-6 space-y-6 mb-16"> {/* mb-16 for bottom nav space */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Welcome, {user.email}!</h2>
-          <p className="text-gray-600">This is your Kelp home dashboard. More features coming soon!</p>
+      <main className="flex-grow p-4 md:p-6 space-y-6 mb-16">
+        <div className="bg-white p-6 rounded-lg shadow max-w-lg mx-auto">
+          <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome, {user.email?.split('@')[0]}!</h2>
+          <p className="text-gray-600">Here's your latest activity feed.</p>
         </div>
 
-        {/* Placeholder for Weekly carbon impact summary */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Weekly Impact</h3>
-          <p className="text-gray-500">Your carbon impact summary will appear here.</p>
-          {/* Placeholder for graph */}
-          <div className="mt-4 h-40 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-            Trend Graph Placeholder
-          </div>
-        </div>
-
-        {/* Placeholder for Activity breakdown */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Activity Breakdown</h3>
-          <p className="text-gray-500">Details about your activities (travel, food, etc.) will be shown here.</p>
+        <div className="space-y-4">
+          {activitiesLoading ? (
+            <div className="flex justify-center items-center p-8">
+              <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
+            </div>
+          ) : activities && activities.length > 0 ? (
+            <div className="space-y-6">
+              {activities.map(activity => (
+                <ActivityCard key={activity.id} activity={activity} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow text-center max-w-lg mx-auto">
+              <p className="text-gray-500">You haven't logged any activities yet.</p>
+              <Button onClick={() => navigate('/log-activity')} className="mt-4 bg-green-600 hover:bg-green-700">
+                Log Your First Activity
+              </Button>
+            </div>
+          )}
         </div>
       </main>
       
