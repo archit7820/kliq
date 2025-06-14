@@ -167,9 +167,15 @@ serve(async (req) => {
       })
     }
 
+    // Convert carbon_footprint_kg to number if it's a string
+    if (typeof analysisResult.carbon_footprint_kg === 'string') {
+      analysisResult.carbon_footprint_kg = parseFloat(analysisResult.carbon_footprint_kg)
+    }
+
     // Validate the response structure
     if (!analysisResult || 
         typeof analysisResult.carbon_footprint_kg !== 'number' ||
+        isNaN(analysisResult.carbon_footprint_kg) ||
         !analysisResult.explanation ||
         !analysisResult.activity ||
         !analysisResult.emoji) {
