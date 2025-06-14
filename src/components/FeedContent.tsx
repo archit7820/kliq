@@ -5,7 +5,6 @@ import { LoaderCircle } from "lucide-react";
 import ActivityCard from "./ActivityCard";
 import { Database } from "@/integrations/supabase/types";
 
-// Helper types
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -14,37 +13,44 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
   const [profiles, setProfiles] = useState<{[userId: string]: Profile}>({});
   const [loading, setLoading] = useState(true);
 
-  // Fetch all posts friend-first, recency, mobile-first style
   useEffect(() => {
     if (!user) return;
     setLoading(true);
 
-    // Get friend user ids (2-way)
+    // Fetch friend user ids (2-way)
     const fetchFriendIds = async (): Promise<string[]> => {
       const { data, error } = await supabase
         .from("friends")
         .select("user1_id,user2_id")
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      if (error) {
+        console.error("Error fetching friends:", error);
+        return [];
+      }
       if (!data) return [];
-      // Whoever is not me is my friend
       return data.map(row =>
         row.user1_id === user.id ? row.user2_id : row.user1_id
       );
     };
 
     const fetchFeed = async () => {
-      // All activities, most recent first
-      const { data: activities } = await supabase
+      const { data: activities, error: activitiesError } = await supabase
         .from("activities")
         .select("*")
         .order("created_at", { ascending: false });
 
+      if (activitiesError) {
+        console.error("Error fetching activities:", activitiesError);
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
+
       const friendIds = await fetchFriendIds();
 
-      // Friends first, then others (recency within)
+      // Split activities into friendPosts and otherPosts, both sorted (already sorted from DB fetch)
       const friendPosts: Activity[] = [];
       const otherPosts: Activity[] = [];
-
       (activities || []).forEach(post => {
         if (friendIds.includes(post.user_id)) {
           friendPosts.push(post);
@@ -53,25 +59,32 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
         }
       });
 
+      // Already sorted by created_at descending!
       const finalPosts = [...friendPosts, ...otherPosts];
       setPosts(finalPosts);
 
-      // Get user profiles for all post authors in batch
+      // Fetch user profiles for all post authors in batch
       const userIdsToFetch = Array.from(new Set(finalPosts.map(a => a.user_id)));
       if (userIdsToFetch.length > 0) {
-        const { data: userProfiles } = await supabase
+        const { data: userProfiles, error: profilesError } = await supabase
           .from("profiles")
           .select("*")
           .in("id", userIdsToFetch);
 
-        const map: {[userId: string]: Profile} = {};
-        (userProfiles || []).forEach((p: Profile) => { map[p.id] = p; });
-        setProfiles(map);
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
+          setProfiles({});
+        } else {
+          const map: {[userId: string]: Profile} = {};
+          (userProfiles || []).forEach((p: Profile) => { map[p.id] = p; });
+          setProfiles(map);
+        }
       }
       setLoading(false);
     };
 
     fetchFeed();
+    // Do not re-run unless user changes
     // eslint-disable-next-line
   }, [user]);
 
