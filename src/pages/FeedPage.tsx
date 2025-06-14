@@ -172,13 +172,8 @@ const FeedPage = () => {
           <div className="flex justify-center items-center p-8">
             <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
           </div>
-        ) : carbonOverviewData && carbonOverviewData.length > 0 ? (
-          <CarbonOverview data={carbonOverviewData} />
         ) : (
-          !isLoadingCarbonOverview && <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <h2 className="font-semibold text-gray-800 mb-2">Your Carbon Footprint</h2>
-            <p className="text-sm text-gray-600">Log your first activity to see your carbon footprint breakdown here!</p>
-          </div>
+          <CarbonOverview data={carbonOverviewData || []} />
         )}
 
         {friends && friends.length > 0 && (
