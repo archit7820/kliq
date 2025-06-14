@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Database } from '@/integrations/supabase/types';
-import { MoreHorizontal, Leaf } from 'lucide-react';
+import { MoreHorizontal, Leaf, MapPin, Clock } from 'lucide-react';
 import CommentSheet from './CommentSheet';
 import PostInteractions from './PostInteractions';
 import { Button } from './ui/button';
@@ -17,13 +18,14 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-type Activity = Database['public']['Tables']['activities']['Row'] & { archived?: boolean };
+type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
-interface ActivityCardProps {
+interface EnhancedActivityCardProps {
   activity: Activity;
   profile?: Profile | null;
   currentUserId?: string | null;
+  showLocation?: boolean;
 }
 
 const colors = [
@@ -34,7 +36,12 @@ const colors = [
   "from-indigo-100 to-teal-100",
 ];
 
-const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentUserId }) => {
+const EnhancedActivityCard: React.FC<EnhancedActivityCardProps> = ({ 
+  activity, 
+  profile, 
+  currentUserId,
+  showLocation = true 
+}) => {
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -43,21 +50,12 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
   const displayValue = isOffset ? Math.abs(carbonFootprint) : carbonFootprint;
 
   const imageUrl = activity.image_url || `https://picsum.photos/seed/${activity.id}/800/1000`;
+  const timeAgo = activity.created_at ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }) : '';
+  const gradient = colors[(activity.id.charCodeAt(0) + activity.id.charCodeAt(activity.id.length - 1)) % colors.length];
+  const isOwner = currentUserId === activity.user_id;
 
   const handleComment = () => {
     setIsCommentSheetOpen(true);
-  };
-
-  const timeAgo = activity.created_at ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }) : '';
-
-  // Color gradient
-  const gradient = colors[(activity.id.charCodeAt(0) + activity.id.charCodeAt(activity.id.length - 1)) % colors.length];
-
-  const isOwner = currentUserId === activity.user_id;
-
-  const handleArchive = async () => {
-    // Since 'archived' doesn't exist, show a toast and do nothing else for now
-    toast.info("Archive not implemented. Add 'archived' column to activities table to use this feature.");
   };
 
   const handleDelete = async () => {
@@ -78,19 +76,39 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
   return (
     <>
       <Card className={`w-full mx-auto overflow-hidden rounded-2xl shadow-lg border-0 bg-gradient-to-br ${gradient} backdrop-blur-md`}>
-        <CardHeader className="flex flex-row items-center justify-between p-4 bg-white/60 backdrop-blur-sm rounded-t-2xl">
+        <CardHeader className="flex flex-row items-center justify-between p-4 bg-white/70 backdrop-blur-sm rounded-t-2xl">
           <div className="flex items-center gap-3">
             {profile && (
-              <Avatar className="w-10 h-10 border border-primary bg-green-50">
+              <Avatar className="w-11 h-11 border-2 border-primary/20 bg-green-50">
                 <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || 'user avatar'} />
-                <AvatarFallback>{profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}</AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-br from-green-100 to-blue-100 text-green-700 font-semibold">
+                  {profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}
+                </AvatarFallback>
               </Avatar>
             )}
-            <div>
-              <p className="font-semibold text-sm text-primary">
-                {profile?.full_name || `@${profile?.username}` || 'User'}
-              </p>
-              <p className="text-xs text-muted-foreground">{timeAgo}</p>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="font-semibold text-sm text-primary">
+                  {profile?.full_name || `@${profile?.username}` || 'User'}
+                </p>
+                {activity.category && (
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    {activity.category}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {timeAgo}
+                </div>
+                {showLocation && profile?.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {profile.location}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           {isOwner ? (
@@ -101,13 +119,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white shadow rounded-xl py-1 w-48">
-                <DropdownMenuItem
-                  className="px-4 py-2 hover:bg-gray-100 text-gray-800 cursor-pointer"
-                  onClick={handleArchive}
-                  disabled={loading}
-                >
-                  Archive
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer"
                   onClick={handleDelete}
@@ -126,15 +137,20 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
 
         {activity.image_url && (
           <div className="bg-gray-100">
-            <img src={imageUrl} alt={activity.activity} className="w-full h-auto object-cover aspect-[4/5] rounded-none" />
+            <img 
+              src={imageUrl} 
+              alt={activity.activity} 
+              className="w-full h-auto object-cover aspect-[4/5] rounded-none" 
+            />
           </div>
         )}
 
-        <CardContent className="p-4 bg-white/60 backdrop-blur-xl rounded-b-2xl">
-          <div className="flex items-center justify-between mb-2">
+        <CardContent className="p-4 bg-white/70 backdrop-blur-xl rounded-b-2xl">
+          <div className="flex items-center justify-between mb-3">
             <PostInteractions
               activityId={activity.id}
               onComment={handleComment}
+              initialLikes={Math.floor(Math.random() * 20)} // TODO: Get real like count
             />
             <div
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold ${
@@ -150,14 +166,32 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
               </span>
             </div>
           </div>
-          {activity.caption && (
-            <p className="text-sm mt-3">
-              <span className="font-semibold text-primary">{profile?.username ? `@${profile?.username}` : profile?.full_name}</span> {activity.caption}
-            </p>
-          )}
-          <button onClick={handleComment} className="text-xs text-muted-foreground mt-2 underline hover:text-primary">View all comments</button>
+
+          <div className="space-y-2">
+            <h3 className="font-semibold text-base text-gray-800">
+              {activity.emoji} {activity.activity}
+            </h3>
+            {activity.caption && (
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {activity.caption}
+              </p>
+            )}
+            {activity.explanation && (
+              <p className="text-xs text-muted-foreground italic">
+                {activity.explanation}
+              </p>
+            )}
+          </div>
+
+          <button 
+            onClick={handleComment} 
+            className="text-xs text-muted-foreground mt-3 underline hover:text-primary transition-colors"
+          >
+            View comments
+          </button>
         </CardContent>
       </Card>
+      
       <CommentSheet
         activityId={activity.id}
         isOpen={isCommentSheetOpen}
@@ -167,4 +201,4 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
   );
 };
 
-export default ActivityCard;
+export default EnhancedActivityCard;
