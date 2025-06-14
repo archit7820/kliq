@@ -1,0 +1,166 @@
+
+import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import BottomNav from '@/components/BottomNav';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { Upload, Sparkles, Image as ImageIcon, LoaderCircle, AlertTriangle } from 'lucide-react';
+
+type AnalysisResult = {
+  activity: string;
+  carbon_footprint_kg: number;
+  explanation: string;
+  emoji: string;
+};
+
+const LogActivityPage = () => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setResult(null);
+      setError(null);
+    }
+  };
+
+  const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) {
+      toast.error('Please select an image first.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const image_b64 = await toBase64(selectedFile);
+      const { data, error } = await supabase.functions.invoke('analyze-activity', {
+        body: { image_b64 },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setResult(data);
+      toast.success('Activity analyzed successfully!');
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
+      toast.error('Analysis Failed', { description: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white shadow-sm p-4">
+        <h1 className="text-2xl font-bold text-green-700 text-center">Log Your Activity</h1>
+      </header>
+
+      <main className="flex-grow p-4 md:p-6 space-y-6 mb-20">
+        <Card className="w-full max-w-lg mx-auto shadow-lg border-green-100">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-600">
+              <Upload className="w-6 h-6" />
+              Upload an Image
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg text-center">
+              {previewUrl ? (
+                <img src={previewUrl} alt="Selected preview" className="max-h-60 w-auto rounded-lg mb-4 object-contain" />
+              ) : (
+                <ImageIcon className="w-16 h-16 text-gray-300 mb-2" />
+              )}
+              <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+              <Button asChild variant="outline">
+                <label htmlFor="picture" className="cursor-pointer">
+                  {selectedFile ? 'Change Image' : 'Choose Image'}
+                </label>
+              </Button>
+              {selectedFile && <p className="text-sm text-gray-500 mt-2">{selectedFile.name}</p>}
+            </div>
+
+            <Button onClick={handleAnalyze} disabled={!selectedFile || loading} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3">
+              {loading ? (
+                <>
+                  <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Analyze Carbon Footprint
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {error && (
+          <Card className="w-full max-w-lg mx-auto bg-red-50 border-red-200">
+            <CardContent className="p-4 flex items-center gap-4 text-red-700">
+              <AlertTriangle className="w-8 h-8" />
+              <div>
+                <h3 className="font-bold">Analysis Error</h3>
+                <p className="text-sm">{error}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {result && (
+          <Card className="w-full max-w-lg mx-auto animate-fade-in border-blue-200 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-blue-600">
+                <span className="text-4xl">{result.emoji}</span>
+                Analysis Result
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-gray-700">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Activity</p>
+                <p className="text-lg font-semibold">{result.activity}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Estimated Carbon Footprint</p>
+                <p className="text-2xl font-bold text-blue-700">{result.carbon_footprint_kg.toFixed(2)} kg CO₂e</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Explanation</p>
+                <p className="text-gray-600 italic">"{result.explanation}"</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+      </main>
+
+      <BottomNav />
+    </div>
+  );
+};
+
+export default LogActivityPage;
