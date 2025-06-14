@@ -12,8 +12,10 @@ import SignupPage from "./pages/SignupPage";
 import InviteFlow from "./pages/InviteFlow";
 import FriendsPage from "./pages/FriendsPage";
 import LogActivityPage from "./pages/LogActivityPage";
-import FeedPage from "./pages/FeedPage"; // New
-import OnboardingPage from "./pages/OnboardingPage"; // New
+import FeedPage from "./pages/FeedPage";
+import OnboardingPage from "./pages/OnboardingPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -27,14 +29,14 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} /> {/* New */}
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/invite" element={<InviteFlow />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/log-activity" element={<LogActivityPage />} />
-          <Route path="/feed" element={<FeedPage />} /> {/* Updated */}
-          <Route path="/leaderboard" element={<HomePage />} /> {/* Placeholder */}
-          <Route path="/profile" element={<HomePage />} /> {/* Placeholder */}
+          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
