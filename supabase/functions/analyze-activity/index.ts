@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 
 const corsHeaders = {
@@ -93,14 +92,29 @@ serve(async (req) => {
 
     const geminiData = await geminiResponse.json()
 
-    // 4. Parse the response
+    // 4. Parse the response robustly
     if (!geminiData.candidates || !geminiData.candidates[0]?.content?.parts[0]?.text) {
       console.error('Invalid response structure from Gemini:', geminiData)
       throw new Error('Received an invalid response from the analysis service.')
     }
 
-    const responseText = geminiData.candidates[0].content.parts[0].text
-    const parsedResponse = JSON.parse(responseText)
+    let parsedResponse;
+    const responsePart = geminiData.candidates[0].content.parts[0].text;
+
+    // Robust check: parse as JSON only if string, else return as-is
+    if (typeof responsePart === 'string') {
+      try {
+        parsedResponse = JSON.parse(responsePart);
+      } catch (e) {
+        console.error('Failed to parse Gemini response string as JSON:', responsePart);
+        throw new Error('Analysis service returned invalid JSON.');
+      }
+    } else if (typeof responsePart === 'object' && responsePart !== null) {
+      parsedResponse = responsePart;
+    } else {
+      console.error('Gemini response could not be parsed:', responsePart);
+      throw new Error('Received invalid analysis data from Gemini.');
+    }
 
     return new Response(JSON.stringify(parsedResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
