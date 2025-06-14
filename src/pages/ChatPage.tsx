@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,24 +68,42 @@ const ChatPage = () => {
     useEffect(() => {
         if (!user || !friendId) return;
 
-        const channel = supabase
-            .channel(`dm-${[user.id, friendId].sort().join('-')}`)
+        // Subscribe to new messages: from me to friend, and from friend to me
+        const channelSent = supabase
+            .channel(`dm-sent-${user.id}-${friendId}`)
             .on<Message>('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
                 table: 'direct_messages',
-                filter: `or(and(sender_id.eq.${user.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${user.id}))`
+                filter: `sender_id=eq.${user.id},receiver_id=eq.${friendId}`,
             }, (payload) => {
+                // Update messages for sent messages (should rarely be needed, but keep for symmetry)
                 queryClient.setQueryData(['messages', friendId], (oldData: Message[] | undefined) => {
-                    const existingMessage = oldData?.find(m => m.id === payload.new.id);
-                    if (existingMessage) return oldData;
+                    if (oldData?.find(m => m.id === payload.new.id)) return oldData;
+                    return [...(oldData || []), payload.new];
+                });
+            })
+            .subscribe();
+
+        const channelReceived = supabase
+            .channel(`dm-received-${friendId}-${user.id}`)
+            .on<Message>('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'direct_messages',
+                filter: `sender_id=eq.${friendId},receiver_id=eq.${user.id}`,
+            }, (payload) => {
+                // Update messages for incoming messages
+                queryClient.setQueryData(['messages', friendId], (oldData: Message[] | undefined) => {
+                    if (oldData?.find(m => m.id === payload.new.id)) return oldData;
                     return [...(oldData || []), payload.new];
                 });
             })
             .subscribe();
 
         return () => {
-            supabase.removeChannel(channel);
+            supabase.removeChannel(channelSent);
+            supabase.removeChannel(channelReceived);
         };
     }, [user, friendId, queryClient]);
 
