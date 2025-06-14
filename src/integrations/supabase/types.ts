@@ -9,12 +9,61 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      invites: {
+        Row: {
+          code: string
+          consumed_at: string | null
+          consumed_by: string | null
+          created_at: string
+          created_by: string | null
+          is_active: boolean
+          usage_count: number
+          usage_limit: number
+        }
+        Insert: {
+          code: string
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          is_active?: boolean
+          usage_count?: number
+          usage_limit?: number
+        }
+        Update: {
+          code?: string
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          is_active?: boolean
+          usage_count?: number
+          usage_limit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_consumed_by_fkey"
+            columns: ["consumed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           full_name: string | null
           id: string
+          invite_code: string | null
           is_og_user: boolean | null
           kelp_points: number | null
           lifestyle_tags: string[] | null
@@ -28,6 +77,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          invite_code?: string | null
           is_og_user?: boolean | null
           kelp_points?: number | null
           lifestyle_tags?: string[] | null
@@ -41,6 +91,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          invite_code?: string | null
           is_og_user?: boolean | null
           kelp_points?: number | null
           lifestyle_tags?: string[] | null
@@ -49,7 +100,15 @@ export type Database = {
           updated_at?: string
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_invite_code_fkey"
+            columns: ["invite_code"]
+            isOneToOne: false
+            referencedRelation: "invites"
+            referencedColumns: ["code"]
+          },
+        ]
       }
     }
     Views: {
