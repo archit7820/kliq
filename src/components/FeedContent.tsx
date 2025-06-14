@@ -1,53 +1,73 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { LoaderCircle } from "lucide-react";
+import ActivityCard from "./ActivityCard";
+import { Database } from "@/integrations/supabase/types";
 
-// Mobile-first improvements and feed logic
-const FeedContent = ({ user }: { user: any }) => {
-  const [posts, setPosts] = useState<any[]>([]);
+// Helper types
+type Activity = Database['public']['Tables']['activities']['Row'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
+
+const FeedContent = ({ user }: { user: Profile | null }) => {
+  const [posts, setPosts] = useState<Activity[]>([]);
+  const [profiles, setProfiles] = useState<{[userId: string]: Profile}>({});
   const [loading, setLoading] = useState(true);
 
+  // Fetch all posts friend-first, recency, mobile-first style
   useEffect(() => {
     if (!user) return;
+    setLoading(true);
 
-    // Helper function: get user friends IDs
-    const fetchFriendIds = async () => {
+    // Get friend user ids (2-way)
+    const fetchFriendIds = async (): Promise<string[]> => {
       const { data, error } = await supabase
         .from("friends")
-        .select("*")
+        .select("user1_id,user2_id")
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-      const ids =
-        data?.map((f) =>
-          f.user1_id === user.id ? f.user2_id : f.user1_id
-        ) || [];
-      return ids;
+      if (!data) return [];
+      // Whoever is not me is my friend
+      return data.map(row =>
+        row.user1_id === user.id ? row.user2_id : row.user1_id
+      );
     };
 
     const fetchFeed = async () => {
-      setLoading(true);
-      // Load all activities
+      // All activities, most recent first
       const { data: activities } = await supabase
         .from("activities")
         .select("*")
-        .order("created_at", { ascending: false }); // Most recent first
+        .order("created_at", { ascending: false });
 
       const friendIds = await fetchFriendIds();
 
-      // Sort: friend posts first, then others—recency within each group
-      const friendPosts = [];
-      const otherPosts = [];
+      // Friends first, then others (recency within)
+      const friendPosts: Activity[] = [];
+      const otherPosts: Activity[] = [];
 
-      for (const post of activities || []) {
+      (activities || []).forEach(post => {
         if (friendIds.includes(post.user_id)) {
           friendPosts.push(post);
         } else {
           otherPosts.push(post);
         }
-      }
+      });
 
-      setPosts([...friendPosts, ...otherPosts]);
+      const finalPosts = [...friendPosts, ...otherPosts];
+      setPosts(finalPosts);
+
+      // Get user profiles for all post authors in batch
+      const userIdsToFetch = Array.from(new Set(finalPosts.map(a => a.user_id)));
+      if (userIdsToFetch.length > 0) {
+        const { data: userProfiles } = await supabase
+          .from("profiles")
+          .select("*")
+          .in("id", userIdsToFetch);
+
+        const map: {[userId: string]: Profile} = {};
+        (userProfiles || []).forEach((p: Profile) => { map[p.id] = p; });
+        setProfiles(map);
+      }
       setLoading(false);
     };
 
@@ -56,7 +76,11 @@ const FeedContent = ({ user }: { user: any }) => {
   }, [user]);
 
   if (!user)
-    return <div className="p-6 text-gray-400 text-center">Sign in to see your feed</div>;
+    return (
+      <div className="p-6 text-gray-400 text-center text-base">
+        Sign in to see your feed
+      </div>
+    );
 
   if (loading)
     return (
@@ -66,30 +90,18 @@ const FeedContent = ({ user }: { user: any }) => {
     );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-8 px-2 pb-6 sm:gap-5 sm:px-4">
       {posts.length === 0 ? (
         <div className="mt-5 p-4 rounded-xl bg-gradient-to-r from-green-50 to-blue-50 text-center text-gray-400 border">
           No activities yet. Add your first!
         </div>
       ) : (
-        posts.map((post) => (
-          <div
-            key={post.id}
-            className="bg-white rounded-2xl p-4 shadow-lg border flex flex-col sm:flex-row gap-4"
-          >
-            {/* Render post details mobile-first */}
-            <div>
-              <div className="font-semibold text-green-800">
-                {post.activity}
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                {new Date(post.created_at).toLocaleString()}
-              </div>
-              <div className="text-gray-500 mt-2">{post.caption}</div>
-              <div className="text-green-400 mt-1 text-xs">{post.category}</div>
-            </div>
-            {/* You can optionally add buttons for like/comment here */}
-          </div>
+        posts.map((activity) => (
+          <ActivityCard
+            key={activity.id}
+            activity={activity}
+            profile={profiles[activity.user_id]}
+          />
         ))
       )}
     </div>
