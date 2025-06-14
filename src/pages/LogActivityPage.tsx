@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import ImageUploadSection from '@/components/ImageUploadSection';
 import ActivityAnalysisSection from '@/components/ActivityAnalysisSection';
 import ActivitySubmissionSection from '@/components/ActivitySubmissionSection';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface ActivityAnalysis {
   carbon_footprint_kg: number;
@@ -24,6 +26,30 @@ const LogActivityPage = () => {
   const [analysis, setAnalysis] = useState<ActivityAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const analyzeActivity = async () => {
+    if (!imageUrl) return;
+
+    setIsAnalyzing(true);
+    setAnalysis(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-activity', {
+        body: { imageUrl, caption }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setAnalysis(data);
+      toast.success('Activity analyzed successfully!');
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error('Failed to analyze activity. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -54,21 +80,14 @@ const LogActivityPage = () => {
             setImageUrl={setImageUrl}
             caption={caption}
             setCaption={setCaption}
-            onAnalyze={(url, cap) => {
-              setIsAnalyzing(true);
-              // The analysis will be handled by ActivityAnalysisSection
-            }}
+            onAnalyze={analyzeActivity}
             disabled={isAnalyzing || isSubmitting}
           />
 
           {imageUrl && (
             <ActivityAnalysisSection
-              imageUrl={imageUrl}
-              caption={caption}
               analysis={analysis}
-              setAnalysis={setAnalysis}
               isAnalyzing={isAnalyzing}
-              setIsAnalyzing={setIsAnalyzing}
             />
           )}
 

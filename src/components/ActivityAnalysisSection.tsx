@@ -1,55 +1,18 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Leaf } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { ActivityAnalysis } from '@/pages/LogActivityPage';
 
 interface ActivityAnalysisSectionProps {
-  imageUrl: string;
-  caption: string;
   analysis: ActivityAnalysis | null;
-  setAnalysis: (analysis: ActivityAnalysis | null) => void;
   isAnalyzing: boolean;
-  setIsAnalyzing: (isAnalyzing: boolean) => void;
 }
 
 const ActivityAnalysisSection: React.FC<ActivityAnalysisSectionProps> = ({
-  imageUrl,
-  caption,
   analysis,
-  setAnalysis,
   isAnalyzing,
-  setIsAnalyzing
 }) => {
-
-  useEffect(() => {
-    if (imageUrl && !analysis && !isAnalyzing) {
-      analyzeActivity();
-    }
-  }, [imageUrl, caption]);
-
-  const analyzeActivity = async () => {
-    setIsAnalyzing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('analyze-activity', {
-        body: { imageUrl, caption }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      setAnalysis(data);
-      toast.success('Activity analyzed successfully!');
-    } catch (error) {
-      console.error('Analysis error:', error);
-      toast.error('Failed to analyze activity. Please try again.');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
 
   if (isAnalyzing) {
     return (

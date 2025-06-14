@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ interface ImageUploadSectionProps {
   setImageUrl: (url: string | null) => void;
   caption: string;
   setCaption: (caption: string) => void;
-  onAnalyze: (imageUrl: string, caption: string) => void;
+  onAnalyze: () => void;
   disabled: boolean;
 }
 
@@ -153,7 +152,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 
         {canAnalyze && (
           <Button
-            onClick={() => onAnalyze(imageUrl, caption)}
+            onClick={onAnalyze}
             className="w-full"
             disabled={disabled}
           >
