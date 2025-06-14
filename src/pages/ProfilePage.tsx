@@ -136,14 +136,22 @@ const ProfilePage = () => {
         if (!file || !user) return;
         setAvatarUploading(true);
         const filePath = `avatars/${user.id}/${Date.now()}_${file.name}`;
-        const { error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
-        if (error) {
-            toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-        } else {
-            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-            setEditForm((curr) => ({ ...curr, avatar_url: data.publicUrl }));
-            toast({ title: "Profile image updated!" });
+        const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+        if (uploadError) {
+            toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+            console.log("Profile avatar upload failed:", uploadError);
+            setAvatarUploading(false);
+            return;
         }
+        const { data: publicData, error: urlError } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        if (urlError || !publicData?.publicUrl) {
+            toast({ title: "Couldn't load avatar url!", description: urlError?.message || "No public URL", variant: "destructive" });
+            console.log("Profile avatar public URL failed:", urlError, publicData);
+            setAvatarUploading(false);
+            return;
+        }
+        setEditForm((curr) => ({ ...curr, avatar_url: publicData.publicUrl }));
+        toast({ title: "Profile image updated!" });
         setAvatarUploading(false);
     };
 

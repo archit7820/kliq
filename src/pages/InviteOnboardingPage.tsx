@@ -53,15 +53,22 @@ const InviteOnboardingPage = () => {
 
     setForm((f) => ({ ...f, uploading: true }));
     const filePath = `avatars/${user.id}/${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
-    if (error) {
-      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-    } else {
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      setForm((f) => ({ ...f, avatar_url: data.publicUrl }));
-      toast({ title: "Avatar updated!" });
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+    if (uploadError) {
+      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+      console.log("Avatar upload failed:", uploadError);
+      setForm((f) => ({ ...f, uploading: false }));
+      return;
     }
-    setForm((f) => ({ ...f, uploading: false }));
+    const { data: publicData, error: urlError } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    if (urlError || !publicData?.publicUrl) {
+      toast({ title: "Couldn't load avatar url!", description: urlError?.message || "No public URL", variant: "destructive" });
+      console.log("Public URL retrieval failed:", urlError, publicData);
+      setForm((f) => ({ ...f, uploading: false }));
+      return;
+    }
+    setForm((f) => ({ ...f, avatar_url: publicData.publicUrl, uploading: false }));
+    toast({ title: "Avatar updated!" });
   };
 
   const handleNext = () => setStep((s) => s + 1);
