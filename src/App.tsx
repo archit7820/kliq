@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage"; // Added
 import HomePage from "./pages/HomePage"; // Added
 import SignupPage from "./pages/SignupPage"; // Added
 import InviteFlow from "./pages/InviteFlow"; // Added
+import FriendsPage from "./pages/FriendsPage"; // Added
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/home" element={<HomePage />} /> {/* Added */}
           <Route path="/invite" element={<InviteFlow />} /> {/* New invite flow */}
           <Route path="/signup" element={<SignupPage />} /> {/* Signup page */}
+          <Route path="/friends" element={<FriendsPage />} /> {/* Friends page */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           {/* Placeholder routes for bottom nav items - to be implemented later */}
           <Route path="/log-activity" element={<HomePage />} /> {/* Temporary, replace with actual page */}

@@ -5,10 +5,11 @@ import { Home, PlusSquare, Users, BarChart2, UserCircle } from 'lucide-react'; /
 
 const navItems = [
   { path: '/home', icon: Home, label: 'Home' },
-  { path: '/log-activity', icon: PlusSquare, label: 'Log' }, // Placeholder path
-  { path: '/feed', icon: Users, label: 'Feed' }, // Placeholder path
-  { path: '/leaderboard', icon: BarChart2, label: 'Stats' }, // Placeholder path
-  { path: '/profile', icon: UserCircle, label: 'Profile' }, // Placeholder path
+  { path: '/log-activity', icon: PlusSquare, label: 'Log' },
+  { path: '/feed', icon: Users, label: 'Feed' },
+  { path: '/leaderboard', icon: BarChart2, label: 'Stats' },
+  { path: '/friends', icon: UserCircle, label: 'Friends' }, // Add Friends to nav (used UserCircle)
+  { path: '/profile', icon: UserCircle, label: 'Profile' },
 ];
 
 const BottomNav = () => {
