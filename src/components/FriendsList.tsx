@@ -85,7 +85,9 @@ const FriendsList = () => {
               </span>
               <span className="block text-xs text-gray-400 truncate">@{f.profile?.username}</span>
             </div>
-            <Mail className="w-5 h-5 text-green-400 opacity-80 hover:text-green-600 transition" title="Message (coming soon)" />
+            <span title="Message (coming soon)">
+              <Mail className="w-5 h-5 text-green-400 opacity-80 hover:text-green-600 transition" />
+            </span>
           </div>
         ))}
         </div>
