@@ -2,155 +2,137 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
-import { Card } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { Star } from "lucide-react";
+import { Star, Users, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-interface CommunityListProps {
-  user: User | null;
-}
-
-const CommunityList: React.FC<CommunityListProps> = ({ user }) => {
-  // My communities (joined)
+const CommunityList = ({ user }: { user: any }) => {
+  // Fetch communities the user is a member of
   const { data: myCommunities, isLoading: loadingMy } = useQuery({
     queryKey: ["myCommunities", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data: memberships } = await supabase
+      const { data, error } = await supabase
         .from("community_memberships")
-        .select("community_id");
-      if (!memberships) return [];
-      const communityIds = memberships.map((m) => m.community_id);
-      if (communityIds.length === 0) return [];
-      const { data: communities } = await supabase
-        .from("communities")
-        .select("*")
-        .in("id", communityIds)
-        .order("created_at", { ascending: false });
-      return communities || [];
+        .select("community_id, communities(name, description, is_official, id)")
+        .eq("user_id", user.id);
+      return data ? data.map((m) => m.communities) : [];
     },
     enabled: !!user,
   });
 
-  // Official communities (not joined)
-  const { data: officialCommunities, isLoading: loadingOfficial } = useQuery({
-    queryKey: ["officialCommunities", user?.id],
+  // Fetch all communities (user can join these)
+  const { data: allCommunities, isLoading: loadingAll } = useQuery({
+    queryKey: ["allCommunities"],
     queryFn: async () => {
-      const { data: communities } = await supabase
-        .from("communities")
-        .select("*")
-        .eq("is_official", true)
-        .order("created_at", { ascending: false });
-      return communities || [];
-    },
-  });
-
-  // Discover more (not joined, not official)
-  const { data: discoverCommunities } = useQuery({
-    queryKey: ["discoverCommunities", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data: memberships } = await supabase
-        .from("community_memberships")
-        .select("community_id");
-      const { data: communities } = await supabase
+      const { data } = await supabase
         .from("communities")
         .select("*")
         .order("created_at", { ascending: false });
-      // Filter out joined
-      const joinedIds = memberships ? memberships.map((m) => m.community_id) : [];
-      return (
-        communities?.filter(
-          (c) => !joinedIds.includes(c.id) && !c.is_official
-        ) || []
-      );
+      return data || [];
     },
-    enabled: !!user,
   });
 
+  // Helper: returns true if user has joined this community
+  const isJoined = (communityId: string) =>
+    !!myCommunities?.find((c) => c.id === communityId);
+
+  // Join handler
+  const handleJoin = async (communityId: string) => {
+    if (!user) return;
+    await supabase.from("community_memberships").insert({
+      user_id: user.id,
+      community_id: communityId,
+    });
+    // No need for queryClient.invalidateQueries, just reload page on join for now.
+    window.location.reload();
+  };
+
+  // UI
   return (
-    <div className="space-y-7">
+    <div className="space-y-9">
       <section>
-        <h2 className="font-semibold text-lg mb-3">My Communities</h2>
-        {loadingMy ? (
-          <p className="text-gray-500">Loading...</p>
-        ) : myCommunities && myCommunities.length > 0 ? (
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-            {myCommunities.map((community) => (
-              <Link
-                key={community.id}
-                to={`/communities/${community.id}`}
-                className="shrink-0"
-              >
-                <Card className="w-44 p-3 min-w-[11rem] flex flex-col items-center gap-2 bg-white border shadow-md rounded-xl">
-                  <span className="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-xs">
-                    {community.name}
-                  </span>
-                  <span className="text-xs text-gray-500 max-w-full text-center">
-                    {community.description}
-                  </span>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-gray-500 text-sm">You haven&apos;t joined any communities yet.</div>
-        )}
-      </section>
-      <section>
-        <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
-          <Star className="w-4 h-4 text-yellow-400" /> Official Communities
+        <h2 className="font-semibold text-lg mb-3 flex gap-2 items-center text-green-700">
+          <Users className="w-5 h-5 text-green-400" />
+          Your Communities
         </h2>
-        {loadingOfficial ? (
-          <p className="text-gray-500">Loading...</p>
-        ) : officialCommunities && officialCommunities.length > 0 ? (
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-            {officialCommunities.map((community) => (
-              <Link
-                key={community.id}
-                to={`/communities/${community.id}`}
-                className="shrink-0"
-              >
-                <Card className="w-44 p-3 min-w-[11rem] flex flex-col items-center gap-2 bg-white border shadow-md rounded-xl">
-                  <span className="bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full text-xs">
-                    {community.name}
-                  </span>
-                  <span className="text-xs text-gray-500 max-w-full text-center">
-                    {community.description}
-                  </span>
-                </Card>
-              </Link>
-            ))}
-          </div>
+        {loadingMy ? (
+          <div>Loading...</div>
         ) : (
-          <div className="text-gray-500 text-sm">No official communities yet.</div>
+          <div className="flex flex-col gap-3">
+            {myCommunities && myCommunities.length > 0 ? (
+              myCommunities.map((c) => (
+                <div
+                  key={c.id}
+                  className="bg-white rounded-xl border p-4 flex flex-col"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    {c.is_official && (
+                      <Star className="w-4 h-4 text-yellow-400" />
+                    )}
+                    <span className="font-bold text-green-800 text-lg">
+                      {c.name}
+                    </span>
+                  </div>
+                  <span className="block text-gray-500 text-sm mb-2">
+                    {c.description}
+                  </span>
+                  <Button
+                    className="rounded-lg text-xs bg-green-600 hover:bg-green-700 mt-auto self-end"
+                    size="sm"
+                  >
+                    Open Chat
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <span className="text-gray-400 text-base">
+                Not a member of any community yet.
+              </span>
+            )}
+          </div>
         )}
       </section>
+
       <section>
-        <h2 className="font-semibold text-lg mb-3">Discover More</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2">
-          {discoverCommunities && discoverCommunities.length > 0 ? (
-            discoverCommunities.map((community) => (
-              <Link
-                key={community.id}
-                to={`/communities/${community.id}`}
-                className="shrink-0"
-              >
-                <Card className="w-44 p-3 min-w-[11rem] flex flex-col items-center gap-2 bg-white border shadow-md rounded-xl">
-                  <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs">
-                    {community.name}
-                  </span>
-                  <span className="text-xs text-gray-500 max-w-full text-center">
-                    {community.description}
-                  </span>
-                </Card>
-              </Link>
-            ))
-          ) : (
-            <div className="text-gray-500 text-sm">No more communities to discover.</div>
-          )}
-        </div>
+        <h2 className="font-semibold text-lg mb-3 flex gap-2 items-center text-blue-700">
+          <UserPlus className="w-5 h-5 text-blue-400" />
+          Discover Communities
+        </h2>
+        {loadingAll ? (
+          <div>Loading...</div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {allCommunities &&
+              allCommunities
+                .filter((c) => !isJoined(c.id))
+                .map((c) => (
+                  <div
+                    key={c.id}
+                    className="bg-gradient-to-tr from-green-50 to-blue-50 rounded-xl border p-4 flex flex-col"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {c.is_official && (
+                        <Star className="w-4 h-4 text-yellow-400" />
+                      )}
+                      <span className="font-bold text-green-800 text-lg">
+                        {c.name}
+                      </span>
+                    </div>
+                    <span className="block text-gray-500 text-sm mb-2">
+                      {c.description}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      className="rounded-lg text-xs bg-blue-600 hover:bg-blue-700 text-white mt-auto self-end"
+                      size="sm"
+                      onClick={() => handleJoin(c.id)}
+                    >
+                      Join Community
+                    </Button>
+                  </div>
+                ))}
+          </div>
+        )}
       </section>
     </div>
   );
