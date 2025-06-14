@@ -60,10 +60,10 @@ const InviteOnboardingPage = () => {
       setForm((f) => ({ ...f, uploading: false }));
       return;
     }
-    const { data: publicData, error: urlError } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    if (urlError || !publicData?.publicUrl) {
-      toast({ title: "Couldn't load avatar url!", description: urlError?.message || "No public URL", variant: "destructive" });
-      console.log("Public URL retrieval failed:", urlError, publicData);
+    const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    if (!publicData?.publicUrl) {
+      toast({ title: "Couldn't load avatar url!", description: "No public URL", variant: "destructive" });
+      console.log("Public URL retrieval failed:", publicData);
       setForm((f) => ({ ...f, uploading: false }));
       return;
     }
