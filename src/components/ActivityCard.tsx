@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,16 +7,22 @@ import { Heart, MessageCircle, MoreHorizontal, Leaf } from 'lucide-react';
 import CommentSheet from './CommentSheet';
 import { Button } from './ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { Menu, MenuButton, MenuItem, MenuList } from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-type Activity = Database['public']['Tables']['activities']['Row'];
+type Activity = Database['public']['Tables']['activities']['Row'] & { archived?: boolean };
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface ActivityCardProps {
   activity: Activity;
   profile?: Profile | null;
+  currentUserId?: string | null;
 }
 
 const colors = [
@@ -26,7 +33,7 @@ const colors = [
   "from-indigo-100 to-teal-100",
 ];
 
-const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
+const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentUserId }) => {
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +45,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
 
   const handleLike = () => {
     console.log(`Liking activity ${activity.id}`);
-    // Future: Implement database update and state change for likes
+    // To implement like feature
   };
 
   const handleComment = () => {
@@ -47,12 +54,10 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
 
   const timeAgo = activity.created_at ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }) : '';
 
-  // Pick a color gradient based on activity id for variety
+  // Color gradient
   const gradient = colors[(activity.id.charCodeAt(0) + activity.id.charCodeAt(activity.id.length - 1)) % colors.length];
 
-  // If current user is owner of this activity
-  const userId = supabase.auth.getUserSync()?.id;
-  const isOwner = userId === activity.user_id;
+  const isOwner = currentUserId === activity.user_id;
 
   const handleArchive = async () => {
     setLoading(true);
@@ -65,7 +70,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
       toast.error("Failed to archive activity", { description: error.message });
     } else {
       toast.success("Activity archived!");
-      // Optionally refetch feed or trigger data refresh here.
+      // Optionally: trigger a refresh
     }
   };
 
@@ -81,9 +86,10 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
       toast.error("Failed to delete activity", { description: error.message });
     } else {
       toast.success("Activity deleted!");
-      // Optionally refetch feed or trigger data refresh here.
     }
   };
+
+  const archived = typeof activity.archived === "boolean" ? activity.archived : false;
 
   return (
     <>
@@ -103,38 +109,37 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
               <p className="text-xs text-muted-foreground">{timeAgo}</p>
             </div>
           </div>
-          {/* Use More options menu if owner, basic More if not */}
           {isOwner ? (
-            <Menu>
-              <MenuButton asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="w-8 h-8" disabled={loading}>
                   <MoreHorizontal className="w-4 h-4 text-primary" />
                 </Button>
-              </MenuButton>
-              <MenuList className="bg-white shadow rounded-xl py-1 w-48">
-                <MenuItem
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white shadow rounded-xl py-1 w-48">
+                <DropdownMenuItem
                   className="px-4 py-2 hover:bg-gray-100 text-gray-800 cursor-pointer"
                   onClick={handleArchive}
-                  disabled={activity.archived || loading}
+                  disabled={archived || loading}
                 >
-                  {activity.archived ? "Archived" : "Archive"}
-                </MenuItem>
-                <MenuItem
+                  {archived ? "Archived" : "Archive"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer"
                   onClick={handleDelete}
                   disabled={loading}
                 >
                   Delete
-                </MenuItem>
-              </MenuList>
-            </Menu>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button variant="ghost" size="icon" className="w-8 h-8">
               <MoreHorizontal className="w-4 h-4 text-primary" />
             </Button>
           )}
         </CardHeader>
-        
+
         {activity.image_url && (
           <div className="bg-gray-100">
             <img src={imageUrl} alt={activity.activity} className="w-full h-auto object-cover aspect-[4/5] rounded-none" />
@@ -165,7 +170,11 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
               </span>
             </div>
           </div>
-          {activity.caption && <p className="text-sm mt-3"><span className="font-semibold text-primary">{profile?.username ? `@${profile?.username}` : profile?.full_name}</span> {activity.caption}</p>}
+          {activity.caption && (
+            <p className="text-sm mt-3">
+              <span className="font-semibold text-primary">{profile?.username ? `@${profile?.username}` : profile?.full_name}</span> {activity.caption}
+            </p>
+          )}
           <button onClick={handleComment} className="text-xs text-muted-foreground mt-2 underline hover:text-primary">View all comments</button>
         </CardContent>
       </Card>

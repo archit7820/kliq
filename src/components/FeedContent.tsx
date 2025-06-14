@@ -5,7 +5,7 @@ import { LoaderCircle } from "lucide-react";
 import ActivityCard from "./ActivityCard";
 import { Database } from "@/integrations/supabase/types";
 
-type Activity = Database['public']['Tables']['activities']['Row'];
+type Activity = Database['public']['Tables']['activities']['Row'] & { archived?: boolean };
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const FeedContent = ({ user }: { user: Profile | null }) => {
@@ -52,10 +52,12 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
       const friendPosts: Activity[] = [];
       const otherPosts: Activity[] = [];
       (activities || []).forEach(post => {
+        // Typecast to include archived for runtime
+        const castPost = { ...post, archived: (post as any).archived ?? false } as Activity;
         if (friendIds.includes(post.user_id)) {
-          friendPosts.push(post);
+          friendPosts.push(castPost);
         } else {
-          otherPosts.push(post);
+          otherPosts.push(castPost);
         }
       });
 
@@ -110,12 +112,13 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
         </div>
       ) : (
         posts
-          .filter((activity) => !activity.archived) // Hide archived activities by default
+          .filter((activity) => !activity.archived)
           .map((activity) => (
             <ActivityCard
               key={activity.id}
               activity={activity}
               profile={profiles[activity.user_id]}
+              currentUserId={user?.id}
             />
           ))
       )}
