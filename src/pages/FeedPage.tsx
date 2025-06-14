@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
@@ -9,6 +9,7 @@ import { Database } from '@/integrations/supabase/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import CarbonOverview from '@/components/CarbonOverview';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -17,61 +18,68 @@ type ActivityWithProfile = Activity & { profile: Profile | null };
 const FeedPage = () => {
   const { user } = useAuthStatus();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('friends');
 
-  const fetchFeed = async (): Promise<ActivityWithProfile[]> => {
+  const fetchFeed = async (feedType: string): Promise<ActivityWithProfile[]> => {
     if (!user) return [];
 
-    // 1. Fetch friends
-    const { data: friendsData, error: friendsError } = await supabase
-      .from('friends')
-      .select('user1_id, user2_id')
-      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-    
-    if (friendsError) {
-      console.error('Error fetching friends:', friendsError);
-      throw friendsError;
+    let userIds: string[] = [];
+
+    if (feedType === 'friends') {
+        const { data: friendsData, error: friendsError } = await supabase
+            .from('friends')
+            .select('user1_id, user2_id')
+            .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+        
+        if (friendsError) {
+            console.error('Error fetching friends:', friendsError);
+            throw friendsError;
+        }
+
+        const friendIds = friendsData.map(f => (f.user1_id === user.id ? f.user2_id : f.user1_id));
+        userIds = [user.id, ...friendIds];
     }
 
-    const friendIds = friendsData.map(f => (f.user1_id === user.id ? f.user2_id : f.user1_id));
-    const userIds = [user.id, ...friendIds];
-
-    // 2. Fetch activities from user and friends
-    const { data: activitiesData, error: activitiesError } = await supabase
+    // For community feed, we don't filter by userIds, so it fetches all activities.
+    let query = supabase
       .from('activities')
       .select('*')
-      .in('user_id', userIds)
       .order('created_at', { ascending: false })
       .limit(50);
 
-    if (activitiesError) {
-      console.error('Error fetching activities:', activitiesError);
-      throw activitiesError;
+    if (feedType === 'friends') {
+        query = query.in('user_id', userIds);
     }
 
-    // 3. Fetch profiles of activity authors
+    const { data: activitiesData, error: activitiesError } = await query;
+
+    if (activitiesError) {
+        console.error('Error fetching activities:', activitiesError);
+        throw activitiesError;
+    }
+
     const authorIds = [...new Set(activitiesData.map(a => a.user_id))];
     if (authorIds.length === 0) return [];
     
     const { data: profilesData, error: profilesError } = await supabase
-      .from('profiles')
-      .select('*')
-      .in('id', authorIds);
+        .from('profiles')
+        .select('*')
+        .in('id', authorIds);
 
     if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
-      throw profilesError;
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
     }
     
-    // 4. Combine activities with profiles
     return activitiesData.map(activity => ({
-      ...activity,
-      profile: profilesData.find(p => p.id === activity.user_id) || null,
+        ...activity,
+        profile: profilesData.find(p => p.id === activity.user_id) || null,
     }));
   };
 
   const { data: feedItems, isLoading, isError, refetch } = useQuery<ActivityWithProfile[]>({
-    queryKey: ['feed', user?.id],
-    queryFn: fetchFeed,
+    queryKey: ['feed', activeTab, user?.id],
+    queryFn: () => fetchFeed(activeTab),
     enabled: !!user,
   });
 
@@ -192,6 +200,13 @@ const FeedPage = () => {
                 </div>
             </div>
         )}
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="friends">Friends</TabsTrigger>
+                <TabsTrigger value="community">Community</TabsTrigger>
+            </TabsList>
+        </Tabs>
 
         {isLoading && (
           <div className="flex justify-center items-center p-8">

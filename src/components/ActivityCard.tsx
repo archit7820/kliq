@@ -17,17 +17,29 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
   const carbonFootprint = Number(activity.carbon_footprint_kg);
 
   const getCarbonIndicatorColor = (carbonFootprint: number) => {
-    if (carbonFootprint < 0) return 'bg-cyan-400';
-    if (carbonFootprint <= 1) return 'bg-green-500';
-    if (carbonFootprint <= 5) return 'bg-yellow-500';
-    if (carbonFootprint <= 10) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (carbonFootprint < 0) return 'bg-green-500'; // Offset/saved
+    return 'bg-red-500'; // Emission
   };
 
   const isOffset = carbonFootprint < 0;
   const displayValue = isOffset ? Math.abs(carbonFootprint) : carbonFootprint;
 
   const imageUrl = activity.image_url || `https://picsum.photos/seed/${activity.id}/800/1000`;
+
+  const handleLike = () => {
+    console.log(`Liking activity ${activity.id}`);
+    // Future: Implement database update and state change for likes
+  };
+
+  const handleComment = () => {
+    console.log(`Commenting on activity ${activity.id}`);
+    // Future: Open a comment modal or section
+  };
+
+  const handleDismiss = () => {
+    console.log(`Dismissing activity ${activity.id}`);
+    // Future: Hide activity from the user's feed
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto overflow-hidden rounded-2xl shadow-lg border-0 relative">
@@ -65,13 +77,13 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
       </div>
       
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-6 bg-black/10 backdrop-blur-sm p-2 rounded-full">
-        <button className="text-white/80 hover:text-white transition-colors">
+        <button onClick={handleDismiss} className="text-white/80 hover:text-white transition-colors">
           <X size={28} />
         </button>
-        <button className="text-white hover:text-red-400 transition-colors scale-125">
-          <Heart size={36} className="text-white" fill="currentColor" />
+        <button onClick={handleLike} className="text-white hover:text-red-400 transition-colors scale-125">
+          <Heart size={36} fill="currentColor" />
         </button>
-        <button className="text-white/80 hover:text-white transition-colors">
+        <button onClick={handleComment} className="text-white/80 hover:text-white transition-colors">
           <MessageCircle size={28} />
         </button>
       </div>
