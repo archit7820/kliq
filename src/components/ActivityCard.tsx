@@ -1,16 +1,19 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 
 type Activity = Database['public']['Tables']['activities']['Row'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface ActivityCardProps {
   activity: Activity;
+  profile?: Profile | null;
 }
 
-const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
+const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
   const getCarbonIndicatorColor = (carbonFootprint: number) => {
     if (carbonFootprint < 1) return 'bg-green-500'; // Low
     if (carbonFootprint < 5) return 'bg-yellow-500'; // Medium
@@ -22,19 +25,30 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
 
   return (
     <Card className="w-full max-w-lg mx-auto overflow-hidden shadow-md">
-      {activity.image_url && (
-        <img src={activity.image_url} alt={activity.activity} className="w-full h-64 object-cover" />
-      )}
-      <CardHeader>
+       <CardHeader>
+        {profile && (
+            <div className="flex items-center gap-3 mb-4">
+              <Avatar>
+                <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || 'user avatar'} />
+                <AvatarFallback>{profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-gray-800">{profile.full_name || `@${profile.username}`}</p>
+                <p className="text-xs text-gray-500">
+                    Logged {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                </p>
+              </div>
+            </div>
+          )}
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl flex items-center gap-2">
               <span className="text-2xl">{activity.emoji}</span>
               {activity.activity}
             </CardTitle>
-            <CardDescription className="text-xs text-gray-500 mt-1">
+            {!profile && <CardDescription className="text-xs text-gray-500 mt-1">
               Logged {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
-            </CardDescription>
+            </CardDescription>}
           </div>
           <div className="flex items-center gap-2 text-right shrink-0">
             <div

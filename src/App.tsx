@@ -6,12 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/LoginPage"; // Added
-import HomePage from "./pages/HomePage"; // Added
-import SignupPage from "./pages/SignupPage"; // Added
-import InviteFlow from "./pages/InviteFlow"; // Added
-import FriendsPage from "./pages/FriendsPage"; // Added
-import LogActivityPage from "./pages/LogActivityPage"; // New
+import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
+import SignupPage from "./pages/SignupPage";
+import InviteFlow from "./pages/InviteFlow";
+import FriendsPage from "./pages/FriendsPage";
+import LogActivityPage from "./pages/LogActivityPage";
+import FeedPage from "./pages/FeedPage"; // New
+import OnboardingPage from "./pages/OnboardingPage"; // New
 
 const queryClient = new QueryClient();
 
@@ -23,17 +25,16 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<LoginPage />} /> {/* Added */}
-          <Route path="/home" element={<HomePage />} /> {/* Added */}
-          <Route path="/invite" element={<InviteFlow />} /> {/* New invite flow */}
-          <Route path="/signup" element={<SignupPage />} /> {/* Signup page */}
-          <Route path="/friends" element={<FriendsPage />} /> {/* Friends page */}
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          {/* Placeholder routes for bottom nav items - to be implemented later */}
-          <Route path="/log-activity" element={<LogActivityPage />} /> {/* Temporary, replace with actual page */}
-          <Route path="/feed" element={<HomePage />} /> {/* Temporary, replace with actual page */}
-          <Route path="/leaderboard" element={<HomePage />} /> {/* Temporary, replace with actual page */}
-          <Route path="/profile" element={<HomePage />} /> {/* Temporary, replace with actual page */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/onboarding" element={<OnboardingPage />} /> {/* New */}
+          <Route path="/invite" element={<InviteFlow />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/log-activity" element={<LogActivityPage />} />
+          <Route path="/feed" element={<FeedPage />} /> {/* Updated */}
+          <Route path="/leaderboard" element={<HomePage />} /> {/* Placeholder */}
+          <Route path="/profile" element={<HomePage />} /> {/* Placeholder */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
