@@ -19,6 +19,11 @@ const ChatPage = () => {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Add console log for user/friendId
+    useEffect(() => {
+        console.log("[ChatPage] user:", user?.id, "friendId:", friendId);
+    }, [user, friendId]);
+
     const { data: friendProfile, isLoading: isLoadingProfile } = useQuery({
         queryKey: ['profile', friendId],
         queryFn: async () => {
@@ -65,10 +70,19 @@ const ChatPage = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
     
+    // Add real-time real DM logging and subscribe fix
     useEffect(() => {
         if (!user || !friendId) return;
 
-        // Subscribe to new messages: from me to friend, and from friend to me
+        // Helper function for logging and updating
+        const handleRealtime = (payload: any, direction: string) => {
+            console.log(`[ChatPage][Realtime] ${direction}: new message`, payload.new);
+            queryClient.setQueryData(['messages', friendId], (oldData: Message[] | undefined) => {
+                if (oldData?.find(m => m.id === payload.new.id)) return oldData;
+                return [...(oldData || []), payload.new];
+            });
+        };
+
         const channelSent = supabase
             .channel(`dm-sent-${user.id}-${friendId}`)
             .on<Message>('postgres_changes', {
@@ -76,14 +90,10 @@ const ChatPage = () => {
                 schema: 'public',
                 table: 'direct_messages',
                 filter: `sender_id=eq.${user.id},receiver_id=eq.${friendId}`,
-            }, (payload) => {
-                // Update messages for sent messages (should rarely be needed, but keep for symmetry)
-                queryClient.setQueryData(['messages', friendId], (oldData: Message[] | undefined) => {
-                    if (oldData?.find(m => m.id === payload.new.id)) return oldData;
-                    return [...(oldData || []), payload.new];
-                });
-            })
-            .subscribe();
+            }, (payload) => handleRealtime(payload, "sent"))
+            .subscribe((event, id) => {
+                console.log("[ChatPage][Realtime] channelSent SUB status", event, id);
+            });
 
         const channelReceived = supabase
             .channel(`dm-received-${friendId}-${user.id}`)
@@ -92,14 +102,10 @@ const ChatPage = () => {
                 schema: 'public',
                 table: 'direct_messages',
                 filter: `sender_id=eq.${friendId},receiver_id=eq.${user.id}`,
-            }, (payload) => {
-                // Update messages for incoming messages
-                queryClient.setQueryData(['messages', friendId], (oldData: Message[] | undefined) => {
-                    if (oldData?.find(m => m.id === payload.new.id)) return oldData;
-                    return [...(oldData || []), payload.new];
-                });
-            })
-            .subscribe();
+            }, (payload) => handleRealtime(payload, "received"))
+            .subscribe((event, id) => {
+                console.log("[ChatPage][Realtime] channelReceived SUB status", event, id);
+            });
 
         return () => {
             supabase.removeChannel(channelSent);
@@ -107,6 +113,10 @@ const ChatPage = () => {
         };
     }, [user, friendId, queryClient]);
 
+    // Log fetched messages
+    useEffect(() => {
+        console.log("[ChatPage] Messages fetched:", messages);
+    }, [messages]);
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
@@ -116,7 +126,10 @@ const ChatPage = () => {
     };
     
     if (isLoadingProfile || isLoadingMessages) {
-        return <div className="flex justify-center items-center h-screen"><LoaderCircle className="w-8 h-8 animate-spin text-green-600" /></div>;
+        return <div className="flex justify-center items-center h-screen"><LoaderCircle className="w-8 h-8 animate-spin text-green-600" /><span className="ml-4 text-green-700">Loading...</span></div>;
+    }
+    if (!friendProfile) {
+        return <div className="flex flex-col justify-center items-center h-screen text-red-500">Could not load friend's profile.</div>;
     }
 
     return (
