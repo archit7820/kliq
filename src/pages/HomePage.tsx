@@ -5,11 +5,18 @@ import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { LogOut } from 'lucide-react';
+import { LogOut, Users, UserPlus, ChevronDown } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LearnCard from '@/components/LearnCard';
 import BrandCard from '@/components/BrandCard';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 const learnContent = [
   {
@@ -112,9 +119,28 @@ const HomePage = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-white shadow-sm p-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-green-700">Kelp Home</h1>
-        <Button onClick={handleLogout} variant="ghost" size="sm" className="text-gray-600 hover:text-red-500">
-          <LogOut className="w-4 h-4 mr-2" /> Logout
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-gray-600 flex items-center gap-2">
+              Menu <ChevronDown className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate('/friends')}>
+              <Users className="w-4 h-4 mr-2" />
+              Friends
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/invite')}>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Invite
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
       
       <main className="flex-grow p-4 md:p-6 space-y-6 mb-16">
