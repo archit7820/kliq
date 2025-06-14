@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Database } from '@/integrations/supabase/types';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Leaf } from 'lucide-react';
 import CommentSheet from './CommentSheet';
+import { Button } from './ui/button';
+import { formatDistanceToNow } from 'date-fns';
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -17,12 +19,6 @@ interface ActivityCardProps {
 const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const carbonFootprint = Number(activity.carbon_footprint_kg);
-
-  const getCarbonIndicatorColor = (carbonFootprint: number) => {
-    if (carbonFootprint < 0) return 'bg-green-500'; // Offset/saved
-    return 'bg-red-500'; // Emission
-  };
-
   const isOffset = carbonFootprint < 0;
   const displayValue = isOffset ? Math.abs(carbonFootprint) : carbonFootprint;
 
@@ -37,50 +33,60 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
     setIsCommentSheetOpen(true);
   };
 
+  const timeAgo = activity.created_at ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }) : '';
+
   return (
     <>
-      <Card className="w-full max-w-md mx-auto overflow-hidden rounded-2xl shadow-lg border-0 relative">
-        <img src={imageUrl} alt={activity.activity} className="w-full h-auto object-cover aspect-[4/5]" />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-
-        <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-          <div className="flex items-end justify-between">
-            <div className="flex items-center gap-3">
-              {profile && (
-                <Avatar className="w-12 h-12 border-2 border-white">
-                  <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || 'user avatar'} />
-                  <AvatarFallback>{profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
-              )}
-              <div>
-                <p className="font-bold text-lg">{profile?.full_name || `@${profile?.username}`}</p>
-                <p className="text-sm">{activity.activity}</p>
-                {activity.caption && <p className="text-xs italic mt-1">"{activity.caption}"</p>}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-right shrink-0">
-               <div
-                className={`w-3 h-3 rounded-full ${getCarbonIndicatorColor(carbonFootprint)}`}
-                title={`Carbon Footprint: ${carbonFootprint.toFixed(1)} kg CO₂e${isOffset ? ' offset' : ''}`}
-              />
-              <span className="font-bold text-lg">
-                {displayValue.toFixed(1)}
-              </span>
-              <span className="text-xs self-end">{isOffset ? 'kg offset' : 'kg'}</span>
+      <Card className="w-full mx-auto overflow-hidden rounded-xl shadow-sm border">
+        <CardHeader className="flex flex-row items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            {profile && (
+              <Avatar className="w-10 h-10 border">
+                <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || 'user avatar'} />
+                <AvatarFallback>{profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}</AvatarFallback>
+              </Avatar>
+            )}
+            <div>
+              <p className="font-semibold text-sm">{profile?.full_name || `@${profile?.username}`}</p>
+              <p className="text-xs text-muted-foreground">{timeAgo}</p>
             </div>
           </div>
-        </div>
+          <Button variant="ghost" size="icon" className="w-8 h-8">
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        </CardHeader>
         
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-12 bg-black/10 backdrop-blur-sm p-4 rounded-full">
-          <button onClick={handleLike} className="text-white hover:text-red-400 transition-colors scale-125">
-            <Heart size={36} fill="currentColor" />
-          </button>
-          <button onClick={handleComment} className="text-white/80 hover:text-white transition-colors">
-            <MessageCircle size={32} />
-          </button>
-        </div>
+        {activity.image_url && (
+            <div className="bg-gray-100">
+                <img src={imageUrl} alt={activity.activity} className="w-full h-auto object-cover aspect-[4/5]" />
+            </div>
+        )}
+
+        <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Button onClick={handleLike} variant="ghost" size="icon" className="text-foreground hover:text-red-500">
+                        <Heart size={22} />
+                    </Button>
+                    <Button onClick={handleComment} variant="ghost" size="icon" className="text-foreground hover:text-primary">
+                        <MessageCircle size={22} />
+                    </Button>
+                </div>
+                <div
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isOffset ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                    title={`Carbon Footprint: ${carbonFootprint.toFixed(1)} kg CO₂e${isOffset ? ' offset' : ''}`}
+                >
+                    <Leaf size={16} />
+                    <span>
+                    {displayValue.toFixed(1)} {isOffset ? 'kg offset' : 'kg CO₂e'}
+                    </span>
+                </div>
+            </div>
+            
+            {activity.caption && <p className="text-sm mt-3"><span className="font-semibold">{profile?.username}</span> {activity.caption}</p>}
+            <button onClick={handleComment} className="text-sm text-muted-foreground mt-2">View all comments</button>
+        </CardContent>
+
       </Card>
       <CommentSheet
         activityId={activity.id}

@@ -16,24 +16,27 @@ interface FeedHeaderProps {
 
 const FeedHeader: React.FC<FeedHeaderProps> = ({ userProfile, onRefresh, isRefetching }) => {
   return (
-    <header className="bg-white p-4 sticky top-0 z-10 flex justify-between items-center border-b">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">Welcome to kelp!</h1>
-        {userProfile && <p className="text-xl text-gray-500">{userProfile.full_name || userProfile.username}</p>}
-      </div>
-      <div className="flex items-center gap-2">
+    <header className="bg-card/80 backdrop-blur-sm p-4 sticky top-0 z-40 flex justify-between items-center border-b">
+      <Link to="/home">
+        <h1 className="text-2xl font-bold text-primary">kelp</h1>
+      </Link>
+      <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={onRefresh} disabled={isRefetching}>
-              <RefreshCw className={`w-5 h-5 text-gray-600 ${isRefetching ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 text-muted-foreground ${isRefetching ? 'animate-spin' : ''}`} />
+              <span className="sr-only">Refresh feed</span>
           </Button>
           <Link to="/messages">
             <Button variant="ghost" size="icon">
-                <MessageSquare className="w-5 h-5 text-gray-600" />
+                <MessageSquare className="w-5 h-5 text-muted-foreground" />
+                <span className="sr-only">Messages</span>
             </Button>
           </Link>
-          <Avatar>
-              <AvatarImage src={userProfile?.avatar_url || undefined} />
-              <AvatarFallback>{userProfile?.full_name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-          </Avatar>
+          <Link to="/profile">
+            <Avatar className="w-9 h-9">
+                <AvatarImage src={userProfile?.avatar_url || undefined} />
+                <AvatarFallback>{userProfile?.full_name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+            </Avatar>
+          </Link>
       </div>
     </header>
   );

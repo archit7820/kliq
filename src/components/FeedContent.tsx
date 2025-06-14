@@ -90,7 +90,7 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
 
   if (!user)
     return (
-      <div className="p-6 text-gray-400 text-center text-base">
+      <div className="p-6 text-muted-foreground text-center text-base">
         Sign in to see your feed
       </div>
     );
@@ -98,15 +98,15 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
   if (loading)
     return (
       <div className="flex items-center justify-center p-8">
-        <LoaderCircle className="animate-spin w-8 h-8 text-green-400" />
+        <LoaderCircle className="animate-spin w-8 h-8 text-primary" />
       </div>
     );
 
   return (
-    <div className="flex flex-col gap-8 px-2 pb-6 sm:gap-5 sm:px-4">
+    <div className="flex flex-col gap-6">
       {posts.length === 0 ? (
-        <div className="mt-5 p-4 rounded-xl bg-gradient-to-r from-green-50 to-blue-50 text-center text-gray-400 border">
-          No activities yet. Add your first!
+        <div className="mt-5 p-6 rounded-xl bg-card border text-center text-muted-foreground">
+          No activities yet. Follow friends to see their posts or log your first activity!
         </div>
       ) : (
         posts.map((activity) => (

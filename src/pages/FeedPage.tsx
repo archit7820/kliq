@@ -70,13 +70,13 @@ const FeedPage = () => {
   const isRefreshing = useIsFetching() > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <FeedHeader userProfile={userProfile} onRefresh={handleRefresh} isRefetching={isRefreshing} />
 
-      <main className="flex-grow p-4 md:p-6 space-y-8 mb-16">
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 mb-16">
         {isLoadingCarbonOverview ? (
           <div className="flex justify-center items-center p-8">
-            <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
+            <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
           <CarbonOverview data={carbonOverviewData || []} />
@@ -84,7 +84,18 @@ const FeedPage = () => {
 
         <FriendsBar user={user} />
         
-        <FeedContent user={userProfile} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+                <FeedContent user={userProfile} />
+            </div>
+            <aside className="hidden md:block md:col-span-1">
+                {/* Placeholder for sidebar content, like suggestions or user profile summary */}
+                <div className="sticky top-24 p-4 rounded-lg bg-card border">
+                    <h3 className="font-bold text-lg mb-4">Suggestions</h3>
+                    <p className="text-muted-foreground">This area can be used for friend suggestions, trending topics, or other widgets.</p>
+                </div>
+            </aside>
+        </div>
       </main>
 
       <BottomNav />
@@ -93,4 +104,3 @@ const FeedPage = () => {
 };
 
 export default FeedPage;
-
