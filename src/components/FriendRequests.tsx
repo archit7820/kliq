@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
@@ -55,17 +54,38 @@ const FriendRequests = () => {
 
   // Accept/decline actions
   const handleRespond = async (req: FriendReq, accept: boolean) => {
+    if (!user) return;
     const newStatus = accept ? "accepted" : "declined";
-    await supabase
+
+    // First, update the friend request status
+    const { error: updateError } = await supabase
       .from("friend_requests")
       .update({ status: newStatus })
       .eq("id", req.id);
+
+    if (updateError) {
+      toast({ title: "Error", description: `Failed to respond to request: ${updateError.message}`, variant: "destructive" });
+      return;
+    }
+
+    // If accepted, create the friendship
+    if (accept) {
+      const { error: insertError } = await supabase
+        .from("friends")
+        .insert({ user1_id: user.id, user2_id: req.sender_id });
+      
+      if (insertError) {
+        toast({ title: "Error", description: `Failed to create friendship: ${insertError.message}`, variant: "destructive" });
+        // Here we could try to revert the friend_request status, but for now we'll just error.
+        return;
+      }
+    }
 
     setReqs((prev) => prev.filter(r => r.id !== req.id));
     toast({
       title: accept ? "Friend Added!" : "Request Declined",
       description: (
-        accept ? "You are now friends." : "This request was declined."
+        accept ? `You are now friends with @${req.profile?.username || 'user'}.` : "This request was declined."
       ),
       variant: accept ? "default" : "destructive",
     });
