@@ -42,6 +42,18 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Function started - checking API key...')
+    
+    if (!GOOGLE_API_KEY) {
+      console.error('GOOGLE_API_KEY environment variable is not set')
+      return new Response(JSON.stringify({ error: 'Google API key not configured' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
+
+    console.log('API key found, processing request...')
+    
     const requestBody = await req.json()
     const { imageUrl, caption } = requestBody
 
@@ -51,14 +63,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'imageUrl is required' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
-      })
-    }
-
-    if (!GOOGLE_API_KEY) {
-      console.error('GOOGLE_API_KEY is not set')
-      return new Response(JSON.stringify({ error: 'Configuration error' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
       })
     }
 
@@ -118,6 +122,15 @@ serve(async (req) => {
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text()
       console.error('Gemini API Error:', errorText)
+      
+      // Check if it's an API key error specifically
+      if (errorText.includes('API key not valid') || errorText.includes('INVALID_ARGUMENT')) {
+        return new Response(JSON.stringify({ error: 'Invalid Google API key - please check your configuration' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        })
+      }
+      
       return new Response(JSON.stringify({ error: 'Analysis service unavailable' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
