@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
@@ -28,22 +27,44 @@ const FriendsList = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Listen to changes in friends table for mutual friendships
-    const channel = supabase
-      .channel(`friends-${user.id}`)
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "friends",
-        filter: `or(user1_id=eq.${user.id},user2_id=eq.${user.id})`
-      }, () => {
-        // Refetch friends when changed
-        fetchFriends();
-      })
+    // Subscribe to friends table changes where current user is either user1 or user2
+    const channel1 = supabase
+      .channel(`friends-user1-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "friends",
+          filter: `user1_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("FriendsList: real-time event for user1_id", payload);
+          fetchFriends();
+        }
+      )
+      .subscribe();
+
+    const channel2 = supabase
+      .channel(`friends-user2-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "friends",
+          filter: `user2_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("FriendsList: real-time event for user2_id", payload);
+          fetchFriends();
+        }
+      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channel1);
+      supabase.removeChannel(channel2);
     };
     // eslint-disable-next-line
   }, [user]);
@@ -150,4 +171,3 @@ const FriendsList = () => {
 };
 
 export default FriendsList;
-
