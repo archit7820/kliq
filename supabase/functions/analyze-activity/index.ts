@@ -14,6 +14,7 @@ Provide context-aware analysis. For example, if the caption says "cycling to wor
 Return a JSON object with:
 - "activity" (string): A descriptive name for the activity (e.g., "Eating a steak dinner", "Cycling to work").
 - "carbon_footprint_kg" (number): The estimated carbon footprint. A positive number indicates emissions, a negative number indicates an offset/saving.
+- "category" (string): Classify the activity into one of these categories: "Food", "Travel", "Home", "Shopping", "Utilities". If it doesn't fit, use "Other".
 - "explanation" (string): A brief, one-sentence explanation for the estimate, considering the caption.
 - "emoji" (string): A single emoji that represents the activity.
 

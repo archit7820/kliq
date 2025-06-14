@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +8,7 @@ import { LoaderCircle, RefreshCw } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import CarbonOverview from '@/components/CarbonOverview';
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -89,6 +89,39 @@ const FeedPage = () => {
     enabled: !!user,
   });
 
+  const { data: carbonOverviewData, isLoading: isLoadingCarbonOverview } = useQuery({
+    queryKey: ['carbonOverview', user?.id],
+    queryFn: async () => {
+        if (!user) return [];
+        
+        // For larger scale apps, creating a database function (RPC) for aggregation would be more performant.
+        const { data: activities, error } = await supabase
+            .from('activities')
+            .select('category, carbon_footprint_kg')
+            .eq('user_id', user.id)
+            .not('category', 'is', null);
+
+        if (error) {
+            console.error("Error fetching carbon overview data:", error);
+            throw error;
+        }
+
+        const aggregated: { [key: string]: number } = {};
+        activities.forEach(activity => {
+            const category = activity.category || 'Other';
+            const carbon = Number(activity.carbon_footprint_kg) || 0;
+            if (aggregated[category]) {
+                aggregated[category] += carbon;
+            } else {
+                aggregated[category] = carbon;
+            }
+        });
+        
+        return Object.entries(aggregated).map(([category, total_carbon]) => ({ category, total_carbon }));
+    },
+    enabled: !!user,
+  });
+
   const { data: friends } = useQuery({
     queryKey: ['friendsProfiles', user?.id],
     queryFn: async () => {
@@ -135,10 +168,18 @@ const FeedPage = () => {
       </header>
 
       <main className="flex-grow p-4 md:p-6 space-y-8 mb-16">
-        <div className="bg-green-100/50 p-4 rounded-xl border border-green-200">
-            <h2 className="font-semibold text-green-800 mb-2">Your Estimated Carbon Footprint</h2>
-            <p className="text-sm text-green-700">This section is coming soon! We'll show a breakdown of your carbon footprint by category here.</p>
-        </div>
+        {isLoadingCarbonOverview ? (
+          <div className="flex justify-center items-center p-8">
+            <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
+          </div>
+        ) : carbonOverviewData && carbonOverviewData.length > 0 ? (
+          <CarbonOverview data={carbonOverviewData} />
+        ) : (
+          !isLoadingCarbonOverview && <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <h2 className="font-semibold text-gray-800 mb-2">Your Carbon Footprint</h2>
+            <p className="text-sm text-gray-600">Log your first activity to see your carbon footprint breakdown here!</p>
+          </div>
+        )}
 
         {friends && friends.length > 0 && (
             <div>

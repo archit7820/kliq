@@ -14,6 +14,7 @@ export type Database = {
           activity: string
           caption: string | null
           carbon_footprint_kg: number
+          category: string | null
           created_at: string
           emoji: string | null
           explanation: string | null
@@ -25,6 +26,7 @@ export type Database = {
           activity: string
           caption?: string | null
           carbon_footprint_kg: number
+          category?: string | null
           created_at?: string
           emoji?: string | null
           explanation?: string | null
@@ -36,6 +38,7 @@ export type Database = {
           activity?: string
           caption?: string | null
           carbon_footprint_kg?: number
+          category?: string | null
           created_at?: string
           emoji?: string | null
           explanation?: string | null

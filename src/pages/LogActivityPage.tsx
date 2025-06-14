@@ -17,6 +17,7 @@ type AnalysisResult = {
   carbon_footprint_kg: number;
   explanation: string;
   emoji: string;
+  category: string;
 };
 
 const LogActivityPage = () => {
@@ -116,6 +117,7 @@ const LogActivityPage = () => {
         explanation: result.explanation,
         emoji: result.emoji,
         image_url: publicUrl,
+        category: result.category,
       });
 
       if (insertError) throw new Error(`Failed to log activity: ${insertError.message}`);
@@ -144,6 +146,8 @@ const LogActivityPage = () => {
       await queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
       await queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
       await queryClient.invalidateQueries({ queryKey: ['feed', user.id] });
+      await queryClient.invalidateQueries({ queryKey: ['carbonOverview', user.id] });
+
 
       toast.success('Activity logged & Kelp Points updated!');
       navigate('/feed');
