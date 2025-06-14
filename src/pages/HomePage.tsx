@@ -146,10 +146,11 @@ const HomePage = () => {
       </header>
       
       <main className="flex-grow p-4 md:p-6 space-y-6 mb-16">
-        <div className="bg-white p-6 rounded-lg shadow max-w-4xl mx-auto">
-          <h2 className="text-xl font-semibold text-gray-800 mb-1">Welcome, {user.email?.split('@')[0]}!</h2>
-          <p className="text-gray-600">Explore ways to offset your carbon footprint.</p>
+        {/* --- DASHBOARD SUMMARY (new) --- */}
+        <div className="max-w-4xl mx-auto mb-6">
+          <DashboardSummary />
         </div>
+        {/* --- END DASHBOARD SUMMARY --- */}
 
         <div className="max-w-4xl mx-auto">
           {/* TABS (CONTROLLED) */}
