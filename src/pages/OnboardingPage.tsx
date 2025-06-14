@@ -5,8 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { LoaderCircle, Leaf, Utensils, Home, ShoppingBag, Music, Users, BarChart2, UserCircle, Briefcase, Footprints, Zap } from 'lucide-react';
+import { LoaderCircle, Leaf, Utensils, Home, ShoppingBag, Users, Briefcase, Footprints, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
 
 const interests = [
   { name: 'Food', icon: Utensils },
@@ -22,6 +23,7 @@ const interests = [
 const OnboardingPage = () => {
   const { user } = useAuthStatus();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,6 +60,7 @@ const OnboardingPage = () => {
         variant: "destructive",
       });
     } else {
+      await queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
       toast({
         title: "Preferences saved!",
         description: "Welcome to Kelp!",
