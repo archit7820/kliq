@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import BottomNav from '@/components/BottomNav';
@@ -66,6 +66,8 @@ const marketplaceBrands = [
 const HomePage = () => {
   const { user, loading: authLoading } = useAuthStatus();
   const navigate = useNavigate();
+
+  const [tabValue, setTabValue] = useState("marketplace"); // ADDED CONTROLLED STATE
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
@@ -150,7 +152,12 @@ const HomePage = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <Tabs defaultValue="marketplace">
+          {/* TABS (CONTROLLED) */}
+          <Tabs
+            value={tabValue}
+            onValueChange={setTabValue}
+            defaultValue="marketplace"
+          >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="marketplace">Offset Marketplace</TabsTrigger>
               <TabsTrigger value="learn">Learn</TabsTrigger>
