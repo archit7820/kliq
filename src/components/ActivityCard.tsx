@@ -16,6 +16,14 @@ interface ActivityCardProps {
   profile?: Profile | null;
 }
 
+const colors = [
+  "from-green-200 to-green-100",
+  "from-blue-200 to-green-100",
+  "from-yellow-200 to-pink-100",
+  "from-fuchsia-200 to-indigo-100",
+  "from-indigo-100 to-teal-100",
+];
+
 const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const carbonFootprint = Number(activity.carbon_footprint_kg);
@@ -35,58 +43,63 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
 
   const timeAgo = activity.created_at ? formatDistanceToNow(new Date(activity.created_at), { addSuffix: true }) : '';
 
+  // Pick a color gradient based on activity id for variety
+  const gradient = colors[(activity.id.charCodeAt(0) + activity.id.charCodeAt(activity.id.length - 1)) % colors.length];
+
   return (
     <>
-      <Card className="w-full mx-auto overflow-hidden rounded-xl shadow-sm border">
-        <CardHeader className="flex flex-row items-center justify-between p-4">
+      <Card className={`w-full mx-auto overflow-hidden rounded-2xl shadow-lg border-0 bg-gradient-to-br ${gradient} backdrop-blur-md`}>
+        <CardHeader className="flex flex-row items-center justify-between p-4 bg-white/60 backdrop-blur-sm rounded-t-2xl">
           <div className="flex items-center gap-3">
             {profile && (
-              <Avatar className="w-10 h-10 border">
+              <Avatar className="w-10 h-10 border border-primary bg-green-50">
                 <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || 'user avatar'} />
                 <AvatarFallback>{profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}</AvatarFallback>
               </Avatar>
             )}
             <div>
-              <p className="font-semibold text-sm">{profile?.full_name || `@${profile?.username}`}</p>
+              <p className="font-semibold text-sm text-primary">{profile?.full_name || `@${profile?.username}`}</p>
               <p className="text-xs text-muted-foreground">{timeAgo}</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" className="w-8 h-8">
-            <MoreHorizontal className="w-4 h-4" />
+            <MoreHorizontal className="w-4 h-4 text-primary" />
           </Button>
         </CardHeader>
         
         {activity.image_url && (
-            <div className="bg-gray-100">
-                <img src={imageUrl} alt={activity.activity} className="w-full h-auto object-cover aspect-[4/5]" />
-            </div>
+          <div className="bg-gray-100">
+            <img src={imageUrl} alt={activity.activity} className="w-full h-auto object-cover aspect-[4/5] rounded-none" />
+          </div>
         )}
 
-        <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Button onClick={handleLike} variant="ghost" size="icon" className="text-foreground hover:text-red-500">
-                        <Heart size={22} />
-                    </Button>
-                    <Button onClick={handleComment} variant="ghost" size="icon" className="text-foreground hover:text-primary">
-                        <MessageCircle size={22} />
-                    </Button>
-                </div>
-                <div
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${isOffset ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                    title={`Carbon Footprint: ${carbonFootprint.toFixed(1)} kg CO₂e${isOffset ? ' offset' : ''}`}
-                >
-                    <Leaf size={16} />
-                    <span>
-                    {displayValue.toFixed(1)} {isOffset ? 'kg offset' : 'kg CO₂e'}
-                    </span>
-                </div>
+        <CardContent className="p-4 bg-white/60 backdrop-blur-xl rounded-b-2xl">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Button onClick={handleLike} variant="ghost" size="icon" className="text-foreground hover:text-red-500 transition hover:scale-105">
+                <Heart size={22} />
+              </Button>
+              <Button onClick={handleComment} variant="ghost" size="icon" className="text-foreground hover:text-primary transition hover:scale-105">
+                <MessageCircle size={22} />
+              </Button>
             </div>
-            
-            {activity.caption && <p className="text-sm mt-3"><span className="font-semibold">{profile?.username}</span> {activity.caption}</p>}
-            <button onClick={handleComment} className="text-sm text-muted-foreground mt-2">View all comments</button>
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold ${
+                isOffset
+                  ? 'bg-gradient-to-r from-green-300 via-green-200 to-lime-200 text-green-900'
+                  : 'bg-gradient-to-r from-pink-200 via-red-200 to-orange-100 text-red-900'
+              } drop-shadow`}
+              title={`Carbon Footprint: ${carbonFootprint.toFixed(1)} kg CO₂e${isOffset ? ' offset' : ''}`}
+            >
+              <Leaf size={16} />
+              <span>
+                {displayValue.toFixed(1)} {isOffset ? 'kg offset' : 'kg CO₂e'}
+              </span>
+            </div>
+          </div>
+          {activity.caption && <p className="text-sm mt-3"><span className="font-semibold text-primary">{profile?.username}</span> {activity.caption}</p>}
+          <button onClick={handleComment} className="text-xs text-muted-foreground mt-2 underline hover:text-primary">View all comments</button>
         </CardContent>
-
       </Card>
       <CommentSheet
         activityId={activity.id}
