@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 
 const corsHeaders = {
@@ -27,7 +28,10 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrl, caption } = await req.json()
+    const requestBody = await req.json()
+    const { imageUrl, caption } = requestBody
+
+    console.log('Received request with imageUrl:', imageUrl ? 'present' : 'missing')
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: 'imageUrl is required' }), {
@@ -37,29 +41,39 @@ serve(async (req) => {
     }
 
     if (!GOOGLE_API_KEY) {
-      throw new Error('GOOGLE_API_KEY is not set in environment variables.')
+      console.error('GOOGLE_API_KEY is not set')
+      return new Response(JSON.stringify({ error: 'Configuration error' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
     }
 
     // 1. Fetch image and convert to base64
+    console.log('Fetching image from URL...')
     const imageResponse = await fetch(imageUrl)
     if (!imageResponse.ok) {
-      throw new Error(`Failed to fetch image. Status: ${imageResponse.status}`)
+      console.error(`Failed to fetch image. Status: ${imageResponse.status}`)
+      return new Response(JSON.stringify({ error: 'Failed to fetch image' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      })
     }
+
     const imageArrayBuffer = await imageResponse.arrayBuffer()
     const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageArrayBuffer)))
-    const mimeType = imageResponse.headers.get('content-type') ?? 'image/jpeg'
+    const mimeType = imageResponse.headers.get('content-type') || 'image/jpeg'
+
+    console.log('Image processed, calling Gemini API...')
 
     // 2. Prepare request for Gemini API
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GOOGLE_API_KEY}`
 
-    const requestBody = {
+    const geminiRequestBody = {
       contents: [
         {
           parts: [
             {
-              text: `${SYSTEM_PROMPT}\n\nAnalyze the activity in the image. The user-provided caption is: "${
-                caption || 'No caption provided.'
-              }"`,
+              text: `${SYSTEM_PROMPT}\n\nAnalyze the activity in the image. The user-provided caption is: "${caption || 'No caption provided.'}"`
             },
             {
               inline_data: {
@@ -81,48 +95,65 @@ serve(async (req) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(geminiRequestBody),
     })
 
     if (!geminiResponse.ok) {
-      const errorBody = await geminiResponse.text()
-      console.error('Gemini API Error:', errorBody)
-      throw new Error(`Gemini API request failed with status ${geminiResponse.status}`)
+      const errorText = await geminiResponse.text()
+      console.error('Gemini API Error:', errorText)
+      return new Response(JSON.stringify({ error: 'Analysis service unavailable' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
     }
 
     const geminiData = await geminiResponse.json()
+    console.log('Gemini response received')
 
-    // 4. Parse the response robustly
-    if (!geminiData.candidates || !geminiData.candidates[0]?.content?.parts[0]?.text) {
-      console.error('Invalid response structure from Gemini:', geminiData)
-      throw new Error('Received an invalid response from the analysis service.')
+    // 4. Parse the response safely
+    if (!geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error('Invalid Gemini response structure:', JSON.stringify(geminiData))
+      return new Response(JSON.stringify({ error: 'Invalid response from analysis service' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
     }
 
-    let parsedResponse;
-    const responsePart = geminiData.candidates[0].content.parts[0].text;
+    const responseText = geminiData.candidates[0].content.parts[0].text
+    let analysisResult
 
-    // Robust check: parse as JSON only if string, else return as-is
-    if (typeof responsePart === 'string') {
-      try {
-        parsedResponse = JSON.parse(responsePart);
-      } catch (e) {
-        console.error('Failed to parse Gemini response string as JSON:', responsePart);
-        throw new Error('Analysis service returned invalid JSON.');
-      }
-    } else if (typeof responsePart === 'object' && responsePart !== null) {
-      parsedResponse = responsePart;
-    } else {
-      console.error('Gemini response could not be parsed:', responsePart);
-      throw new Error('Received invalid analysis data from Gemini.');
+    try {
+      analysisResult = JSON.parse(responseText)
+    } catch (parseError) {
+      console.error('Failed to parse Gemini response as JSON:', responseText)
+      return new Response(JSON.stringify({ error: 'Invalid analysis result format' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
     }
 
-    return new Response(JSON.stringify(parsedResponse), {
+    // Validate the response structure
+    if (!analysisResult || 
+        typeof analysisResult.carbon_footprint_kg !== 'number' ||
+        !analysisResult.explanation ||
+        !analysisResult.activity ||
+        !analysisResult.emoji) {
+      console.error('Invalid analysis result structure:', analysisResult)
+      return new Response(JSON.stringify({ error: 'Incomplete analysis result' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
+
+    console.log('Analysis completed successfully')
+    return new Response(JSON.stringify(analysisResult), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
+
   } catch (error) {
-    console.error('Error in analyze-activity function:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error in analyze-activity function:', error.message)
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     })
