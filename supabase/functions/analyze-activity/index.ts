@@ -22,6 +22,20 @@ Your response MUST be a valid JSON object with the exact following structure:
 If the activity represents a carbon offset or a reduction in emissions (e.g., planting a tree, using a reusable cup instead of disposable), the 'carbon_footprint_kg' value should be a negative number. For neutral activities, use 0.
 Be realistic and base your estimations on scientific data about carbon emissions. For example, a steak dinner is high, taking a flight is very high, riding a bike is 0 or slightly negative if it replaces a car trip.`
 
+// Helper function to convert ArrayBuffer to base64 without stack overflow
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  const chunkSize = 8192 // Process in chunks to avoid stack overflow
+  
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.slice(i, i + chunkSize)
+    binary += String.fromCharCode(...chunk)
+  }
+  
+  return btoa(binary)
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -60,7 +74,10 @@ serve(async (req) => {
     }
 
     const imageArrayBuffer = await imageResponse.arrayBuffer()
-    const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageArrayBuffer)))
+    console.log('Image size:', imageArrayBuffer.byteLength, 'bytes')
+    
+    // Use safe base64 conversion
+    const imageBase64 = arrayBufferToBase64(imageArrayBuffer)
     const mimeType = imageResponse.headers.get('content-type') || 'image/jpeg'
 
     console.log('Image processed, calling Gemini API...')
@@ -123,7 +140,12 @@ serve(async (req) => {
     let analysisResult
 
     try {
-      analysisResult = JSON.parse(responseText)
+      // Check if responseText is already an object or needs parsing
+      if (typeof responseText === 'string') {
+        analysisResult = JSON.parse(responseText)
+      } else {
+        analysisResult = responseText
+      }
     } catch (parseError) {
       console.error('Failed to parse Gemini response as JSON:', responseText)
       return new Response(JSON.stringify({ error: 'Invalid analysis result format' }), {
