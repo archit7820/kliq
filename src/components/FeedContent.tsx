@@ -109,13 +109,15 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
           No activities yet. Follow friends to see their posts or log your first activity!
         </div>
       ) : (
-        posts.map((activity) => (
-          <ActivityCard
-            key={activity.id}
-            activity={activity}
-            profile={profiles[activity.user_id]}
-          />
-        ))
+        posts
+          .filter((activity) => !activity.archived) // Hide archived activities by default
+          .map((activity) => (
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              profile={profiles[activity.user_id]}
+            />
+          ))
       )}
     </div>
   );

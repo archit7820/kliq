@@ -6,6 +6,9 @@ import { Heart, MessageCircle, MoreHorizontal, Leaf } from 'lucide-react';
 import CommentSheet from './CommentSheet';
 import { Button } from './ui/button';
 import { formatDistanceToNow } from 'date-fns';
+import { Menu, MenuButton, MenuItem, MenuList } from "@radix-ui/react-dropdown-menu";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -25,6 +28,8 @@ const colors = [
 
 const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const carbonFootprint = Number(activity.carbon_footprint_kg);
   const isOffset = carbonFootprint < 0;
   const displayValue = isOffset ? Math.abs(carbonFootprint) : carbonFootprint;
@@ -45,6 +50,41 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
   // Pick a color gradient based on activity id for variety
   const gradient = colors[(activity.id.charCodeAt(0) + activity.id.charCodeAt(activity.id.length - 1)) % colors.length];
 
+  // If current user is owner of this activity
+  const userId = supabase.auth.getUserSync()?.id;
+  const isOwner = userId === activity.user_id;
+
+  const handleArchive = async () => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("activities")
+      .update({ archived: true })
+      .eq("id", activity.id);
+    setLoading(false);
+    if (error) {
+      toast.error("Failed to archive activity", { description: error.message });
+    } else {
+      toast.success("Activity archived!");
+      // Optionally refetch feed or trigger data refresh here.
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this activity? This cannot be undone.")) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from("activities")
+      .delete()
+      .eq("id", activity.id);
+    setLoading(false);
+    if (error) {
+      toast.error("Failed to delete activity", { description: error.message });
+    } else {
+      toast.success("Activity deleted!");
+      // Optionally refetch feed or trigger data refresh here.
+    }
+  };
+
   return (
     <>
       <Card className={`w-full mx-auto overflow-hidden rounded-2xl shadow-lg border-0 bg-gradient-to-br ${gradient} backdrop-blur-md`}>
@@ -63,9 +103,36 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile }) => {
               <p className="text-xs text-muted-foreground">{timeAgo}</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="w-8 h-8">
-            <MoreHorizontal className="w-4 h-4 text-primary" />
-          </Button>
+          {/* Use More options menu if owner, basic More if not */}
+          {isOwner ? (
+            <Menu>
+              <MenuButton asChild>
+                <Button variant="ghost" size="icon" className="w-8 h-8" disabled={loading}>
+                  <MoreHorizontal className="w-4 h-4 text-primary" />
+                </Button>
+              </MenuButton>
+              <MenuList className="bg-white shadow rounded-xl py-1 w-48">
+                <MenuItem
+                  className="px-4 py-2 hover:bg-gray-100 text-gray-800 cursor-pointer"
+                  onClick={handleArchive}
+                  disabled={activity.archived || loading}
+                >
+                  {activity.archived ? "Archived" : "Archive"}
+                </MenuItem>
+                <MenuItem
+                  className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer"
+                  onClick={handleDelete}
+                  disabled={loading}
+                >
+                  Delete
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          ) : (
+            <Button variant="ghost" size="icon" className="w-8 h-8">
+              <MoreHorizontal className="w-4 h-4 text-primary" />
+            </Button>
+          )}
         </CardHeader>
         
         {activity.image_url && (
