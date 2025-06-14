@@ -16,7 +16,7 @@ import {
   Sun,
   Moon,
   Coffee,
-  Bicycle,
+  Bike, // <-- replaced Bicycle with Bike
   TreePine,
   Recycle
 } from 'lucide-react';
@@ -34,7 +34,7 @@ interface FeedHeaderProps {
 // Fun icon sets based on activity categories and achievements
 const dynamicIcons = {
   energy: [Zap, Sun, Flame],
-  transportation: [Bicycle, Leaf],
+  transportation: [Bike, Leaf], // <-- replaced Bicycle with Bike
   home: [TreePine, Recycle],
   food: [Coffee, Leaf],
   default: [Sparkles, Star, Heart]
