@@ -39,9 +39,10 @@ const InviteFlow = () => {
     }
     setSuccess(true);
     toast({ title: "Invite Accepted!", description: "Welcome to Kelp!" });
-    // Simulate transition and proceed to next onboarding step
+    // Redirect to /signup with inviteCode in state/query
     setTimeout(() => {
-      navigate("/signup", { state: { inviteCode } });
+      window.location.href = `/signup?inviteCode=${inviteCode.trim()}`;
+      // or: navigate("/signup", { state: { inviteCode } });
     }, 900);
   };
 
