@@ -47,20 +47,14 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
 
       const friendIds = await fetchFriendIds();
 
-      // Split activities into friendPosts and otherPosts, both sorted (already sorted from DB fetch)
+      // Split activities into friendPosts and otherPosts
       const friendPosts: Activity[] = [];
       const otherPosts: Activity[] = [];
       (activities || []).forEach(post => {
-        // Typecast to include archived for runtime
-        const castPost = { ...post, archived: (post as any).archived ?? false } as Activity;
-        if (friendIds.includes(post.user_id)) {
-          friendPosts.push(castPost);
-        } else {
-          otherPosts.push(castPost);
-        }
+        // Just push, do not assign or check 'archived'
+        friendIds.includes(post.user_id) ? friendPosts.push(post) : otherPosts.push(post);
       });
 
-      // Already sorted by created_at descending!
       const finalPosts = [...friendPosts, ...otherPosts];
       setPosts(finalPosts);
 
@@ -111,11 +105,10 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
         </div>
       ) : (
         posts
-          .filter((activity) => !(activity as any).archived) // Typecast ensures we check archived correctly
           .map((activity) => (
             <ActivityCard
               key={activity.id}
-              activity={activity as Activity} // ensure correct local type
+              activity={activity}
               profile={profiles[activity.user_id]}
               currentUserId={user?.id}
             />

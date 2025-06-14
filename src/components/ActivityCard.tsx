@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -59,18 +58,8 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
   const isOwner = currentUserId === activity.user_id;
 
   const handleArchive = async () => {
-    setLoading(true);
-    const { error } = await supabase
-      .from("activities")
-      .update({ archived: true })
-      .eq("id", activity.id);
-    setLoading(false);
-    if (error) {
-      toast.error("Failed to archive activity", { description: error.message });
-    } else {
-      toast.success("Activity archived!");
-      // Optionally: trigger a refresh
-    }
+    // Since 'archived' doesn't exist, show a toast and do nothing else for now
+    toast.info("Archive not implemented. Add 'archived' column to activities table to use this feature.");
   };
 
   const handleDelete = async () => {
@@ -87,8 +76,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
       toast.success("Activity deleted!");
     }
   };
-
-  const archived = typeof activity.archived === "boolean" ? activity.archived : false;
 
   return (
     <>
@@ -119,9 +106,9 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
                 <DropdownMenuItem
                   className="px-4 py-2 hover:bg-gray-100 text-gray-800 cursor-pointer"
                   onClick={handleArchive}
-                  disabled={archived || loading}
+                  disabled={loading}
                 >
-                  {archived ? "Archived" : "Archive"}
+                  Archive
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer"
