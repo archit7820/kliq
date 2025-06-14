@@ -24,35 +24,67 @@ const FriendsList = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Real-time: friends list subscription
   useEffect(() => {
     if (!user) return;
+
+    // Listen to changes in friends table for mutual friendships
+    const channel = supabase
+      .channel(`friends-${user.id}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "friends",
+        filter: `or(user1_id=eq.${user.id},user2_id=eq.${user.id})`
+      }, () => {
+        // Refetch friends when changed
+        fetchFriends();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line
+  }, [user]);
+
+  const fetchFriends = async () => {
     setLoading(true);
-    supabase
+    const { data, error } = await supabase
       .from("friends")
       .select("*")
-      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-      .then(async ({ data, error }) => {
-        if (error) return;
-        const friendIds = (data || []).map(
-          f => f.user1_id === user.id ? f.user2_id : f.user1_id
-        );
-        if (!friendIds.length) {
-          setFriends([]);
-          setLoading(false);
-          return;
-        }
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, username, avatar_url")
-          .in("id", friendIds);
-        const friendsWithProfile = (data || []).map(f => {
-          const fid = f.user1_id === user.id ? f.user2_id : f.user1_id;
-          const profile = profiles?.find((p) => p.id === fid) || DEFAULT_PROFILE;
-          return { ...f, profile };
-        });
-        setFriends(friendsWithProfile);
-        setLoading(false);
-      });
+      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+    if (error) {
+      setFriends([]);
+      setLoading(false);
+      return;
+    }
+    const friendIds = (data || []).map(
+      f => f.user1_id === user.id ? f.user2_id : f.user1_id
+    );
+    if (!friendIds.length) {
+      setFriends([]);
+      setLoading(false);
+      return;
+    }
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, avatar_url")
+      .in("id", friendIds);
+    const friendsWithProfile = (data || []).map(f => {
+      const fid = f.user1_id === user.id ? f.user2_id : f.user1_id;
+      const profile = profiles?.find((p) => p.id === fid) || DEFAULT_PROFILE;
+      return { ...f, profile };
+    });
+    setFriends(friendsWithProfile);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchFriends();
+    // eslint-disable-next-line
   }, [user]);
 
   if (!user) return null;
@@ -118,3 +150,4 @@ const FriendsList = () => {
 };
 
 export default FriendsList;
+

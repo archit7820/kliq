@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { Users, UserCheck, UserMinus, UserPlus, HelpCircle, Smile } from "lucide-react";
+import { Users, UserCheck, UserMinus, UserPlus, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 type FriendReq = {
   id: string;
@@ -19,6 +20,7 @@ const FriendRequests = () => {
   const { user } = useAuthStatus();
   const [reqs, setReqs] = useState<FriendReq[]>([]);
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!user) return;
@@ -50,6 +52,49 @@ const FriendRequests = () => {
         setReqs(reqsWithProfile);
         setLoading(false);
       });
+
+    // Subscribe to friend_requests for realtime UI updates (optional)
+    const channel = supabase
+      .channel(`friend_requests-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "friend_requests",
+          filter: `receiver_id=eq.${user.id}`
+        },
+        () => {
+          // Refetch requests on update/insert/delete
+          supabase
+            .from("friend_requests")
+            .select("*")
+            .eq("receiver_id", user.id)
+            .eq("status", "pending")
+            .order("created_at", { ascending: false })
+            .then(async ({ data, error }) => {
+              if (error || !data) {
+                setReqs([]);
+                return;
+              }
+              const senderIds = data.map(r => r.sender_id);
+              const { data: profiles } = await supabase
+                .from("profiles")
+                .select("id, full_name, username, avatar_url")
+                .in("id", senderIds);
+              const reqsWithProfile = data.map(r => {
+                const profile = profiles?.find(pr => pr.id === r.sender_id);
+                return { ...r, profile };
+              });
+              setReqs(reqsWithProfile);
+            });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Accept/decline actions
@@ -73,15 +118,18 @@ const FriendRequests = () => {
       const { error: insertError } = await supabase
         .from("friends")
         .insert({ user1_id: user.id, user2_id: req.sender_id });
-      
+
       if (insertError) {
         toast({ title: "Error", description: `Failed to create friendship: ${insertError.message}`, variant: "destructive" });
-        // Here we could try to revert the friend_request status, but for now we'll just error.
         return;
       }
     }
 
     setReqs((prev) => prev.filter(r => r.id !== req.id));
+    // Invalidate queries for friends and friend requests to auto-refresh list and feed
+    queryClient.invalidateQueries({ queryKey: ["friendsProfiles"] });
+    queryClient.invalidateQueries({ queryKey: ["friends"] });
+    queryClient.invalidateQueries({ queryKey: ["feed"] });
     toast({
       title: accept ? "Friend Added!" : "Request Declined",
       description: (
