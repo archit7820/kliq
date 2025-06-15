@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import FeedHeader from "@/components/FeedHeader";
 import FeedContent from "@/components/FeedContent";
@@ -7,6 +6,8 @@ import KelpWalletBanner from "@/components/KelpWalletBanner";
 import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import ImpactSnapshot from "@/components/ImpactSnapshot";
 import { supabase } from "@/integrations/supabase/client";
+import SubscriptionPaywall from "@/components/SubscriptionPaywall";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 // Feed page with required props passed to FeedHeader
 export default function FeedPage() {
@@ -53,6 +54,12 @@ export default function FeedPage() {
         setImpact(totals);
       });
   }, [profile?.id]);
+
+  const { subscribed, skipOrCompleteSubscription } = useSubscriptionStatus();
+  // Paywall check
+  if (!subscribed) {
+    return <SubscriptionPaywall onSkip={skipOrCompleteSubscription} />;
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">

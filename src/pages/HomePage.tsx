@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
@@ -7,9 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import HomeHeader from '@/components/HomeHeader';
 import HomeContent from '@/components/HomeContent';
+import SubscriptionPaywall from "@/components/SubscriptionPaywall";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 const HomePage = () => {
   const { user, loading: authLoading } = useAuthStatus();
+  const { subscribed, skipOrCompleteSubscription } = useSubscriptionStatus();
   const navigate = useNavigate();
 
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -37,6 +39,10 @@ const HomePage = () => {
         navigate('/onboarding');
     }
   }, [profile, navigate]);
+
+  if (!subscribed) {
+    return <SubscriptionPaywall onSkip={skipOrCompleteSubscription} />;
+  }
 
   if (authLoading || profileLoading) {
     return (
