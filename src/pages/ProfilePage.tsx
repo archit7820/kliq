@@ -212,9 +212,23 @@ const ProfilePage = () => {
 
                 {/* EDIT MODE MODAL: Show if editing is true */}
                 {editing && (
-                    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-                        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl max-w-lg w-full p-8 relative">
-                            <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                        <div
+                            className={`
+                                bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-lg
+                                p-4 sm:p-8 relative
+                                flex flex-col max-h-screen
+                                overflow-y-auto
+                                transition-all
+                                sm:mt-0 mt-auto
+                                ${editing ? "animate-in fade-in-0 slide-in-from-bottom-8" : ""}
+                            `}
+                            style={{
+                                minHeight: '50vh',
+                                maxHeight: '95vh'
+                            }}
+                        >
+                            <h2 className="text-2xl font-bold mb-4 sm:mb-6 text-center">Edit Profile</h2>
                             <form
                               onSubmit={e => {
                                   e.preventDefault();
