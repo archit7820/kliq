@@ -46,10 +46,14 @@ const useRealtimeSync = (userId: string | undefined) => {
   }, [userId, queryClient]);
 };
 
+const FALLBACK_LOGO_EMOJI = "🌱";
+
 const LeaderboardPage = () => {
   const { profile, isProfileLoading, insights, user } = useProfileWithStats();
   const { leaderboard, isLoading, friendsLeaderboard } = useLeaderboard();
   useRealtimeSync(user?.id);
+
+  const [logoBroken, setLogoBroken] = React.useState(false);
 
   const getUserRank = (userId: string) => {
     const index = leaderboard.findIndex((item: any) => item.id === userId);
@@ -58,31 +62,37 @@ const LeaderboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-100 flex flex-col relative">
-      {/* Header */}
+      {/* Header/Top + Logo fix */}
       <div className="
         bg-gradient-to-b from-green-700 via-green-700 to-green-500 rounded-b-3xl shadow-xl z-10
         flex flex-col items-center w-full pb-4 pt-6 px-0 sm:p-6
       ">
-        {/* Logo + Title: tightly aligned for mobile */}
         <div className="flex flex-row items-center justify-center gap-2 w-full mb-1 px-2">
-          <img
-            src="/kelp-logo.svg"
-            alt="Logo"
-            className="w-8 h-8 object-contain min-w-[32px] min-h-[32px] flex-shrink-0"
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
+          {!logoBroken ? (
+            <img
+              src="/kelp-logo.svg"
+              alt="Logo"
+              className="w-8 h-8 object-contain min-w-[32px] min-h-[32px] flex-shrink-0"
+              onError={(e) => {
+                setLogoBroken(true);
+              }}
+            />
+          ) : (
+            <span className="w-8 h-8 flex items-center justify-center text-2xl select-none" aria-label="kelp logo">
+              {FALLBACK_LOGO_EMOJI}
+            </span>
+          )}
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center mb-0" style={{ lineHeight: 1.1 }}>
             Kelp Leaderboard!
             <span className="ml-2 animate-bounce text-2xl sm:text-3xl" role="img" aria-label="trophy">🏆</span>
           </h1>
         </div>
-        {/* Subtitle */}
         <p className="text-green-100 text-xs leading-5 font-medium sm:text-md text-center w-full max-w-xs px-2 mt-1">
           Race to the top — earn points, inspire friends, and unlock new badges by making an eco difference every day!
         </p>
-        {/* Tabs - always centered */}
-        <div className="w-full flex justify-center pt-2 pb-1 z-20">
-          <Tabs defaultValue="global" className="w-full">
+        {/* Tabs - perfectly centered and with increased margin below for mobile */}
+        <div className="w-full flex justify-center pt-3 pb-2 z-20">
+          <Tabs defaultValue="global" className="w-full max-w-md flex flex-col items-center">
             <TabsList className="
               w-fit rounded-full shadow bg-green-100 overflow-hidden flex items-center mx-auto px-1
             ">
@@ -113,28 +123,27 @@ const LeaderboardPage = () => {
         </div>
       </div>
 
-      {/* MAIN: Responsive FLEX container for central alignment */}
+      {/* MAIN - Responsive: items centered always! */}
       <main className="flex flex-col items-center w-full max-w-screen-md mx-auto px-0 pt-1 pb-20 z-20 gap-y-2">
-        {/* ProfileStats Card: padding tweaked for mobile */}
+        {/* ProfileStats Card */}
         <div className="rounded-2xl shadow-lg bg-white/90 px-2 sm:px-4 py-2 sm:py-4 mb-2 w-full animate-fade-in animate-scale-in mt-[-14px] sm:mt-0">
           <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
         </div>
-        {/* Podium/Leaderboard: perfectly centered on mobile */}
-        <div className="flex flex-col items-center w-full max-w-full px-0 sm:px-2">
-          <Tabs defaultValue="global" className="w-full">
-            <TabsContent value="global" className="p-0 w-full">
+        {/* Podium/Leaderboard aligned and centered */}
+        <div className="flex flex-col items-center w-full px-0 sm:px-2">
+          <Tabs defaultValue="global" className="w-full max-w-md flex flex-col items-center">
+            <TabsContent value="global" className="p-0 w-full flex flex-col items-center">
               {isLoading ? (
                 <div className="p-8 text-center text-gray-500 animate-pulse">Loading...</div>
               ) : (
-                <div className="flex flex-col items-center w-full max-w-full">
-                  {/* LeaderboardList displays TopPodium and rows, both centered */}
+                <div className="flex flex-col items-center w-full">
                   <LeaderboardList leaderboard={leaderboard} userId={user?.id} />
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="friends" className="p-0 w-full">
+            <TabsContent value="friends" className="p-0 w-full flex flex-col items-center">
               {friendsLeaderboard.length ? (
-                <div className="flex flex-col items-center w-full max-w-full">
+                <div className="flex flex-col items-center w-full">
                   <LeaderboardList leaderboard={friendsLeaderboard} userId={user?.id} />
                 </div>
               ) : (
