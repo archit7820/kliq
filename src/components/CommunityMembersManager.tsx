@@ -1,0 +1,102 @@
+
+import React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
+
+const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
+  const queryClient = useQueryClient();
+
+  // Get pending and approved members
+  const { data: members, isLoading } = useQuery({
+    queryKey: ["community-members", communityId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("community_memberships")
+        .select("id, user_id, status, profiles(full_name, username, avatar_url)")
+        .eq("community_id", communityId);
+
+      if (error) throw new Error(error.message);
+      return data || [];
+    }
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (membershipId: string) => {
+      const { error } = await supabase
+        .from("community_memberships")
+        .update({ status: "approved" })
+        .eq("id", membershipId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-members", communityId] });
+      toast({ title: "Member approved!" });
+    }
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (membershipId: string) => {
+      const { error } = await supabase
+        .from("community_memberships")
+        .update({ status: "rejected" })
+        .eq("id", membershipId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-members", communityId] });
+      toast({ title: "Member rejected." });
+    }
+  });
+
+  if (isLoading) return <div>Loading members...</div>;
+  if (!members) return <div>No members found.</div>;
+
+  return (
+    <div className="border rounded-xl bg-white shadow mt-5 p-4">
+      <h3 className="text-blue-700 font-bold mb-2">Membership Requests</h3>
+      {members.filter((m: any) => m.status === "pending").length === 0 && (
+        <div className="text-gray-400 text-xs mb-2">No pending requests.</div>
+      )}
+      <ul className="mb-5 space-y-2">
+        {members
+          .filter((m: any) => m.status === "pending")
+          .map((m: any) => (
+            <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
+              <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-full" />
+              <span className="font-medium">{m.profiles?.full_name || m.profiles?.username}</span>
+              <Button
+                size="sm"
+                onClick={() => approveMutation.mutate(m.id)}
+                className="ml-auto px-3 py-1 bg-green-500 hover:bg-green-600 text-white"
+              >
+                Approve
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => rejectMutation.mutate(m.id)}
+                className="ml-2 px-3 py-1"
+              >
+                Reject
+              </Button>
+            </li>
+          ))}
+      </ul>
+      <h4 className="font-semibold text-blue-600 mb-2">Approved Members</h4>
+      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {members
+          .filter((m: any) => m.status === "approved")
+          .map((m: any) => (
+            <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
+              <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-7 h-7 rounded-full" />
+              <span className="font-medium text-xs">{m.profiles?.full_name || m.profiles?.username}</span>
+            </li>
+          ))}
+      </ul>
+    </div>
+  );
+};
+
+export default CommunityMembersManager;

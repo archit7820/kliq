@@ -3,9 +3,12 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { LoaderCircle, Users } from "lucide-react";
+import { LoaderCircle, Users, Star } from "lucide-react";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import CommunityChat from "@/components/CommunityChat";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
+import CommunityMembersManager from "@/components/CommunityMembersManager";
 
 const CommunityPage = () => {
   const { user } = useAuthStatus();
@@ -19,6 +22,53 @@ const CommunityPage = () => {
     },
     enabled: !!communityId
   });
+
+  // Get my membership row
+  const { data: myMembership, refetch: refetchMembership } = useQuery({
+    queryKey: ["community-membership", user?.id, communityId],
+    queryFn: async () => {
+      if (!user || !communityId) return null;
+      const { data } = await supabase
+        .from("community_memberships")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("community_id", communityId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user && !!communityId,
+  });
+
+  // Request membership (or join instantly for open)
+  const handleRequestJoin = async () => {
+    if (!user || !communityId) return;
+    const { error } = await supabase.from("community_memberships").insert({
+      user_id: user.id,
+      community_id: communityId,
+      status: "pending"
+    });
+    if (error) {
+      toast({ title: "Could not request to join", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Join request sent.", description: "Wait for approval from community owner." });
+    refetchMembership();
+  };
+
+  // Leave (delete membership row)
+  const handleLeave = async () => {
+    if (!user || !communityId || !myMembership) return;
+    const { error } = await supabase
+      .from("community_memberships")
+      .delete()
+      .eq("id", myMembership.id);
+    if (error) {
+      toast({ title: "Could not leave", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "You have left the community." });
+    refetchMembership();
+  };
 
   if (isLoading) {
     return (
@@ -37,18 +87,51 @@ const CommunityPage = () => {
     );
   }
 
+  // Only owner of community can see the membership requests
+  const amOwner = user && user.id === community.created_by;
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="bg-white py-4 px-4 border-b flex items-center gap-2">
         <Link to="/communities" className="text-blue-700 hover:underline">&larr; Back</Link>
-        <Users className="w-6 h-6 text-green-700" />
-        <span className="text-xl font-bold text-green-900">{community.name}</span>
+        <Users className="w-6 h-6 text-blue-700" />
+        <span className="text-xl font-bold text-blue-900">{community.name}</span>
+        {community.is_official && (
+          <Star className="w-5 h-5 text-yellow-400 ml-2" />
+        )}
       </div>
       <div className="max-w-screen-md mx-auto pt-6 px-2">
-        <p className="text-lg font-semibold text-green-700">{community.description}</p>
+        <p className="text-lg font-semibold text-blue-700">{community.description}</p>
+        {/* Membership actions */}
+        {user && !amOwner && (
+          <div className="my-5">
+            {!myMembership ? (
+              <Button className="bg-blue-700 text-white hover:bg-blue-800" onClick={handleRequestJoin}>
+                Request to Join
+              </Button>
+            ) : myMembership.status === "pending" ? (
+              <Button variant="outline" disabled>
+                Pending Approval
+              </Button>
+            ) : myMembership.status === "approved" ? (
+              <Button variant="destructive" onClick={handleLeave}>
+                Leave Community
+              </Button>
+            ) : myMembership.status === "rejected" ? (
+              <span className="bg-red-100 text-red-600 px-3 py-1 rounded">
+                Request Rejected
+              </span>
+            ) : null}
+          </div>
+        )}
+
+        {amOwner && (
+          <CommunityMembersManager communityId={communityId!} />
+        )}
+
         <div className="my-6">
-          {user && communityId && (
-            <CommunityChat user={user} communityId={communityId} />
+          {user && myMembership && myMembership.status === "approved" && (
+            <CommunityChat user={user} communityId={communityId!} />
           )}
         </div>
       </div>

@@ -292,18 +292,21 @@ export type Database = {
           community_id: string
           id: string
           joined_at: string
+          status: string
           user_id: string
         }
         Insert: {
           community_id: string
           id?: string
           joined_at?: string
+          status?: string
           user_id: string
         }
         Update: {
           community_id?: string
           id?: string
           joined_at?: string
+          status?: string
           user_id?: string
         }
         Relationships: [
