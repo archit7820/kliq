@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,14 +7,16 @@ import { toast } from "@/components/ui/use-toast";
 
 const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
   const queryClient = useQueryClient();
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [optimistic, setOptimistic] = useState<{ id: string, status: "approved" | "rejected" } | null>(null);
 
   // Get pending and approved members
-  const { data: members, isLoading } = useQuery({
+  const { data: members = [], isLoading } = useQuery({
     queryKey: ["community-members", communityId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("community_memberships")
-        .select("id, user_id, status, profiles(full_name, username, avatar_url)")
+        .select("id, user_id, status, profiles(full_name, username, email, avatar_url)")
         .eq("community_id", communityId);
 
       if (error) throw new Error(error.message);
@@ -22,84 +24,114 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
     }
   });
 
+  // Helper to compute the list, applying optimistic UI if needed
+  function getMembersWithOptimistic() {
+    if (!optimistic) return members;
+    // Apply status change for the affected id
+    return members.map(m =>
+      m.id === optimistic.id
+        ? { ...m, status: optimistic.status }
+        : m
+    );
+  }
+
   // Approve member mutation
   const approveMutation = useMutation({
     mutationFn: async (membershipId: string) => {
+      setProcessingId(membershipId);
+      setOptimistic({ id: membershipId, status: "approved" });
       const { error } = await supabase
         .from("community_memberships")
         .update({ status: "approved" })
         .eq("id", membershipId);
       if (error) throw new Error(error.message);
     },
-    onSuccess: (_, membershipId) => {
+    onSettled: (_, __, membershipId) => {
+      setProcessingId(null);
+      setOptimistic(null);
       queryClient.invalidateQueries({ queryKey: ["community-members", communityId] });
       queryClient.invalidateQueries({ queryKey: ["allCommunities"] });
+    },
+    onSuccess: () => {
       toast({ title: "Member approved!" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to approve member", description: error?.message, variant: "destructive" });
     }
   });
 
   // Reject member mutation
   const rejectMutation = useMutation({
     mutationFn: async (membershipId: string) => {
+      setProcessingId(membershipId);
+      setOptimistic({ id: membershipId, status: "rejected" });
       const { error } = await supabase
         .from("community_memberships")
         .update({ status: "rejected" })
         .eq("id", membershipId);
       if (error) throw new Error(error.message);
     },
-    onSuccess: (_, membershipId) => {
+    onSettled: (_, __, membershipId) => {
+      setProcessingId(null);
+      setOptimistic(null);
       queryClient.invalidateQueries({ queryKey: ["community-members", communityId] });
       queryClient.invalidateQueries({ queryKey: ["allCommunities"] });
+    },
+    onSuccess: () => {
       toast({ title: "Member rejected." });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to reject member", description: error?.message, variant: "destructive" });
     }
   });
 
+  const memberList = getMembersWithOptimistic();
+
   if (isLoading) return <div>Loading members...</div>;
-  if (!members) return <div>No members found.</div>;
+  if (!members || members.length === 0) return <div>No members found.</div>;
+
+  const pending = memberList.filter((m: any) => m.status === "pending");
+  const approved = memberList.filter((m: any) => m.status === "approved");
 
   return (
     <div className="border rounded-xl bg-white shadow mt-5 p-4">
       <h3 className="text-blue-700 font-bold mb-2">Membership Requests</h3>
-      {members.filter((m: any) => m.status === "pending").length === 0 && (
+      {pending.length === 0 && (
         <div className="text-gray-400 text-xs mb-2">No pending requests.</div>
       )}
       <ul className="mb-5 space-y-2">
-        {members
-          .filter((m: any) => m.status === "pending")
-          .map((m: any) => (
-            <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
-              <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-full" />
-              <span className="font-medium">{m.profiles?.full_name || m.profiles?.username || m.profiles?.email || "Unknown User"}</span>
-              <Button
-                size="sm"
-                disabled={approveMutation.isPending}
-                onClick={() => approveMutation.mutate(m.id)}
-                className="ml-auto px-3 py-1 bg-green-500 hover:bg-green-600 text-white"
-              >
-                {approveMutation.isPending ? "Approving..." : "Approve"}
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={rejectMutation.isPending}
-                onClick={() => rejectMutation.mutate(m.id)}
-                className="ml-2 px-3 py-1"
-              >
-                {rejectMutation.isPending ? "Rejecting..." : "Reject"}
-              </Button>
-            </li>
-          ))}
+        {pending.map((m: any) => (
+          <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
+            <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-full" />
+            <span className="font-medium">{m.profiles?.full_name || m.profiles?.username || m.profiles?.email || "Unknown User"}</span>
+            <Button
+              size="sm"
+              disabled={processingId === m.id && approveMutation.isPending}
+              onClick={() => approveMutation.mutate(m.id)}
+              className="ml-auto px-3 py-1 bg-green-500 hover:bg-green-600 text-white"
+            >
+              {(processingId === m.id && approveMutation.isPending) ? "Approving..." : "Approve"}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={processingId === m.id && rejectMutation.isPending}
+              onClick={() => rejectMutation.mutate(m.id)}
+              className="ml-2 px-3 py-1"
+            >
+              {(processingId === m.id && rejectMutation.isPending) ? "Rejecting..." : "Reject"}
+            </Button>
+          </li>
+        ))}
       </ul>
       <h4 className="font-semibold text-blue-600 mb-2">Approved Members</h4>
       <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {members
-          .filter((m: any) => m.status === "approved")
-          .map((m: any) => (
-            <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
-              <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-7 h-7 rounded-full" />
-              <span className="font-medium text-xs">{m.profiles?.full_name || m.profiles?.username}</span>
-            </li>
-          ))}
+        {approved.map((m: any) => (
+          <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
+            <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-7 h-7 rounded-full" />
+            <span className="font-medium text-xs">{m.profiles?.full_name || m.profiles?.username}</span>
+          </li>
+        ))}
       </ul>
     </div>
   );
