@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Trophy, Award, User as UserIcon } from "lucide-react";
 
@@ -31,24 +30,29 @@ const MOBILE_AVATAR = {
   winnerSize: 64,
   winnerBorder: "border-4"
 };
-// Large podium display, horizontally on desktop, stacked on mobile
+// Large podium display, always horizontal and centered
 const TopPodium: React.FC<TopPodiumProps> = ({ podium, userId }) => {
   // Pad to always show 3 slots
   const padded = [...podium];
   while (padded.length < 3) padded.push(null);
 
   return (
-    <div className="flex flex-col sm:flex-row justify-center items-end sm:gap-5 gap-2 w-full px-1 sm:px-2 mt-1 mb-4 animate-fade-in">
+    <div
+      className="
+        flex flex-row justify-center items-end gap-2 sm:gap-5 
+        w-full px-1 sm:px-2 mt-1 mb-4 animate-fade-in
+      "
+    >
       {/* 2nd place */}
-      <div className="sm:order-1 order-2 flex-1 flex flex-col items-center">
+      <div className="order-1 flex-1 flex flex-col items-center">
         <PodiumSpot profile={padded[1]} position={1} userId={userId} />
       </div>
       {/* 1st place - center */}
-      <div className="sm:order-2 order-1 flex-1 flex flex-col items-center z-20">
+      <div className="order-2 flex-1 flex flex-col items-center z-20">
         <PodiumSpot profile={padded[0]} position={0} userId={userId} winner />
       </div>
       {/* 3rd place */}
-      <div className="sm:order-3 order-3 flex-1 flex flex-col items-center">
+      <div className="order-3 flex-1 flex flex-col items-center">
         <PodiumSpot profile={padded[2]} position={2} userId={userId} />
       </div>
     </div>
