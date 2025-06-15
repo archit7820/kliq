@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import FeedHeader from "@/components/FeedHeader";
 import FeedContent from "@/components/FeedContent";
@@ -70,7 +71,7 @@ export default function FeedPage() {
       />
       {/* Top bar: thin wallet above snapshot, then filters */}
       <div className="w-full max-w-lg mx-auto mt-2 px-2 sm:px-4 flex flex-col gap-2">
-        <KelpWalletBanner />
+        <KelpWalletBanner profile={profile} />
         <ImpactSnapshot impact={impact} />
       </div>
       <main className="flex-1 px-1 sm:px-2 md:px-4 py-4 max-w-lg mx-auto w-full">
@@ -80,3 +81,4 @@ export default function FeedPage() {
     </div>
   );
 }
+
