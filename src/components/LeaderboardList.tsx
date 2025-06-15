@@ -13,7 +13,19 @@ type LeaderboardListProps = {
 const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId }) => {
   const isMobile = useIsMobile();
   const podium = leaderboard.slice(0, 3);
-  const rest = leaderboard.slice(3);
+  let rest = leaderboard.slice(3);
+
+  // Add mock data if there aren't enough real players to demonstrate the carousel
+  if (rest.length < 4) {
+    const mockPlayers = [
+      { id: 'mock1', username: 'EcoWarrior', avatar_url: null, kelp_points: 850 },
+      { id: 'mock2', username: 'GreenThumb', avatar_url: null, kelp_points: 720 },
+      { id: 'mock3', username: 'TreeHugger', avatar_url: null, kelp_points: 680 },
+      { id: 'mock4', username: 'EarthLover', avatar_url: null, kelp_points: 650 },
+      { id: 'mock5', username: 'ClimateHero', avatar_url: null, kelp_points: 620 },
+    ];
+    rest = [...rest, ...mockPlayers.slice(0, 5 - rest.length)];
+  }
 
   console.log("LeaderboardList - isMobile:", isMobile, "rest.length:", rest.length);
 
