@@ -4,6 +4,7 @@ import LearnCard from '@/components/LearnCard';
 import BrandCard from '@/components/BrandCard';
 import DashboardSummary from "@/components/DashboardSummary";
 import UserChallengesList from "@/components/UserChallengesList";
+import GamifiedUserSummary from "./GamifiedUserSummary";
 
 const learnContent = [
   {
@@ -60,20 +61,36 @@ const marketplaceBrands = [
 
 const HomeContent = ({ profile }: { profile: any }) => {
   const [tabValue, setTabValue] = React.useState("personalized");
-  // Tab button labels (short for mobile)
-  const TABS = [
-    { key: "personalized", label: <span className="sm:block hidden">For You</span>, short: "You" },
-    { key: "marketplace", label: <span className="sm:block hidden">Offset Marketplace</span>, short: "Market" },
-    { key: "learn", label: <span className="sm:block hidden">Learn</span>, short: "Learn" },
-  ];
+  // Add global rank using a simple fallback if not present
+  const globalRank =
+    typeof profile?.global_rank !== "undefined"
+      ? profile.global_rank
+      : profile?.kelp_points
+        ? "#" + (1 + Math.floor(1000 / (profile.kelp_points + 1)))
+        : "—";
+
+  // "Best badge" could ideally come from real badge data, for now use a sample
+  const bestBadge =
+    (profile?.badges && profile.badges.length > 0 && profile.badges[0].name) ||
+    "Kelp Sprout";
+
+  // Demo weekly impact
+  const weeklyImpact = profile?.co2e_weekly_progress ?? 7.2;
 
   return (
     <main className="flex-grow px-1 sm:px-2 md:px-4 py-2 sm:py-4 space-y-4 mb-24 max-w-lg mx-auto">
+      {/* Gamified User Summary */}
+      <GamifiedUserSummary
+        kelpPoints={profile?.kelp_points ?? 0}
+        streakCount={profile?.streak_count ?? 0}
+        weeklyImpact={weeklyImpact}
+        globalRank={globalRank}
+        bestBadge={bestBadge}
+      />
       {/* Dashboard summary card (top) */}
       <section className="rounded-2xl mb-1">
         <DashboardSummary />
       </section>
-
       {/* Short & Responsive Tabs */}
       <Tabs
         value={tabValue}
