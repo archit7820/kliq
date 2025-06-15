@@ -59,6 +59,31 @@ const marketplaceBrands = [
   },
 ];
 
+// Define TABS array to fix missing variable error
+const TABS = [
+  {
+    key: "personalized",
+    label: (
+      <span className="hidden sm:inline">For You</span>
+    ),
+    short: "You",
+  },
+  {
+    key: "marketplace",
+    label: (
+      <span className="hidden sm:inline">Marketplace</span>
+    ),
+    short: "💸",
+  },
+  {
+    key: "learn",
+    label: (
+      <span className="hidden sm:inline">Learn</span>
+    ),
+    short: "📖",
+  },
+];
+
 const HomeContent = ({ profile }: { profile: any }) => {
   const [tabValue, setTabValue] = React.useState("personalized");
   // Add global rank using a simple fallback if not present
