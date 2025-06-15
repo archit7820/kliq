@@ -29,6 +29,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
   const [open, setOpen] = useState(false);
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [offset, setOffset] = useState(""); // <--- new for co2e offset
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,6 +51,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       const imageUrl = await uploadChallengeSnap(file, user.id, challenge.id);
 
       // 2. Insert into activities feed as a "challenge-completion" activity
+      const emission = offset ? -Math.abs(Number(offset)) : 0;
       const { error: activityErr } = await supabase.from("activities").insert({
         user_id: user.id,
         activity: "Completed challenge: " + challenge.title,
@@ -57,7 +59,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
         category: "challenge",
         image_url: imageUrl,
         explanation: "Verified by photo.",
-        carbon_footprint_kg: 0, // Assign zero, or award reduction if appropriate
+        carbon_footprint_kg: emission, // <-- log offset as negative, else 0
         emoji: "🏆",
       });
       if (activityErr) throw activityErr;
@@ -110,7 +112,8 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
         <DialogHeader>
           <DialogTitle>Complete: {challenge.title}</DialogTitle>
           <DialogDescription>
-            Upload a photo as proof of completion. Optionally, add a comment.
+            Upload a photo as proof of completion. Optionally, add a comment.<br />
+            <span className="text-green-800 font-medium">If your challenge removes CO₂e (offsets), you can enter your estimated offset!</span>
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -133,6 +136,19 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
             placeholder="(optional)"
             disabled={submitting}
           />
+          <label htmlFor="offset" className="text-sm">
+            Offset (CO₂e kg, optional) <span className="text-xs text-gray-500">(Enter negative value for climate positive challenges)</span>
+          </label>
+          <Input
+            id="offset"
+            type="number"
+            min="0"
+            step="0.01"
+            value={offset}
+            onChange={e => setOffset(e.target.value)}
+            placeholder="E.g. 2.5"
+            disabled={submitting}
+          />
           <DialogFooter>
             <Button
               type="submit"
@@ -152,4 +168,3 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
 };
 
 export default ChallengeVerificationDialog;
-

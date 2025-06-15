@@ -28,53 +28,44 @@ function ChallengeCard({
   onVerified: () => void;
   highlight?: boolean;
 }) {
-  // New: Determine owner type
+  // Determine owner type & style
   const isKelpTeam =
     !row.challenge ||
     row.challenge.description?.toLowerCase().includes("kelp team") ||
     row.challenge.title?.toLowerCase().includes("kelp") ||
-    row.challenge.reward_kelp_points > 30; // crude check: in DB, audience_scope 'world' is Kelp team
+    row.challenge.reward_kelp_points > 30;
 
   return (
     <div
       className={`
-        animate-fade-in bg-gradient-to-br
-        ${highlight ? "from-purple-100 to-violet-100 border-violet-300" : "from-white to-gray-50 border-purple-100"}
-        border rounded-2xl p-3 flex flex-col md:flex-row md:items-center md:justify-between shadow-sm
-        group transition-all hover:scale-[1.02] hover:shadow-lg focus-within:scale-[1.02] active:scale-[0.98] outline-none
-        ${highlight ? "ring-2 ring-violet-400" : ""}
+        animate-fade-in bg-white
+        ${highlight ? "ring-2 ring-violet-400 shadow-lg" : "border border-violet-100 shadow-sm"}
+        rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3
+        group transition-all hover:scale-[1.01] focus-within:scale-[1.01] active:scale-[0.98] outline-none
       `}
       tabIndex={0}
       role="group"
     >
-      <div>
-        <div className="font-bold text-violet-900 text-base flex items-center gap-2">
-          {row.challenge.title}
-          {isKelpTeam && (
-            <span className="inline-flex items-center text-xs px-2 py-0.5 ml-2 bg-violet-100 text-violet-700 rounded-full gap-1 border border-violet-200">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center flex-wrap gap-2">
+          <span className="font-bold text-violet-900 text-lg">{row.challenge.title}</span>
+          {isKelpTeam ? (
+            <span className="inline-flex items-center text-xs px-3 py-1 bg-violet-100 text-violet-800 rounded-full gap-1 border border-violet-200 font-semibold">
               <Wallet className="w-4 h-4" />
               Kelp Team
             </span>
-          )}
-          {!isKelpTeam && (
-            <span className="inline-flex items-center text-xs px-2 py-0.5 ml-2 bg-gray-100 text-gray-500 rounded-full border border-gray-200">
+          ) : (
+            <span className="inline-flex items-center text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full border border-gray-200">
               User
             </span>
           )}
-          {row.is_completed && (
-            <span className="inline-flex ml-2 text-green-700 items-center gap-1">
-              <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-          )}
         </div>
-        <div className="text-xs text-purple-700 mb-2">{row.challenge.description}</div>
-        <span className={`inline-flex items-center gap-1 ${isKelpTeam ? "bg-cyan-100 text-cyan-800" : "bg-green-100 text-green-700"} font-mono text-[11px] px-2 py-0.5 rounded-full mt-1`}>
+        <div className="text-[13px] text-purple-700 mt-1 mb-1.5">{row.challenge.description}</div>
+        <span className={`inline-flex items-center gap-1 ${isKelpTeam ? "bg-cyan-50 text-cyan-800 border-cyan-100" : "bg-green-50 text-green-700 border-green-100"} font-mono text-[11px] px-2 py-0.5 rounded-full border`}>
           Reward: {row.challenge.reward_kelp_points} Kelp Points
         </span>
       </div>
-      <div className="flex flex-row gap-2 items-center mt-3 md:mt-0 min-w-[120px] justify-end">
+      <div className="flex flex-row gap-2 items-center sm:mt-0 mt-3 min-w-[120px] justify-end">
         {!row.is_completed ? (
           <ChallengeVerificationDialog
             challenge={{
