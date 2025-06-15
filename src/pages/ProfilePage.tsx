@@ -212,12 +212,13 @@ const ProfilePage = () => {
 
                 {/* EDIT MODE MODAL: Show if editing is true */}
                 {editing && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
                         <div
                             className={`
-                                bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-lg
-                                p-4 sm:p-8 relative
-                                flex flex-col max-h-screen
+                                bg-white dark:bg-zinc-900 w-full sm:max-w-lg
+                                h-dvh max-h-dvh sm:h-auto sm:max-h-[90vh]
+                                rounded-t-2xl sm:rounded-xl shadow-2xl
+                                p-4 sm:p-8 relative flex flex-col
                                 overflow-y-auto
                                 transition-all
                                 sm:mt-0 mt-auto
@@ -234,7 +235,7 @@ const ProfilePage = () => {
                                   e.preventDefault();
                                   updateProfile();
                               }}
-                              className="space-y-4"
+                              className="space-y-4 pb-20"
                             >
                                 <div>
                                     <label className="block font-medium mb-1">Full Name</label>
@@ -266,7 +267,11 @@ const ProfilePage = () => {
                                 <div>
                                     <label className="block font-medium mb-1">Lifestyle Tags</label>
                                     <div className="flex flex-wrap gap-2">
-                                        {["Vegetarian", "Vegan", "Cyclist", "Gardener", "Minimalist", "Composter", "Zero Waste", "Car Free", "Parent", "Techie", "Student", "Remote Worker"].map(tag => (
+                                        {[
+                                            "Vegetarian", "Vegan", "Cyclist", "Gardener", "Minimalist",
+                                            "Composter", "Zero Waste", "Car Free", "Parent", "Techie",
+                                            "Student", "Remote Worker"
+                                        ].map(tag => (
                                             <button
                                                 key={tag}
                                                 type="button"
@@ -297,7 +302,7 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                                 {errorMsg && <div className="text-red-500 text-sm">{errorMsg}</div>}
-                                <div className="flex justify-end gap-2 mt-4">
+                                <div className="flex justify-end gap-2 mt-4 sticky bottom-0 bg-white dark:bg-zinc-900 py-2 sm:static sm:bg-transparent">
                                     <button
                                         type="button"
                                         onClick={() => setEditing(false)}
