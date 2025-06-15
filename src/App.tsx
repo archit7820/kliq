@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,9 +19,11 @@ import ProfilePage from "./pages/ProfilePage";
 import MessagesPage from "./pages/MessagesPage";
 import ChatPage from "./pages/ChatPage";
 import CommunitiesPage from "./pages/CommunitiesPage";
+import CommunityPage from "./pages/CommunityPage";
 import WelcomePage from "./pages/WelcomePage";
 import ImpactDashboardPage from "./pages/ImpactDashboardPage";
 import ChallengesPage from "./pages/ChallengesPage";
+import CreateChallengePage from "./pages/CreateChallengePage";
 
 const queryClient = new QueryClient();
 
@@ -44,10 +47,12 @@ const App = () => (
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/impact-dashboard" element={<ImpactDashboardPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
+          <Route path="/create-challenge" element={<CreateChallengePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/chat/:userId" element={<ChatPage />} />
           <Route path="/communities" element={<CommunitiesPage />} />
+          <Route path="/communities/:communityId" element={<CommunityPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

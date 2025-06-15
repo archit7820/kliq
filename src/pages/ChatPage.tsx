@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +7,7 @@ import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, User, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, Send, User, LoaderCircle, MessageCircle } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
 type Message = Tables<'direct_messages'>;
@@ -19,23 +20,19 @@ const ChatPage = () => {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Add console log for user/friendId
-    useEffect(() => {
-        console.log("[ChatPage] user:", user?.id, "friendId:", friendId);
-    }, [user, friendId]);
-
-    const { data: friendProfile, isLoading: isLoadingProfile } = useQuery({
+    // Fetch friend's profile, robust fallback for missing user/profile
+    const { data: friendProfile, isLoading: isLoadingProfile, error: profileError } = useQuery({
         queryKey: ['profile', friendId],
         queryFn: async () => {
             if (!friendId) return null;
-            const { data, error } = await supabase.from('profiles').select('*').eq('id', friendId).single();
+            const { data, error } = await supabase.from('profiles').select('*').eq('id', friendId).maybeSingle();
             if (error) throw error;
             return data;
         },
         enabled: !!friendId,
     });
 
-    const { data: messages, isLoading: isLoadingMessages } = useQuery({
+    const { data: messages, isLoading: isLoadingMessages, error: messagesError } = useQuery({
         queryKey: ['messages', friendId],
         queryFn: async () => {
             if (!user || !friendId) return [];
@@ -65,24 +62,20 @@ const ChatPage = () => {
             setNewMessage('');
         },
     });
-    
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
-    
-    // Add real-time real DM logging and subscribe fix
+
+    // Real-time sync
     useEffect(() => {
         if (!user || !friendId) return;
-
-        // Helper function for logging and updating
         const handleRealtime = (payload: any, direction: string) => {
-            console.log(`[ChatPage][Realtime] ${direction}: new message`, payload.new);
             queryClient.setQueryData(['messages', friendId], (oldData: Message[] | undefined) => {
                 if (oldData?.find(m => m.id === payload.new.id)) return oldData;
                 return [...(oldData || []), payload.new];
             });
         };
-
         const channelSent = supabase
             .channel(`dm-sent-${user.id}-${friendId}`)
             .on<Message>('postgres_changes', {
@@ -91,10 +84,7 @@ const ChatPage = () => {
                 table: 'direct_messages',
                 filter: `sender_id=eq.${user.id},receiver_id=eq.${friendId}`,
             }, (payload) => handleRealtime(payload, "sent"))
-            .subscribe((event, id) => {
-                console.log("[ChatPage][Realtime] channelSent SUB status", event, id);
-            });
-
+            .subscribe();
         const channelReceived = supabase
             .channel(`dm-received-${friendId}-${user.id}`)
             .on<Message>('postgres_changes', {
@@ -103,20 +93,12 @@ const ChatPage = () => {
                 table: 'direct_messages',
                 filter: `sender_id=eq.${friendId},receiver_id=eq.${user.id}`,
             }, (payload) => handleRealtime(payload, "received"))
-            .subscribe((event, id) => {
-                console.log("[ChatPage][Realtime] channelReceived SUB status", event, id);
-            });
-
+            .subscribe();
         return () => {
             supabase.removeChannel(channelSent);
             supabase.removeChannel(channelReceived);
         };
     }, [user, friendId, queryClient]);
-
-    // Log fetched messages
-    useEffect(() => {
-        console.log("[ChatPage] Messages fetched:", messages);
-    }, [messages]);
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
@@ -124,12 +106,19 @@ const ChatPage = () => {
             sendMessageMutation.mutate(newMessage.trim());
         }
     };
-    
+
+    // Error and empty state handling
     if (isLoadingProfile || isLoadingMessages) {
         return <div className="flex justify-center items-center h-screen"><LoaderCircle className="w-8 h-8 animate-spin text-green-600" /><span className="ml-4 text-green-700">Loading...</span></div>;
     }
+    if (profileError) {
+        return <div className="flex flex-col justify-center items-center h-screen text-red-500">Error loading friend's profile.</div>;
+    }
     if (!friendProfile) {
-        return <div className="flex flex-col justify-center items-center h-screen text-red-500">Could not load friend's profile.</div>;
+        return <div className="flex flex-col justify-center items-center h-screen text-gray-400">
+            <MessageCircle className="w-10 h-10 mb-3"/>
+            Could not load this user’s profile.
+        </div>;
     }
 
     return (
@@ -141,7 +130,7 @@ const ChatPage = () => {
                 <Link to={`/profile/${friendId}`} className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border">
                         <AvatarImage src={friendProfile?.avatar_url || undefined} />
-                        <AvatarFallback>{friendProfile?.full_name?.charAt(0) || <User/>}</AvatarFallback>
+                        <AvatarFallback>{friendProfile?.full_name?.charAt(0) || <User />}</AvatarFallback>
                     </Avatar>
                     <div>
                         <h2 className="font-bold text-gray-800">{friendProfile?.full_name || friendProfile?.username}</h2>
@@ -149,8 +138,16 @@ const ChatPage = () => {
                     </div>
                 </Link>
             </header>
-
             <main className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messagesError && (
+                  <div className="text-center text-red-500">Could not load messages.</div>
+                )}
+                {messages?.length === 0 && (
+                  <div className="flex flex-col items-center justify-center mt-24 text-gray-400">
+                    <MessageCircle className="w-12 h-12 mb-2"/>
+                    <span>No messages yet. Start a conversation!</span>
+                  </div>
+                )}
                 {messages?.map((msg) => (
                     <div key={msg.id} className={`flex items-end gap-2 ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
                         {msg.sender_id !== user?.id && (
@@ -166,7 +163,6 @@ const ChatPage = () => {
                 ))}
                 <div ref={messagesEndRef} />
             </main>
-
             <footer className="p-4 bg-white border-t">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                     <Input

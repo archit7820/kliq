@@ -2,10 +2,13 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, Users, UserPlus } from "lucide-react";
+import { Star, Users, UserPlus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const CommunityList = ({ user }: { user: any }) => {
+  const navigate = useNavigate();
+
   // Fetch communities the user is a member of
   const { data: myCommunities, isLoading: loadingMy } = useQuery({
     queryKey: ["myCommunities", user?.id],
@@ -43,11 +46,9 @@ const CommunityList = ({ user }: { user: any }) => {
       user_id: user.id,
       community_id: communityId,
     });
-    // No need for queryClient.invalidateQueries, just reload page on join for now.
     window.location.reload();
   };
 
-  // UI
   return (
     <div className="space-y-9">
       <section>
@@ -77,9 +78,11 @@ const CommunityList = ({ user }: { user: any }) => {
                     {c.description}
                   </span>
                   <Button
-                    className="rounded-lg text-xs bg-green-600 hover:bg-green-700 mt-auto self-end"
+                    className="rounded-lg text-xs bg-green-600 hover:bg-green-700 mt-auto self-end flex gap-1 items-center"
                     size="sm"
+                    onClick={() => navigate(`/communities/${c.id}`)}
                   >
+                    <MessageCircle className="w-4 h-4 mr-1" />
                     Open Chat
                   </Button>
                 </div>
