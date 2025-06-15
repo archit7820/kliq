@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +14,9 @@ import ActivityCard from '@/components/ActivityCard';
 import { Database } from '@/integrations/supabase/types';
 import { Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+// NEW: Import user badges hook/component
+import { useUserBadges } from "@/hooks/useUserBadges";
+import UserBadges from "@/components/UserBadges";
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -61,6 +65,9 @@ const ProfilePage = () => {
         },
         enabled: !!user,
     });
+
+    // NEW: Fetch user badges
+    const { data: badges = [], isLoading: badgesLoading } = useUserBadges();
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
@@ -244,6 +251,12 @@ const ProfilePage = () => {
                                             </button>
                                         ))}
                                     </div>
+                                    {/* NEW: show badges under avatar (edit mode) */}
+                                    <div className="w-full flex justify-center mt-4">
+                                        {!badgesLoading && badges && badges.length > 0 && (
+                                            <UserBadges badges={badges} />
+                                        )}
+                                    </div>
                                     <Button className="w-full mt-2" onClick={updateProfile}>Save Profile</Button>
                                     <Button variant="outline" className="w-full mt-2" onClick={() => setEditing(false)}>Cancel</Button>
                                     {errorMsg && (
@@ -260,6 +273,12 @@ const ProfilePage = () => {
                                     </Avatar>
                                     <h2 className="text-2xl font-bold mt-2">{profile.full_name || `@${profile.username}`}</h2>
                                     <p className="text-muted-foreground">{profile.username ? `@${profile.username}` : null}</p>
+                                    {/* NEW: show badges under avatar/name */}
+                                    <div className="w-full flex justify-center mt-2">
+                                        {!badgesLoading && badges && badges.length > 0 && (
+                                            <UserBadges badges={badges} />
+                                        )}
+                                    </div>
                                     <Button variant="outline" size="sm" className="mt-2" onClick={() => setEditing(true)}>
                                         Edit Profile
                                     </Button>
