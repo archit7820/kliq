@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   AreaChart,
@@ -143,7 +142,7 @@ export default function ImpactDashboard() {
             <div className="flex flex-row gap-4 items-center">
               {showBreakdown ? (
                 Object.entries(breakdown)
-                  .sort(([,aVal],[,bVal]) => bVal - aVal)
+                  .sort(([,aVal],[,bVal]) => Number(bVal) - Number(aVal))
                   .map(([k, v]) => {
                     let color = "text-green-700";
                     if (/travel/i.test(k)) color = "text-blue-500";
