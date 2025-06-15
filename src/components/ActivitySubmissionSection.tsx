@@ -1,13 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LoaderCircle, Edit3, Check } from 'lucide-react';
+import { LoaderCircle, Edit3, Check, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ActivityAnalysis } from '@/pages/LogActivityPage';
+
+// List of green activity keywords from the migration—update to reflect backend logic:
+const GREEN_ACTIVITY_KEYWORDS = [
+  'walk', 'run', 'cycle', 'bike', 'plant', 'tree', 'public transport',
+  'carpool', 'recycl', 'compost', 'solar', 'bus', 'train', 'subway', 'skate', 'scooter'
+];
+
+// Helper to detect if string is a green activity (used for frontend hints, backend enforces actual value)
+function isGreenActivity(activity: string) {
+  if (!activity) return false;
+  const lower = activity.toLowerCase();
+  return GREEN_ACTIVITY_KEYWORDS.some(keyword => lower.includes(keyword));
+}
 
 interface ActivitySubmissionSectionProps {
   analysis: ActivityAnalysis;
@@ -32,6 +45,9 @@ const ActivitySubmissionSection: React.FC<ActivitySubmissionSectionProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(analysis.carbon_footprint_kg.toString());
+
+  // Detect if this is a green activity for UI hints
+  const isGreen = useMemo(() => isGreenActivity(analysis.activity), [analysis.activity]);
 
   const handleEditSave = () => {
     const newValue = parseFloat(editValue);
@@ -118,7 +134,16 @@ const ActivitySubmissionSection: React.FC<ActivitySubmissionSectionProps> = ({
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            You can edit this value if you think the estimate is incorrect
+            {isGreen ? (
+              <span className="inline-flex items-center gap-1 text-green-700 font-medium">
+                <Info className="w-4 h-4 text-green-500" />
+                This activity is recognized as <b>green</b>. 
+                The system will always treat it as an emission offset (negative CO₂e).
+                If you enter a positive value, it will be flipped to negative automatically.
+              </span>
+            ) : (
+              <>You can edit this value if you think the estimate is incorrect.</>
+            )}
           </p>
         </div>
 
@@ -142,3 +167,4 @@ const ActivitySubmissionSection: React.FC<ActivitySubmissionSectionProps> = ({
 };
 
 export default ActivitySubmissionSection;
+
