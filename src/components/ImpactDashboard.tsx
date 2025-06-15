@@ -17,46 +17,9 @@ import {
 import { BadgeDollarSign, Flame, Trophy } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
+import { useImpactDashboardData } from "@/hooks/useImpactDashboardData";
 
-// Example mock data, replace with Supabase data later if needed
-const last7Days = [
-  { day: "Mon", savings: 1.1, travel: 0.6, food: 0.3, shopping: 0.2 },
-  { day: "Tue", savings: 1.4, travel: 0.8, food: 0.4, shopping: 0.2 },
-  { day: "Wed", savings: 1.7, travel: 1.1, food: 0.3, shopping: 0.3 },
-  { day: "Thu", savings: 0.9, travel: 0.3, food: 0.4, shopping: 0.2 },
-  { day: "Fri", savings: 1.2, travel: 0.5, food: 0.4, shopping: 0.3 },
-  { day: "Sat", savings: 0.7, travel: 0.2, food: 0.3, shopping: 0.2 },
-  { day: "Sun", savings: 1.0, travel: 0.6, food: 0.3, shopping: 0.1 },
-];
-
-const last12Months = [
-  { month: "Jan", savings: 12 },
-  { month: "Feb", savings: 15 },
-  { month: "Mar", savings: 18 },
-  { month: "Apr", savings: 14 },
-  { month: "May", savings: 20 },
-  { month: "Jun", savings: 21 },
-  { month: "Jul", savings: 19 },
-  { month: "Aug", savings: 23 },
-  { month: "Sep", savings: 14 },
-  { month: "Oct", savings: 18 },
-  { month: "Nov", savings: 15 },
-  { month: "Dec", savings: 20 },
-];
-
-const last4Years = [
-  { year: "2022", savings: 110 },
-  { year: "2023", savings: 165 },
-  { year: "2024", savings: 220 },
-  { year: "2025", savings: 100 }, // Replace with actual
-];
-
-const milestones = [
-  { label: "First Action", description: "Logged your first activity", achieved: true, icon: <BadgeDollarSign className="w-5 h-5 text-green-500" /> },
-  { label: "One Week Streak", description: "7 days of logging", achieved: true, icon: <Flame className="w-5 h-5 text-orange-500" /> },
-  { label: "100kg CO₂e Saved", description: "Big milestone!", achieved: false, icon: <Trophy className="w-5 h-5 text-yellow-500" /> },
-];
-
+// Use the reusable hook
 const tabOptions = [
   { value: "week", label: "Week" },
   { value: "month", label: "Month" },
@@ -65,35 +28,41 @@ const tabOptions = [
 
 export default function ImpactDashboard() {
   const [tab, setTab] = useState("week");
+  const {
+    profile,
+    ecoInsights,
+    weekChart, weekBreakdown,
+    monthChart, monthBreakdown,
+    yearChart, yearBreakdown,
+    streak,
+    milestones
+  } = useImpactDashboardData();
+
   let chartData, ChartComponent, xKey, yKey, breakdown;
   if (tab === "week") {
-    chartData = last7Days;
+    chartData = weekChart;
     ChartComponent = AreaChart;
     xKey = "day";
     yKey = "savings";
-    breakdown = chartData.reduce(
-      (acc, d) => {
-        acc.travel += d.travel;
-        acc.food += d.food;
-        acc.shopping += d.shopping;
-        return acc;
-      },
-      { travel: 0, food: 0, shopping: 0 }
-    );
+    breakdown = weekBreakdown;
   } else if (tab === "month") {
-    chartData = last12Months;
+    chartData = monthChart;
     ChartComponent = BarChart;
     xKey = "month";
     yKey = "savings";
-    breakdown = { travel: 9, food: 7, shopping: 4 }; // replace with actual
+    breakdown = monthBreakdown;
   } else {
-    chartData = last4Years;
+    chartData = yearChart;
     ChartComponent = LineChart;
     xKey = "year";
     yKey = "savings";
-    breakdown = { travel: 48, food: 46, shopping: 37 }; // replace with actual
+    breakdown = yearBreakdown;
   }
 
+  // Figure out category breakdown coloring (by category key)
+  const showBreakdown = Object.keys(breakdown || {}).length > 0;
+
+  // Show eco insights (always show, real-time updates)
   return (
     <Card className="w-full bg-white rounded-2xl shadow-xl border">
       <div className="p-5 border-b bg-gradient-to-r from-teal-50 to-green-100">
@@ -106,7 +75,7 @@ export default function ImpactDashboard() {
               </span>
             </TooltipTrigger>
             <TooltipContent side="top">
-              View your CO₂e savings trends and progress. Data is for illustration.
+              View your CO₂e savings trends and progress.
             </TooltipContent>
           </Tooltip>
         </CardTitle>
@@ -172,15 +141,26 @@ export default function ImpactDashboard() {
           <div className="flex flex-col gap-1 bg-green-50 px-3 py-2 rounded-lg border border-green-100 text-xs shadow-inner">
             <span className="font-bold text-green-700 mb-1">Category Breakdown</span>
             <div className="flex flex-row gap-4 items-center">
-              <span className="text-blue-500">Travel: <b>{breakdown.travel.toFixed(1)}</b>kg</span>
-              <span className="text-orange-500">Food: <b>{breakdown.food.toFixed(1)}</b>kg</span>
-              <span className="text-fuchsia-700">Shopping: <b>{breakdown.shopping.toFixed(1)}</b>kg</span>
+              {showBreakdown ? (
+                Object.entries(breakdown)
+                  .sort(([,aVal],[,bVal]) => bVal - aVal)
+                  .map(([k, v]) => {
+                    let color = "text-green-700";
+                    if (/travel/i.test(k)) color = "text-blue-500";
+                    else if (/food/i.test(k)) color = "text-orange-500";
+                    else if (/shop/i.test(k)) color = "text-fuchsia-700";
+                    else if (/home/i.test(k)) color = "text-green-700";
+                    else if (/util/i.test(k)) color = "text-yellow-700";
+                    return <span key={k} className={color}>{k}: <b>{Number(v).toFixed(1)}</b>kg</span>;
+                  })
+                ) : <span className="text-gray-400">No data yet</span>
+              }
             </div>
           </div>
           {/* Streak highlight */}
           <div className="flex flex-row gap-2 items-center bg-orange-50 px-3 py-2 rounded-lg border border-orange-100 text-xs shadow-inner">
             <Flame className="w-5 h-5 text-orange-500" />
-            <span className="text-orange-700 font-semibold">7 day streak</span>
+            <span className="text-orange-700 font-semibold">{streak.current} day streak</span>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="cursor-help text-gray-400 ml-1">ℹ️</span>
@@ -196,7 +176,11 @@ export default function ImpactDashboard() {
               {milestones.map(m => (
                 <Tooltip key={m.label}>
                   <TooltipTrigger asChild>
-                    <span className={m.achieved ? "" : "opacity-40"}>{m.icon}</span>
+                    <span className={m.achieved ? "" : "opacity-40"}>
+                      {m.label === "First Action" && <BadgeDollarSign className="w-5 h-5 text-green-500" />}
+                      {m.label === "One Week Streak" && <Flame className="w-5 h-5 text-orange-500" />}
+                      {m.label === "100kg CO₂e Saved" && <Trophy className="w-5 h-5 text-yellow-500" />}
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <div>
@@ -211,19 +195,27 @@ export default function ImpactDashboard() {
           </div>
         </div>
         {/* Eco Badge Footer */}
-        <div className="flex w-full justify-end mt-3">
+        <div className="flex w-full justify-between items-center flex-wrap mt-3 gap-2">
           <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-gray-100 border text-xs text-gray-700 shadow">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Google_Gemini_logo.svg" alt="Gemini" width={20} height={20} style={{ display: 'inline', verticalAlign: 'middle' }}/>
             <span className="font-semibold">Eco insights powered by Gemini</span>
           </span>
+          {/* Live insights */}
+          <div className="flex flex-col items-end gap-0">
+            <span className="text-[12px] mb-1 font-semibold text-green-700">Your Latest Eco Insights:</span>
+            <ol className="text-green-700 text-xs text-right">
+              {ecoInsights.length === 0 && (
+                <span className="text-gray-400 text-xs">No eco insights yet.</span>
+              )}
+              {ecoInsights.slice(0,2).map((i: any) =>
+                <li key={i.id} className="mb-0.5">
+                  {i.insight} <span className="block text-[10px] text-gray-400">{new Date(i.created_at).toLocaleDateString()}</span>
+                </li>
+              )}
+            </ol>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-/**
- * How to use:
- * 1. Import and add <ImpactDashboard /> to your home/dashboard page (suggested: HomeContent or DashboardSummary)
- * 2. Replace mock data with live data as needed.
- */
