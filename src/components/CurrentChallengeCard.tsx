@@ -51,9 +51,7 @@ const CurrentChallengeCard = () => {
 
   // Handler for join action
   const onJoin = async () => {
-    console.log("[Challenge Join] Button clicked.");
     if (!user || !current) {
-      console.log("[Challenge Join] Missing user or current challenge", { user, current });
       return;
     }
     try {
@@ -61,14 +59,9 @@ const CurrentChallengeCard = () => {
         challenge_id: current.id,
         user_id: user.id,
       });
-      if (error) {
-        console.error("[Challenge Join] Supabase error", error);
-      } else {
-        console.log("[Challenge Join] Inserted:", data);
-      }
       refetchParticipant();
     } catch (e) {
-      console.error("[Challenge Join] Unexpected error", e);
+      // Error handling can be improved
     }
   };
 
@@ -82,54 +75,64 @@ const CurrentChallengeCard = () => {
   }
 
   return (
-    <div className="flex items-center justify-between rounded-2xl px-4 py-3 bg-[#F8F5FF] border border-[#ece6fa] mt-1 shadow-sm animate-fade-in transition-all">
-      <div className="flex flex-col gap-0.5">
-        <span className="flex items-center gap-2 font-bold text-violet-800 text-base">
-          <Globe className="h-5 w-5 text-violet-500" />
-          Current Challenge
-        </span>
-        <span className="text-[14px] text-violet-700 font-medium leading-snug mt-0.5 block">
-          &ldquo;{current.title}&rdquo;
-        </span>
-        <span className="text-xs text-gray-500">{current.description}</span>
+    <div className="flex flex-col rounded-2xl px-4 py-3 bg-[#F8F5FF] border border-[#ece6fa] mt-1 shadow-sm animate-fade-in transition-all">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-col gap-0.5 flex-1">
+          <span className="flex items-center gap-2 font-bold text-violet-800 text-base">
+            <Globe className="h-5 w-5 text-violet-500" />
+            Current Challenge
+          </span>
+          <span className="text-[15px] text-violet-700 font-semibold leading-snug mt-1 block">
+            &ldquo;{current.title}&rdquo;
+          </span>
+          <span className="text-xs text-gray-500 mt-1">{current.description}</span>
+        </div>
+        {/* Compact leaderboard as avatars + label */}
+        <div className="flex flex-col items-end gap-1 min-w-[70px] mt-2 sm:mt-0">
+          <span className="font-normal text-[13px] text-gray-500 mb-1 pr-1">
+            Top Users
+          </span>
+          <div className="flex -space-x-2">
+            {topUsers.map((user, i) => (
+              <img
+                key={i}
+                src={user.avatar}
+                alt={user.alt}
+                className="rounded-full w-7 h-7 border-2 border-violet-200 bg-white shadow hover:scale-105 transition-transform duration-150"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Join button at the bottom */}
+      <div className="mt-4 flex w-full">
         {!participant && user && (
           <Button
-            size="sm"
-            className="mt-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-bold px-4 py-1 shadow"
+            size="lg"
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-bold text-base shadow"
             onClick={onJoin}
           >
             Join Challenge
           </Button>
         )}
         {participant && !participant.is_completed && (
-          <span className="inline-flex items-center text-green-800 text-xs mt-2">
-            🎉 Joined! Mark as complete in "My Challenges" below.
-          </span>
+          <Button
+            size="lg"
+            className="w-full bg-gray-300 text-gray-600 font-bold rounded-lg text-base"
+            disabled
+          >
+            Already Joined
+          </Button>
         )}
         {participant && participant.is_completed && (
-          <span className="inline-flex items-center text-green-700 text-xs mt-2">
+          <span className="w-full inline-flex items-center justify-center text-green-700 text-base font-semibold bg-green-50 px-5 py-3 rounded-lg">
             ✅ Completed!
           </span>
         )}
-      </div>
-      {/* Compact leaderboard as avatars + label */}
-      <div className="flex flex-col items-end gap-1 min-w-[70px]">
-        <span className="font-normal text-[13px] text-gray-500 mb-1 pr-1">
-          Top Users
-        </span>
-        <div className="flex -space-x-2">
-          {topUsers.map((user, i) => (
-            <img
-              key={i}
-              src={user.avatar}
-              alt={user.alt}
-              className="rounded-full w-7 h-7 border-2 border-violet-200 bg-white shadow hover:scale-105 transition-transform duration-150"
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
 };
 
 export default CurrentChallengeCard;
+
