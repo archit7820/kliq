@@ -51,12 +51,25 @@ const CurrentChallengeCard = () => {
 
   // Handler for join action
   const onJoin = async () => {
-    if (!user || !current) return;
-    await supabase.from("challenge_participants").insert({
-      challenge_id: current.id,
-      user_id: user.id,
-    });
-    refetchParticipant();
+    console.log("[Challenge Join] Button clicked.");
+    if (!user || !current) {
+      console.log("[Challenge Join] Missing user or current challenge", { user, current });
+      return;
+    }
+    try {
+      const { error, data } = await supabase.from("challenge_participants").insert({
+        challenge_id: current.id,
+        user_id: user.id,
+      });
+      if (error) {
+        console.error("[Challenge Join] Supabase error", error);
+      } else {
+        console.log("[Challenge Join] Inserted:", data);
+      }
+      refetchParticipant();
+    } catch (e) {
+      console.error("[Challenge Join] Unexpected error", e);
+    }
   };
 
   // Handle loading state

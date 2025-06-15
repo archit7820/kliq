@@ -103,11 +103,19 @@ const ProfilePage = () => {
 
     const updateProfile = async () => {
         setErrorMsg(null);
-        if (!user) return;
-        if (!editForm.username) {
-            setErrorMsg("Username cannot be empty.");
+        if (!user) {
+            console.log("[Profile Edit] No user found in context.");
             return;
         }
+        if (!editForm.username) {
+            setErrorMsg("Username cannot be empty.");
+            console.log("[Profile Edit] Username is empty.");
+            return;
+        }
+        console.log("[Profile Edit] Submitting update", {
+            id: user.id,
+            ...editForm
+        });
         const { error } = await supabase.from('profiles').update({
             full_name: editForm.full_name,
             username: editForm.username,
@@ -121,10 +129,12 @@ const ProfilePage = () => {
             } else {
                 setErrorMsg(error.message || "Update failed");
             }
+            console.error("[Profile Edit] Supabase error", error);
             return;
         } else {
             toast({ title: "Profile updated!" });
             setEditing(false);
+            console.log("[Profile Edit] Profile updated successfully!");
         }
     };
 
@@ -211,7 +221,7 @@ const ProfilePage = () => {
                     avatarUploading={avatarUploading}
                     errorMsg={errorMsg}
                     setEditing={setEditing}
-                    updateProfile={updateProfile}
+                    updateProfile={() => { console.log("[Profile Edit] Save button clicked."); updateProfile(); }}
                     setEditForm={setEditForm}
                     handleTagToggle={handleTagToggle}
                     handleAvatarUpload={handleAvatarUpload}
