@@ -1,162 +1,286 @@
-
-import React from 'react';
-import BottomNav from '@/components/BottomNav';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Crown, LoaderCircle, AlertTriangle, Users, Trophy, GroupIcon } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuthStatus } from '@/hooks/useAuthStatus';
+import React from "react";
 import { Link } from "react-router-dom";
-
-const challengeCards = [
-  {
-    title: "Green Streak 🌱",
-    description: "Log an activity every day for 7 days!",
-    progress: 4,
-    total: 7,
-    color: "from-green-200 via-green-100 to-teal-50"
-  },
-  {
-    title: "Eco Hero 🚀",
-    description: "Offset 50kg of CO₂ this month.",
-    progress: 22,
-    total: 50,
-    color: "from-emerald-300 via-green-200 to-yellow-100"
-  }
-];
-
-const communityLists = [
-  {
-    name: "Sustainability Champs",
-    description: "A group of eco-enthusiasts making a difference.",
-    members: 132,
-    color: "from-green-100 via-blue-100 to-emerald-50"
-  },
-  {
-    name: "Veggie Lovers",
-    description: "Share recipes and plant-based wins!",
-    members: 98,
-    color: "from-pink-100 via-green-100 to-yellow-50"
-  }
-];
+import ImpactDashboard from "@/components/ImpactDashboard";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trophy, Medal, Users, ArrowUp, ArrowDown } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const LeaderboardPage = () => {
   const { user } = useAuthStatus();
 
-  const fetchLeaderboard = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, username, avatar_url, kelp_points')
-      .not('kelp_points', 'is', null)
-      .order('kelp_points', { ascending: false })
-      .limit(100);
+  const { data: leaderboardData, isLoading } = useQuery({
+    queryKey: ["leaderboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url, carbon_saved, streak")
+        .order("carbon_saved", { ascending: false })
+        .limit(10);
 
-    if (error) throw new Error(error.message);
-
-    return data.map((profile, index) => ({
-      rank: index + 1,
-      name: profile.full_name || profile.username || 'Anonymous',
-      points: profile.kelp_points || 0,
-      avatar: profile.avatar_url || '',
-      isCurrentUser: user?.id === profile.id
-    }));
-  };
-
-  const { data: leaderboard, isLoading, isError, error } = useQuery({
-    queryKey: ['leaderboard'],
-    queryFn: fetchLeaderboard
+      if (error) {
+        console.error("Error fetching leaderboard:", error);
+        return [];
+      }
+      return data;
+    },
+    enabled: !!user,
   });
+
+  const { data: friendsData } = useQuery({
+    queryKey: ["friends-leaderboard", user?.id],
+    queryFn: async () => {
+      // In a real app, this would fetch only friends
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url, carbon_saved, streak")
+        .order("carbon_saved", { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching friends leaderboard:", error);
+        return [];
+      }
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const getUserRank = (userId: string) => {
+    if (!leaderboardData) return "N/A";
+    const index = leaderboardData.findIndex((item) => item.id === userId);
+    return index !== -1 ? `#${index + 1}` : "N/A";
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      <header className="bg-white shadow-sm p-4">
-        <h1 className="text-2xl font-bold text-green-700 text-center">Leaderboard</h1>
-      </header>
+      <div className="bg-gradient-to-b from-green-800 to-green-700 text-white p-4">
+        <div className="max-w-screen-md mx-auto">
+          <h1 className="text-2xl font-bold mb-2">Stats & Leaderboard</h1>
+          <p className="text-green-100 text-sm">
+            See how your actions compare to others
+          </p>
+        </div>
+      </div>
 
-      <main className="flex-grow p-4 md:p-6 space-y-6 mb-16">
-        <Card className="mb-3">
-          <CardHeader>
-            <CardTitle>Top Kelp Contributors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading && (
-              <div className="flex justify-center items-center py-10">
-                <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
+      <div className="max-w-screen-md mx-auto w-full p-4 pb-20">
+        {/* Your Stats */}
+        <Card className="mb-6 overflow-hidden">
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
+            <CardTitle className="text-lg">Your Stats</CardTitle>
+          </div>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-green-50 p-3 rounded-lg border border-green-100">
+                <p className="text-xs text-gray-500">CO₂e Saved</p>
+                <p className="text-2xl font-bold text-green-700">
+                  {user?.carbon_saved || 0} kg
+                </p>
               </div>
-            )}
-            {isError && (
-              <div className="flex flex-col items-center justify-center py-10 text-red-600">
-                <AlertTriangle className="w-8 h-8 mb-2" />
-                <p>Could not load leaderboard.</p>
-                <p className="text-sm text-red-500">{error.message}</p>
+              <div className="bg-orange-50 p-3 rounded-lg border border-orange-100">
+                <p className="text-xs text-gray-500">Current Streak</p>
+                <p className="text-2xl font-bold text-orange-700">
+                  {user?.streak || 0} days
+                </p>
               </div>
-            )}
-            {leaderboard && (
-              <ul className="space-y-4">
-                {leaderboard.map((u, index) => (
-                  <li key={u.rank} className={`flex items-center p-3 rounded-lg ${u.isCurrentUser ? 'bg-gradient-to-r from-green-100 via-green-50 to-white border-2 border-green-400' : 'bg-white'} transition shadow`}>
-                    <div className="w-8 text-lg font-bold text-gray-500">{u.rank}</div>
-                    <Avatar className="w-10 h-10 mx-4 shadow">
-                      <AvatarImage src={u.avatar} />
-                      <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow">
-                      <p className="font-semibold text-gray-800">{u.name}</p>
-                      <p className="text-sm text-gray-500">{Math.round(u.points)} Kelp Points</p>
-                    </div>
-                    {index < 3 && <Crown className={`w-6 h-6 ${
-                      index === 0 ? 'text-yellow-400' :
-                        index === 1 ? 'text-gray-400' : 'text-yellow-600'
-                    }`} />}
-                  </li>
-                ))}
-              </ul>
-            )}
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <p className="text-xs text-gray-500">Global Rank</p>
+                <p className="text-2xl font-bold text-blue-700">
+                  {getUserRank(user?.id || "")}
+                </p>
+              </div>
+              <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                <p className="text-xs text-gray-500">Actions Logged</p>
+                <p className="text-2xl font-bold text-purple-700">
+                  {user?.actions_count || 0}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Challenges Section */}
-        <div className="space-y-3">
-          <h2 className="font-bold text-lg text-primary">Challenges</h2>
-          <div className="flex flex-col gap-3">
-            {challengeCards.map((challenge, i) => (
-              <div key={challenge.title} className={`rounded-2xl shadow-lg bg-gradient-to-br ${challenge.color} p-4 flex items-center justify-between gap-4`}>
-                <div>
-                  <h3 className="font-semibold text-base text-green-900 mb-1">{challenge.title}</h3>
-                  <p className="text-xs text-green-800 mb-1">{challenge.description}</p>
-                  <div className="h-2 w-36 bg-green-200 rounded-full overflow-hidden mb-1">
-                    <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${(challenge.progress / challenge.total) * 100}%` }} />
+        {/* Leaderboard */}
+        <Card className="mb-6">
+          <div className="bg-gradient-to-r from-yellow-50 to-amber-50 p-4 border-b">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Leaderboard
+            </CardTitle>
+          </div>
+          <CardContent className="p-0">
+            <Tabs defaultValue="global">
+              <div className="px-4 pt-4">
+                <TabsList className="w-full grid grid-cols-2">
+                  <TabsTrigger value="global" className="text-sm">
+                    <Users className="h-4 w-4 mr-1" /> Global
+                  </TabsTrigger>
+                  <TabsTrigger value="friends" className="text-sm">
+                    <Users className="h-4 w-4 mr-1" /> Friends
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="global" className="p-0">
+                {isLoading ? (
+                  <div className="p-8 text-center text-gray-500">Loading...</div>
+                ) : (
+                  <div className="divide-y">
+                    {leaderboardData?.map((profile, index) => (
+                      <div
+                        key={profile.id}
+                        className={`flex items-center p-3 ${
+                          profile.id === user?.id
+                            ? "bg-green-50"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="w-8 font-bold text-gray-500">
+                          #{index + 1}
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-gray-200 mr-3 overflow-hidden">
+                          {profile.avatar_url ? (
+                            <img
+                              src={profile.avatar_url}
+                              alt={profile.username}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-green-200 text-green-800 font-bold">
+                              {profile.username?.[0]?.toUpperCase() || "?"}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">
+                            {profile.username || "Anonymous"}
+                            {profile.id === user?.id && (
+                              <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-200">
+                                You
+                              </Badge>
+                            )}
+                          </p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <span>{profile.carbon_saved} kg CO₂e saved</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <div className="flex items-center">
+                            {index > 0 ? (
+                              <ArrowDown className="h-3 w-3 text-red-500 mr-1" />
+                            ) : (
+                              <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                            )}
+                            <span className="text-xs text-gray-500">
+                              {index === 0 ? "+2" : "-1"}
+                            </span>
+                          </div>
+                          <div className="flex items-center mt-1">
+                            <Medal className="h-3 w-3 text-orange-500 mr-1" />
+                            <span className="text-xs text-gray-500">
+                              {profile.streak} day streak
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-xs text-green-600 font-bold">{challenge.progress} / {challenge.total}</span>
-                </div>
-                <Trophy className="w-10 h-10 text-yellow-500" />
-              </div>
-            ))}
-          </div>
-        </div>
+                )}
+              </TabsContent>
 
-        {/* Communities Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-lg text-primary">Communities</h2>
-            <Link to="/communities" className="text-xs text-primary hover:underline">See all</Link>
-          </div>
-          <div className="flex flex-col gap-3">
-            {communityLists.map(community => (
-              <div key={community.name} className={`rounded-2xl shadow-lg bg-gradient-to-br ${community.color} px-4 py-3 flex items-center gap-4`}>
-                <GroupIcon className="w-9 h-9 text-indigo-400" />
-                <div>
-                  <h3 className="font-semibold text-base text-indigo-900">{community.name}</h3>
-                  <p className="text-xs text-gray-700">{community.description}</p>
-                  <span className="block mt-1 text-xs text-gray-500">{community.members} members</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
+              <TabsContent value="friends" className="p-0">
+                {friendsData?.length ? (
+                  <div className="divide-y">
+                    {friendsData.map((profile, index) => (
+                      <div
+                        key={profile.id}
+                        className={`flex items-center p-3 ${
+                          profile.id === user?.id
+                            ? "bg-green-50"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="w-8 font-bold text-gray-500">
+                          #{index + 1}
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-gray-200 mr-3 overflow-hidden">
+                          {profile.avatar_url ? (
+                            <img
+                              src={profile.avatar_url}
+                              alt={profile.username}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-green-200 text-green-800 font-bold">
+                              {profile.username?.[0]?.toUpperCase() || "?"}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">
+                            {profile.username || "Anonymous"}
+                            {profile.id === user?.id && (
+                              <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-200">
+                                You
+                              </Badge>
+                            )}
+                          </p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <span>{profile.carbon_saved} kg CO₂e saved</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <div className="flex items-center mt-1">
+                            <Medal className="h-3 w-3 text-orange-500 mr-1" />
+                            <span className="text-xs text-gray-500">
+                              {profile.streak} day streak
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-gray-500">
+                    <p className="mb-4">No friends yet!</p>
+                    <Button
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Find Friends
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
 
+        {/* --- Impact Dashboard Preview --- */}
+        <section className="max-w-screen-md mx-auto w-full mt-6">
+          <div className="flex flex-row items-center justify-between mb-1">
+            <h2 className="font-bold text-lg">Your CO₂e Impact</h2>
+            <Link to="/impact-dashboard" className="text-green-700 hover:underline text-sm">
+              View Full Dashboard
+            </Link>
+          </div>
+          <ImpactDashboard />
+        </section>
+
+        {/* --- Micro-interaction: Jump to Challenges --- */}
+        <div className="w-full text-center my-4">
+          <Link
+            to="/challenges"
+            className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full font-medium transition border shadow animate-fade-in"
+          >
+            🎯 Check Out This Week's Challenges!
+          </Link>
+        </div>
+      </div>
       <BottomNav />
     </div>
   );

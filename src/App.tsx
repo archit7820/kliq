@@ -19,6 +19,8 @@ import MessagesPage from "./pages/MessagesPage";
 import ChatPage from "./pages/ChatPage";
 import CommunitiesPage from "./pages/CommunitiesPage";
 import WelcomePage from "./pages/WelcomePage";
+import ImpactDashboardPage from "./pages/ImpactDashboardPage";
+import ChallengesPage from "./pages/ChallengesPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,8 @@ const App = () => (
           <Route path="/log-activity" element={<LogActivityPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/impact-dashboard" element={<ImpactDashboardPage />} />
+          <Route path="/challenges" element={<ChallengesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/chat/:userId" element={<ChatPage />} />
