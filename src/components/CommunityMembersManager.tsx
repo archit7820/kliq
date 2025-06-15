@@ -22,6 +22,7 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
     }
   });
 
+  // Approve member mutation
   const approveMutation = useMutation({
     mutationFn: async (membershipId: string) => {
       const { error } = await supabase
@@ -30,12 +31,14 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
         .eq("id", membershipId);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => {
+    onSuccess: (_, membershipId) => {
       queryClient.invalidateQueries({ queryKey: ["community-members", communityId] });
+      queryClient.invalidateQueries({ queryKey: ["allCommunities"] });
       toast({ title: "Member approved!" });
     }
   });
 
+  // Reject member mutation
   const rejectMutation = useMutation({
     mutationFn: async (membershipId: string) => {
       const { error } = await supabase
@@ -44,8 +47,9 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
         .eq("id", membershipId);
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => {
+    onSuccess: (_, membershipId) => {
       queryClient.invalidateQueries({ queryKey: ["community-members", communityId] });
+      queryClient.invalidateQueries({ queryKey: ["allCommunities"] });
       toast({ title: "Member rejected." });
     }
   });
@@ -65,21 +69,23 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
           .map((m: any) => (
             <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
               <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-full" />
-              <span className="font-medium">{m.profiles?.full_name || m.profiles?.username}</span>
+              <span className="font-medium">{m.profiles?.full_name || m.profiles?.username || m.profiles?.email || "Unknown User"}</span>
               <Button
                 size="sm"
+                disabled={approveMutation.isPending}
                 onClick={() => approveMutation.mutate(m.id)}
                 className="ml-auto px-3 py-1 bg-green-500 hover:bg-green-600 text-white"
               >
-                Approve
+                {approveMutation.isPending ? "Approving..." : "Approve"}
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
+                disabled={rejectMutation.isPending}
                 onClick={() => rejectMutation.mutate(m.id)}
                 className="ml-2 px-3 py-1"
               >
-                Reject
+                {rejectMutation.isPending ? "Rejecting..." : "Reject"}
               </Button>
             </li>
           ))}
@@ -100,3 +106,4 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
 };
 
 export default CommunityMembersManager;
+
