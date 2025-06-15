@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "./useAuthStatus";
 
+// Updated to select all fields from profiles
 export function useProfileWithStats() {
   const { user } = useAuthStatus();
 
@@ -12,9 +13,10 @@ export function useProfileWithStats() {
     queryKey: ["profile", userId],
     queryFn: async () => {
       if (!userId) return null;
+      // Select * to get all available profile fields for type safety
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, kelp_points, streak_count, co2e_weekly_goal, co2e_weekly_progress")
+        .select("*")
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;

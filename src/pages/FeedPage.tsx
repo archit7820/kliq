@@ -36,7 +36,7 @@ export default function FeedPage() {
       <main className="flex-1 px-1 sm:px-2 md:px-4 py-4 max-w-lg mx-auto w-full">
         {/* Kelp Wallet with real-time points */}
         <KelpWallet />
-        <FeedContent />
+        <FeedContent user={profile} />
       </main>
       <BottomNav />
     </div>
