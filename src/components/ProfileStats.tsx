@@ -1,6 +1,7 @@
-
 import React from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import UserBadges from "./UserBadges";
+import { useUserBadges } from "@/hooks/useUserBadges";
 
 type ProfileStatsProps = {
   profile: {
@@ -14,6 +15,8 @@ type ProfileStatsProps = {
 };
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ profile, user, getUserRank }) => {
+  const { data: badges = [], isLoading: loadingBadges } = useUserBadges();
+
   return (
     <Card className="mb-6 overflow-hidden">
       <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
@@ -47,6 +50,14 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ profile, user, getUserRank 
                 : <span className="text-base text-gray-400 italic">n/a</span>}
             </p>
           </div>
+        </div>
+        <div className="mt-4">
+          <div className="font-semibold text-xs mb-1 text-gray-600">Badges & Milestones:</div>
+          {loadingBadges ? (
+            <div>Loading badges...</div>
+          ) : (
+            <UserBadges badges={badges} />
+          )}
         </div>
       </CardContent>
     </Card>
