@@ -16,7 +16,7 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("community_memberships")
-        .select("id, user_id, status, profiles(full_name, username, email, avatar_url)")
+        .select("id, user_id, status, profiles(full_name, username, avatar_url)")
         .eq("community_id", communityId);
 
       if (error) throw new Error(error.message);
@@ -24,10 +24,8 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
     }
   });
 
-  // Helper to compute the list, applying optimistic UI if needed
   function getMembersWithOptimistic() {
     if (!optimistic) return members;
-    // Apply status change for the affected id
     return members.map(m =>
       m.id === optimistic.id
         ? { ...m, status: optimistic.status }
@@ -35,7 +33,6 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
     );
   }
 
-  // Approve member mutation
   const approveMutation = useMutation({
     mutationFn: async (membershipId: string) => {
       setProcessingId(membershipId);
@@ -60,7 +57,6 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
     }
   });
 
-  // Reject member mutation
   const rejectMutation = useMutation({
     mutationFn: async (membershipId: string) => {
       setProcessingId(membershipId);
@@ -103,7 +99,7 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
         {pending.map((m: any) => (
           <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
             <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-full" />
-            <span className="font-medium">{m.profiles?.full_name || m.profiles?.username || m.profiles?.email || "Unknown User"}</span>
+            <span className="font-medium">{m.profiles?.full_name || m.profiles?.username || "Unknown User"}</span>
             <Button
               size="sm"
               disabled={processingId === m.id && approveMutation.isPending}
@@ -138,4 +134,3 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
 };
 
 export default CommunityMembersManager;
-
