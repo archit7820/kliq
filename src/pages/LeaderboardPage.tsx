@@ -14,13 +14,14 @@ import BottomNav from "@/components/BottomNav";
 const LeaderboardPage = () => {
   const { user } = useAuthStatus();
 
+  // Only select columns that exist in the profiles table!
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ["leaderboard"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, carbon_saved, streak")
-        .order("carbon_saved", { ascending: false })
+        .select("id, username, avatar_url, kelp_points")
+        .order("kelp_points", { ascending: false })
         .limit(10);
 
       if (error) {
@@ -38,8 +39,8 @@ const LeaderboardPage = () => {
       // In a real app, this would fetch only friends
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, carbon_saved, streak")
-        .order("carbon_saved", { ascending: false })
+        .select("id, username, avatar_url, kelp_points")
+        .order("kelp_points", { ascending: false })
         .limit(5);
 
       if (error) {
@@ -56,6 +57,9 @@ const LeaderboardPage = () => {
     const index = leaderboardData.findIndex((item) => item.id === userId);
     return index !== -1 ? `#${index + 1}` : "N/A";
   };
+
+  // Helper fallback
+  const userKelpPoints = user?.kelp_points ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -77,15 +81,16 @@ const LeaderboardPage = () => {
           <CardContent className="p-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                <p className="text-xs text-gray-500">CO₂e Saved</p>
+                <p className="text-xs text-gray-500">Kelp Points</p>
                 <p className="text-2xl font-bold text-green-700">
-                  {user?.carbon_saved || 0} kg
+                  {userKelpPoints ?? 0}
                 </p>
               </div>
+              {/* Remove unsupported 'streak', show just placeholder or keep it empty */}
               <div className="bg-orange-50 p-3 rounded-lg border border-orange-100">
                 <p className="text-xs text-gray-500">Current Streak</p>
                 <p className="text-2xl font-bold text-orange-700">
-                  {user?.streak || 0} days
+                  <span className="text-base text-gray-400 italic">n/a</span>
                 </p>
               </div>
               <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
@@ -94,10 +99,11 @@ const LeaderboardPage = () => {
                   {getUserRank(user?.id || "")}
                 </p>
               </div>
+              {/* Remove unsupported 'actions_count', show placeholder */}
               <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
                 <p className="text-xs text-gray-500">Actions Logged</p>
                 <p className="text-2xl font-bold text-purple-700">
-                  {user?.actions_count || 0}
+                  <span className="text-base text-gray-400 italic">n/a</span>
                 </p>
               </div>
             </div>
@@ -146,7 +152,7 @@ const LeaderboardPage = () => {
                           {profile.avatar_url ? (
                             <img
                               src={profile.avatar_url}
-                              alt={profile.username}
+                              alt={profile.username || "User"}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -165,7 +171,7 @@ const LeaderboardPage = () => {
                             )}
                           </p>
                           <div className="flex items-center text-sm text-gray-500">
-                            <span>{profile.carbon_saved} kg CO₂e saved</span>
+                            <span>{profile.kelp_points ?? 0} pts</span>
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
@@ -179,12 +185,7 @@ const LeaderboardPage = () => {
                               {index === 0 ? "+2" : "-1"}
                             </span>
                           </div>
-                          <div className="flex items-center mt-1">
-                            <Medal className="h-3 w-3 text-orange-500 mr-1" />
-                            <span className="text-xs text-gray-500">
-                              {profile.streak} day streak
-                            </span>
-                          </div>
+                          {/* Remove streak display */}
                         </div>
                       </div>
                     ))}
@@ -211,7 +212,7 @@ const LeaderboardPage = () => {
                           {profile.avatar_url ? (
                             <img
                               src={profile.avatar_url}
-                              alt={profile.username}
+                              alt={profile.username || "User"}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -230,16 +231,11 @@ const LeaderboardPage = () => {
                             )}
                           </p>
                           <div className="flex items-center text-sm text-gray-500">
-                            <span>{profile.carbon_saved} kg CO₂e saved</span>
+                            <span>{profile.kelp_points ?? 0} pts</span>
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
-                          <div className="flex items-center mt-1">
-                            <Medal className="h-3 w-3 text-orange-500 mr-1" />
-                            <span className="text-xs text-gray-500">
-                              {profile.streak} day streak
-                            </span>
-                          </div>
+                          {/* Remove streak display */}
                         </div>
                       </div>
                     ))}
@@ -263,7 +259,7 @@ const LeaderboardPage = () => {
         {/* --- Impact Dashboard Preview --- */}
         <section className="max-w-screen-md mx-auto w-full mt-6">
           <div className="flex flex-row items-center justify-between mb-1">
-            <h2 className="font-bold text-lg">Your CO₂e Impact</h2>
+            <h2 className="font-bold text-lg">Your Kelp Points Impact</h2>
             <Link to="/impact-dashboard" className="text-green-700 hover:underline text-sm">
               View Full Dashboard
             </Link>
