@@ -48,6 +48,105 @@ export type Database = {
         }
         Relationships: []
       }
+      challenge_participants: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          id: string
+          is_completed: boolean | null
+          joined_at: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          joined_at?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          joined_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          audience_scope: string
+          community_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_at: string | null
+          id: string
+          is_active: boolean | null
+          reward_kelp_points: number | null
+          start_at: string | null
+          title: string
+        }
+        Insert: {
+          audience_scope?: string
+          community_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          reward_kelp_points?: number | null
+          start_at?: string | null
+          title: string
+        }
+        Update: {
+          audience_scope?: string
+          community_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          reward_kelp_points?: number | null
+          start_at?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenges_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           activity_id: string
@@ -275,6 +374,35 @@ export type Database = {
           },
         ]
       }
+      eco_insights: {
+        Row: {
+          created_at: string
+          id: string
+          insight: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          insight: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          insight?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eco_insights_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friend_requests: {
         Row: {
           created_at: string
@@ -404,6 +532,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          co2e_weekly_goal: number | null
+          co2e_weekly_progress: number | null
           created_at: string
           full_name: string | null
           id: string
@@ -413,11 +543,15 @@ export type Database = {
           lifestyle_tags: string[] | null
           location: string | null
           referral_code: string | null
+          streak_count: number | null
+          streak_last_logged: string | null
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          co2e_weekly_goal?: number | null
+          co2e_weekly_progress?: number | null
           created_at?: string
           full_name?: string | null
           id: string
@@ -427,11 +561,15 @@ export type Database = {
           lifestyle_tags?: string[] | null
           location?: string | null
           referral_code?: string | null
+          streak_count?: number | null
+          streak_last_logged?: string | null
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          co2e_weekly_goal?: number | null
+          co2e_weekly_progress?: number | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -441,6 +579,8 @@ export type Database = {
           lifestyle_tags?: string[] | null
           location?: string | null
           referral_code?: string | null
+          streak_count?: number | null
+          streak_last_logged?: string | null
           updated_at?: string
           username?: string | null
         }

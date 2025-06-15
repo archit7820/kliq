@@ -1,65 +1,44 @@
-import React from "react";
+
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import ImpactDashboard from "@/components/ImpactDashboard";
-import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Medal, Users, ArrowUp, ArrowDown } from "lucide-react";
+import { Trophy, Users, ArrowUp, ArrowDown } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import { useProfileWithStats } from "@/hooks/useProfileWithStats";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { supabase } from "@/integrations/supabase/client";
 
 const LeaderboardPage = () => {
-  const { user } = useAuthStatus();
+  const { profile, isProfileLoading, insights, user } = useProfileWithStats();
+  const { leaderboard, isLoading, friendsLeaderboard } = useLeaderboard();
 
-  // Only select columns that exist in the profiles table!
-  const { data: leaderboardData, isLoading } = useQuery({
-    queryKey: ["leaderboard"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url, kelp_points")
-        .order("kelp_points", { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.error("Error fetching leaderboard:", error);
-        return [];
-      }
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const { data: friendsData } = useQuery({
-    queryKey: ["friends-leaderboard", user?.id],
-    queryFn: async () => {
-      // In a real app, this would fetch only friends
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url, kelp_points")
-        .order("kelp_points", { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error("Error fetching friends leaderboard:", error);
-        return [];
-      }
-      return data;
-    },
-    enabled: !!user,
-  });
+  // Real-time sync for Leaderboard (basic, listens for changes in 'profiles')
+  useEffect(() => {
+    const channel = supabase
+      .channel("public:profiles")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          // Optionally: refetch queries here using react-query
+          // You can use queryClient.invalidateQueries here for robust pattern.
+          window.location.reload(); // quick/dirty for demonstration
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const getUserRank = (userId: string) => {
-    if (!leaderboardData) return "N/A";
-    const index = leaderboardData.findIndex((item) => item.id === userId);
+    const index = leaderboard.findIndex((item: any) => item.id === userId);
     return index !== -1 ? `#${index + 1}` : "N/A";
   };
-
-  // Helper fallback
-  const userKelpPoints = user?.kelp_points ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
@@ -73,6 +52,7 @@ const LeaderboardPage = () => {
       </div>
 
       <div className="max-w-screen-md mx-auto w-full p-4 pb-20">
+
         {/* Your Stats */}
         <Card className="mb-6 overflow-hidden">
           <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
@@ -83,30 +63,52 @@ const LeaderboardPage = () => {
               <div className="bg-green-50 p-3 rounded-lg border border-green-100">
                 <p className="text-xs text-gray-500">Kelp Points</p>
                 <p className="text-2xl font-bold text-green-700">
-                  {userKelpPoints ?? 0}
+                  {profile?.kelp_points ?? 0}
                 </p>
               </div>
-              {/* Remove unsupported 'streak', show just placeholder or keep it empty */}
               <div className="bg-orange-50 p-3 rounded-lg border border-orange-100">
                 <p className="text-xs text-gray-500">Current Streak</p>
                 <p className="text-2xl font-bold text-orange-700">
-                  <span className="text-base text-gray-400 italic">n/a</span>
+                  {profile?.streak_count ?? <span className="text-base text-gray-400 italic">0</span>}
                 </p>
               </div>
               <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
                 <p className="text-xs text-gray-500">Global Rank</p>
                 <p className="text-2xl font-bold text-blue-700">
-                  {getUserRank(user?.id || "")}
+                  {user ? getUserRank(user.id) : "N/A"}
                 </p>
               </div>
-              {/* Remove unsupported 'actions_count', show placeholder */}
               <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
-                <p className="text-xs text-gray-500">Actions Logged</p>
+                <p className="text-xs text-gray-500">Weekly CO₂e Progress</p>
                 <p className="text-2xl font-bold text-purple-700">
-                  <span className="text-base text-gray-400 italic">n/a</span>
+                  {profile
+                    ? `${profile.co2e_weekly_progress ?? 0} / ${profile.co2e_weekly_goal ?? 0} kg`
+                    : <span className="text-base text-gray-400 italic">n/a</span>}
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Eco Insights */}
+        <Card className="mb-6">
+          <div className="bg-gradient-to-r from-green-50 to-yellow-50 p-4 border-b">
+            <CardTitle className="text-lg flex items-center gap-2">
+              🌱 Eco Insights
+            </CardTitle>
+          </div>
+          <CardContent className="p-4">
+            {insights.length === 0 && (
+              <div className="text-gray-400 text-sm">No eco insights yet. Log an activity or join challenges to get tips!</div>
+            )}
+            <ul>
+              {insights.map(insight =>
+                <li className="mb-1 text-green-700 font-medium" key={insight.id}>
+                  {insight.insight}
+                  <span className="block text-xs text-gray-400">{new Date(insight.created_at).toLocaleDateString()}</span>
+                </li>
+              )}
+            </ul>
           </CardContent>
         </Card>
 
@@ -130,15 +132,13 @@ const LeaderboardPage = () => {
                   </TabsTrigger>
                 </TabsList>
               </div>
-
               <TabsContent value="global" className="p-0">
                 {isLoading ? (
                   <div className="p-8 text-center text-gray-500">Loading...</div>
                 ) : (
                   <div className="divide-y">
-                    {leaderboardData?.map((profile, index) => (
-                      <div
-                        key={profile.id}
+                    {leaderboard.map((profile: any, index: number) => (
+                      <div key={profile.id}
                         className={`flex items-center p-3 ${
                           profile.id === user?.id
                             ? "bg-green-50"
@@ -185,7 +185,6 @@ const LeaderboardPage = () => {
                               {index === 0 ? "+2" : "-1"}
                             </span>
                           </div>
-                          {/* Remove streak display */}
                         </div>
                       </div>
                     ))}
@@ -194,9 +193,9 @@ const LeaderboardPage = () => {
               </TabsContent>
 
               <TabsContent value="friends" className="p-0">
-                {friendsData?.length ? (
+                {friendsLeaderboard.length ? (
                   <div className="divide-y">
-                    {friendsData.map((profile, index) => (
+                    {friendsLeaderboard.map((profile: any, index: number) => (
                       <div
                         key={profile.id}
                         className={`flex items-center p-3 ${
@@ -234,9 +233,7 @@ const LeaderboardPage = () => {
                             <span>{profile.kelp_points ?? 0} pts</span>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end">
-                          {/* Remove streak display */}
-                        </div>
+                        <div className="flex flex-col items-end"></div>
                       </div>
                     ))}
                   </div>
@@ -274,6 +271,14 @@ const LeaderboardPage = () => {
             className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full font-medium transition border shadow animate-fade-in"
           >
             🎯 Check Out This Week's Challenges!
+          </Link>
+        </div>
+        <div className="my-4 text-center">
+          <Link
+            to="/create-challenge"
+            className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-full font-medium transition border shadow"
+          >
+            ➕ Create a New Challenge
           </Link>
         </div>
       </div>
