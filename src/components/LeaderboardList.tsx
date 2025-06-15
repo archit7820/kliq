@@ -15,6 +15,8 @@ const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId }
   const podium = leaderboard.slice(0, 3);
   const rest = leaderboard.slice(3);
 
+  console.log("LeaderboardList - isMobile:", isMobile, "rest.length:", rest.length);
+
   return (
     <div className="py-2 w-full">
       <TopPodium podium={podium} userId={userId} />
@@ -25,18 +27,18 @@ const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId }
       {rest.length === 0 ? (
         <div className="py-6 text-center text-gray-400">No more players... join in!</div>
       ) : isMobile ? (
-        // Mobile: Horizontal Carousel layout with compact cards
-        <div className="w-full px-2">
+        // Mobile: Horizontal Carousel layout
+        <div className="w-full px-4">
           <Carousel
             opts={{
-              align: "center",
+              align: "start",
               loop: false,
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-1">
+            <CarouselContent className="-ml-2">
               {rest.map((profile, i) => (
-                <CarouselItem key={profile.id} className="pl-1 basis-4/5 sm:basis-1/2">
+                <CarouselItem key={profile.id} className="pl-2 basis-[280px] sm:basis-1/2">
                   <LeaderboardRowGamified
                     profile={profile}
                     rank={i + 3}
@@ -47,8 +49,8 @@ const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId }
             </CarouselContent>
             {rest.length > 1 && (
               <>
-                <CarouselPrevious className="left-0 h-6 w-6 bg-white/80" />
-                <CarouselNext className="right-0 h-6 w-6 bg-white/80" />
+                <CarouselPrevious className="left-2 h-8 w-8 bg-white/90 shadow-lg" />
+                <CarouselNext className="right-2 h-8 w-8 bg-white/90 shadow-lg" />
               </>
             )}
           </Carousel>

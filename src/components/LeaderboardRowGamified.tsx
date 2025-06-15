@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Award, Trophy, User as UserIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -21,13 +20,15 @@ const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) =
   const isCurrentUser = profile.id === userId;
   const mainColor = badgeColors[rank] || "bg-green-50 text-green-700";
   
+  console.log("LeaderboardRowGamified - isMobile:", isMobile, "rank:", rank + 1);
+  
   if (isMobile) {
-    // Mobile: Compact card layout
+    // Mobile: Compact horizontal card layout
     return (
       <div
         className={`
-          flex flex-col items-center gap-1 p-3 m-1 rounded-xl shadow-lg
-          border border-white/50 min-h-[120px] w-full ${mainColor}
+          flex flex-col items-center gap-2 p-3 rounded-xl shadow-lg
+          border-2 border-white/50 min-h-[140px] w-[260px] ${mainColor}
           ${isCurrentUser ? "ring-2 ring-green-500 bg-green-200 animate-pulse-fast" : ""}
         `}
       >
@@ -40,8 +41,8 @@ const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) =
         <div
           className={`rounded-full overflow-hidden border-2 border-white shadow ${isCurrentUser ? "animate-pulse" : ""}`}
           style={{
-            width: 36,
-            height: 36,
+            width: 32,
+            height: 32,
           }}
         >
           {profile.avatar_url ? (
@@ -57,25 +58,25 @@ const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) =
         
         {/* Name */}
         <div className="text-center">
-          <div className={`font-bold text-sm truncate max-w-[80px] ${isCurrentUser ? "text-green-800" : ""}`}>
+          <div className={`font-bold text-xs truncate max-w-[200px] ${isCurrentUser ? "text-green-800" : ""}`}>
             {isCurrentUser ? "You" : profile.username || "Anonymous"}
           </div>
           {isCurrentUser && (
-            <Badge className="mt-1 bg-green-300 text-green-900 border-green-500 text-xs">
+            <Badge className="mt-1 bg-green-300 text-green-900 border-green-500 text-[10px] px-1 py-0">
               🎉
             </Badge>
           )}
         </div>
         
         {/* Points */}
-        <div className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+        <div className="text-[11px] text-gray-600 font-semibold flex items-center gap-1">
           <Award className="w-3 h-3 text-orange-400" />
           {profile.kelp_points ?? 0} pts
         </div>
         
         {/* Trophy for top ranks */}
         {rank <= 2 && (
-          <Trophy className={`w-4 h-4 ${rank === 0 ? "text-yellow-400" : "text-gray-400"} animate-bounce`} />
+          <Trophy className={`w-3 h-3 ${rank === 0 ? "text-yellow-400" : "text-gray-400"} animate-bounce`} />
         )}
       </div>
     );
