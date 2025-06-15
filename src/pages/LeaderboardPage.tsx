@@ -13,7 +13,6 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-// Real-time sync for user stats, eco insights, activities, and challenges using Supabase channels
 const useRealtimeSync = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
@@ -62,8 +61,6 @@ const useRealtimeSync = (userId: string | undefined) => {
 const LeaderboardPage = () => {
   const { profile, isProfileLoading, insights, user } = useProfileWithStats();
   const { leaderboard, isLoading, friendsLeaderboard } = useLeaderboard();
-
-  // Pass current userId to the realtime sync hook
   useRealtimeSync(user?.id);
 
   const getUserRank = (userId: string) => {
@@ -72,33 +69,37 @@ const LeaderboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <div className="bg-gradient-to-b from-green-800 to-green-700 text-white p-4">
-        <div className="max-w-screen-md mx-auto">
-          <h1 className="text-2xl font-bold mb-2">Stats & Leaderboard</h1>
-          <p className="text-green-100 text-sm">
-            See how your actions compare to others
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-100 flex flex-col relative">
+      <div className="bg-gradient-to-b from-green-700 via-green-700 to-green-500 text-white p-6 pb-2 relative rounded-b-3xl shadow-xl z-10">
+        <div className="max-w-screen-md mx-auto flex flex-col items-center gap-2 animate-fade-in">
+          <h1 className="text-3xl font-extrabold tracking-tight">🌊 Kelp Leaderboard!</h1>
+          <p className="text-green-100 text-sm mb-2">Race to the top — earn points, inspire friends, and unlock new badges by making an eco difference every day!</p>
+          <div className="flex items-center gap-3 mb-1">
+            <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold shadow">Your current rank: <span className="text-yellow-200">{user ? getUserRank(user.id) : "-"}</span></span>
+          </div>
         </div>
       </div>
-      <div className="max-w-screen-md mx-auto w-full p-4 pb-20">
-        <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
+      <div className="max-w-screen-md mx-auto w-full px-0 pt-6 pb-20 relative z-20">
+        <div className="rounded-2xl shadow-lg bg-white/90 px-2 py-4 mb-4 -mt-12 z-10 animate-fade-in">
+          <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
+        </div>
+
         <EcoInsightsList insights={insights} />
 
         <Tabs defaultValue="global">
-          <div className="px-4 pt-4">
-            <TabsList className="w-full grid grid-cols-2">
-              <TabsTrigger value="global" className="text-sm">
-                Global
+          <div className="flex justify-center pt-2 pb-1 mb-1 gap-1">
+            <TabsList className="w-fit rounded-full shadow bg-green-100">
+              <TabsTrigger value="global" className="text-sm px-3 py-1 rounded-full !font-bold data-[state=active]:bg-green-600 data-[state=active]:text-white transition-all">
+                🌍 Global
               </TabsTrigger>
-              <TabsTrigger value="friends" className="text-sm">
-                Friends
+              <TabsTrigger value="friends" className="text-sm px-3 py-1 rounded-full !font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-green-900 transition-all">
+                🧑‍🤝‍🧑 Friends
               </TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="global" className="p-0">
             {isLoading ? (
-              <div className="p-8 text-center text-gray-500">Loading...</div>
+              <div className="p-8 text-center text-gray-500 animate-pulse">Loading...</div>
             ) : (
               <LeaderboardList leaderboard={leaderboard} userId={user?.id} />
             )}
@@ -111,7 +112,7 @@ const LeaderboardPage = () => {
                 <p className="mb-4">No friends yet!</p>
                 <Button
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold rounded shadow"
                 >
                   Find Friends
                 </Button>
@@ -120,9 +121,9 @@ const LeaderboardPage = () => {
           </TabsContent>
         </Tabs>
         {/* --- Impact Dashboard Preview --- */}
-        <section className="max-w-screen-md mx-auto w-full mt-6">
-          <div className="flex flex-row items-center justify-between mb-1">
-            <h2 className="font-bold text-lg">Your Kelp Points Impact</h2>
+        <section className="max-w-screen-md mx-auto w-full mt-6 rounded-2xl shadow bg-white/60 animate-fade-in">
+          <div className="flex flex-row items-center justify-between mb-1 pt-4 px-4">
+            <h2 className="font-bold text-lg text-green-900">Your Kelp Points Impact</h2>
             <Link to="/impact-dashboard" className="text-green-700 hover:underline text-sm">
               View Full Dashboard
             </Link>
@@ -132,7 +133,7 @@ const LeaderboardPage = () => {
         <div className="w-full text-center my-4">
           <Link
             to="/challenges"
-            className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full font-medium transition border shadow animate-fade-in"
+            className="inline-flex items-center gap-1 px-5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full font-semibold transition border shadow animate-fade-in"
           >
             🎯 Check Out This Week's Challenges!
           </Link>
@@ -140,16 +141,21 @@ const LeaderboardPage = () => {
         <div className="my-4 text-center">
           <Link
             to="/create-challenge"
-            className="inline-flex items-center gap-1 px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-full font-medium transition border shadow"
+            className="inline-flex items-center gap-1 px-5 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-full font-semibold transition border shadow"
           >
             ➕ Create a New Challenge
           </Link>
         </div>
       </div>
       <BottomNav />
+      {/* Fun motivational footer badge */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30">
+        <div className="bg-white/80 rounded-full px-5 py-2 shadow-lg border-2 border-green-400 text-green-700 font-bold animate-fade-in">
+          🚀 Level up your eco journey with Kelp!
+        </div>
+      </div>
     </div>
   );
 };
 
 export default LeaderboardPage;
-
