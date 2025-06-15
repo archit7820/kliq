@@ -2,7 +2,8 @@
 // Supabase Edge Function: assign_badges
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Database } from "../types.ts"; // You may need to change the path here.
+
+// Remove import of Database type!
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +18,11 @@ serve(async (req: Request) => {
   // Grab Supabase credentials from env in function context
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: req.headers.get("Authorization")! }}});
+  const supabase = createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    { global: { headers: { Authorization: req.headers.get("Authorization")! }}}
+  );
 
   // Identify the user
   const { user_id } = await req.json().catch(() => ({}));
