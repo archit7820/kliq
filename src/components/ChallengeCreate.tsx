@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,9 +132,9 @@ const ChallengeCreate = () => {
             <Button
               type="submit"
               className="bg-green-700 hover:bg-green-800 text-white text-base px-8 py-2 rounded-md shadow hover-scale"
-              disabled={mutation.isLoading}
+              disabled={mutation.status === "pending"}
             >
-              {mutation.isLoading ? "Creating..." : "Create Challenge"}
+              {mutation.status === "pending" ? "Creating..." : "Create Challenge"}
             </Button>
           </div>
         </form>

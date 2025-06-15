@@ -1,7 +1,7 @@
-
 import React, { useState } from "react";
 import { Trophy, Check, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ChallengeVerificationDialog from "./ChallengeVerificationDialog";
 
 const mockChallenges = [
   {
@@ -71,13 +71,16 @@ export default function CurrentChallenges() {
                 </Button>
               )}
               {ch.joined && !ch.completed && (
-                <Button
-                  size="sm"
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 font-semibold rounded-xl animate-fade-in"
-                  onClick={() => handleMarkComplete(ch.id)}
-                >
-                  Mark as Completed <Check className="ml-1 w-4 h-4"/>
-                </Button>
+                <ChallengeVerificationDialog
+                  challenge={{
+                    id: String(ch.id),
+                    title: ch.title,
+                    description: ch.description,
+                    reward: Number(ch.reward.toString().replace(/[^\d]/g, "")) || 0
+                  }}
+                  participantId={String(ch.id)}
+                  onFinish={() => handleMarkComplete(ch.id)}
+                />
               )}
               {ch.completed && (
                 <span className="inline-flex items-center text-green-700 text-sm font-semibold">
