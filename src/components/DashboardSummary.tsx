@@ -7,7 +7,6 @@ import OffsetPrompt from "./OffsetPrompt";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-// Modern color palette (no olive green)
 const DashboardSummary = () => {
   const navigate = useNavigate();
 
@@ -17,7 +16,7 @@ const DashboardSummary = () => {
   const impact = {
     food: 2.7,
     travel: 3.0,
-    shopping: 2.5
+    shopping: 2.5,
   };
 
   return (
@@ -42,7 +41,7 @@ const DashboardSummary = () => {
         Log New Action
       </Button>
 
-      {/* Challenge card */}
+      {/* NEW: Current team-wide challenge */}
       <CurrentChallengeCard />
 
       {/* Offset Prompt */}

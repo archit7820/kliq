@@ -1,9 +1,9 @@
+
 import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import ChallengeVerificationDialog from "./ChallengeVerificationDialog";
-import { CheckCircle2, Clock, RefreshCw } from "lucide-react";
 
 type ChallengeParticipant = {
   id: string;
@@ -22,7 +22,7 @@ type ChallengeParticipant = {
 function ChallengeCard({
   row,
   onVerified,
-  highlight
+  highlight,
 }: {
   row: ChallengeParticipant;
   onVerified: () => void;
@@ -78,11 +78,91 @@ function ChallengeCard({
   );
 }
 
+// NEW: Show available global challenges user can join at top
+function JoinableChallenges({ onJoin }: { onJoin: () => void }) {
+  const { user } = useAuthStatus();
+  const [joiningId, setJoiningId] = useState<string | null>(null);
+  // Fetch all global (Kelp team) challenges
+  const { data: globalChallenges } = useQuery({
+    queryKey: ["global-challenges"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("challenges")
+        .select("id, title, description, reward_kelp_points, audience_scope")
+        .eq("audience_scope", "world")
+        .eq("is_active", true);
+      if (error) return [];
+      return data || [];
+    },
+    refetchInterval: 10_000, // polling as backup for realtime
+  });
+
+  // My joined challenge ids
+  const { data: myParticipants } = useQuery({
+    queryKey: ["user-challenges-ids", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("challenge_participants")
+        .select("challenge_id")
+        .eq("user_id", user.id);
+      if (error) return [];
+      return data?.map((c: any) => c.challenge_id) || [];
+    },
+    enabled: !!user,
+  });
+
+  const queryClient = useQueryClient();
+
+  const handleJoin = async (challenge: any) => {
+    if (!user || joiningId) return;
+    setJoiningId(challenge.id);
+    const { error } = await supabase
+      .from("challenge_participants")
+      .insert({ challenge_id: challenge.id, user_id: user.id });
+    setJoiningId(null);
+    if (!error) {
+      queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+      queryClient.invalidateQueries({ queryKey: ["global-challenges"] });
+      if (onJoin) onJoin();
+    }
+  };
+
+  if (!user || !globalChallenges) return null;
+  const notJoined = globalChallenges.filter(
+    (ch: any) => !(myParticipants || []).includes(ch.id)
+  );
+
+  if (notJoined.length === 0) return null;
+
+  return (
+    <div className="mb-2">
+      {notJoined.map((ch: any) => (
+        <div
+          key={ch.id}
+          className="bg-violet-50 border border-violet-200 rounded-2xl px-3 py-2 flex items-center justify-between mb-2 animate-fade-in"
+        >
+          <div className="text-violet-800 font-bold text-sm">{ch.title}</div>
+          <button
+            onClick={() => handleJoin(ch)}
+            disabled={joiningId === ch.id}
+            className="ml-2 px-3 py-1 text-xs bg-violet-600 text-white rounded-lg font-semibold shadow hover:bg-violet-700 transition"
+            aria-label="Join Kelp Challenge"
+          >
+            {joiningId === ch.id ? "Joining..." : "Join"}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function UserChallengesList({ highlightCurrent = false }: { highlightCurrent?: boolean }) {
   const { user } = useAuthStatus();
   const [subscribing, setSubscribing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Main fetch: My participating challenges
   const { data: userChallenges, isLoading, refetch } = useQuery({
     queryKey: ["user-challenges", user?.id],
     queryFn: async () => {
@@ -98,15 +178,15 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
         .eq("user_id", user.id)
         .order("joined_at", { ascending: false });
       if (error) {
-        console.error("Error fetching user challenges:", error);
         return [];
       }
       return (data ?? []).filter((row: any) => !!row.challenge);
     },
     enabled: !!user,
+    refetchInterval: 10000,
   });
 
-  // Real-time sync: listen for changes to user's challenge_participants
+  // Real-time sync for user's challenges
   useEffect(() => {
     if (!user) return;
     setSubscribing(true);
@@ -117,7 +197,18 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
           event: '*',
           schema: 'public',
           table: 'challenge_participants',
-          filter: `user_id=eq.${user.id}`
+          filter: `user_id=eq.${user.id}`,
+        },
+        (_payload) => {
+          refetch();
+        }
+      )
+      // Listen to newly joinable (Kelp/global) challenges appearing
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'challenges',
         },
         (_payload) => {
           refetch();
@@ -132,7 +223,6 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
 
   if (!user) return null;
 
-  // Find latest active challenge for highlighting
   let highlightId: string | null = null;
   if (highlightCurrent && userChallenges && userChallenges.length > 0) {
     const active = userChallenges.find((row: any) => !row.is_completed);
@@ -162,6 +252,9 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
           </svg>
         </button>
       </h2>
+      {/* Show joinable Kelp team challenges (global) at the top */}
+      <JoinableChallenges onJoin={refetch} />
+
       {isLoading && (
         <div className="text-gray-400 py-4 animate-pulse">Loading your challenges...</div>
       )}
@@ -183,3 +276,4 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
     </section>
   );
 }
+
