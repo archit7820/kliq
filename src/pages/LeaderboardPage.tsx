@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import ImpactDashboard from "@/components/ImpactDashboard";
 import BottomNav from "@/components/BottomNav";
@@ -72,27 +72,30 @@ const LeaderboardPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-100 flex flex-col relative">
       <div className="bg-gradient-to-b from-green-700 via-green-700 to-green-500 text-white p-6 pb-2 relative rounded-b-3xl shadow-xl z-10">
         <div className="max-w-screen-md mx-auto flex flex-col items-center gap-2 animate-fade-in">
-          <h1 className="text-3xl font-extrabold tracking-tight">🌊 Kelp Leaderboard!</h1>
-          <p className="text-green-100 text-sm mb-2">Race to the top — earn points, inspire friends, and unlock new badges by making an eco difference every day!</p>
+          <h1 className="text-4xl font-extrabold tracking-tight flex items-center gap-2 mb-1">
+            🌊 Kelp Leaderboard!
+            <span className="animate-bounce text-2xl">🏆</span>
+          </h1>
+          <p className="text-green-100 text-md mb-2 text-center">Race to the top — earn points, inspire friends, and unlock new badges by making an eco difference every day!</p>
           <div className="flex items-center gap-3 mb-1">
-            <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold shadow">Your current rank: <span className="text-yellow-200">{user ? getUserRank(user.id) : "-"}</span></span>
+            <span className="bg-white/20 px-4 py-1 rounded-full text-md font-semibold shadow animate-pulse">
+              Your rank: <span className="text-yellow-200">{user ? getUserRank(user.id) : "-"}</span>
+            </span>
           </div>
         </div>
       </div>
-      <div className="max-w-screen-md mx-auto w-full px-0 pt-6 pb-20 relative z-20">
-        <div className="rounded-2xl shadow-lg bg-white/90 px-2 py-4 mb-4 -mt-12 z-10 animate-fade-in">
+      <main className="max-w-screen-md mx-auto w-full px-0 pt-4 pb-20 relative z-20">
+        <div className="rounded-2xl shadow-lg bg-white/90 px-2 py-4 mb-4 -mt-12 z-10 animate-fade-in animate-scale-in">
           <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
         </div>
-
         <EcoInsightsList insights={insights} />
-
         <Tabs defaultValue="global">
           <div className="flex justify-center pt-2 pb-1 mb-1 gap-1">
             <TabsList className="w-fit rounded-full shadow bg-green-100">
-              <TabsTrigger value="global" className="text-sm px-3 py-1 rounded-full !font-bold data-[state=active]:bg-green-600 data-[state=active]:text-white transition-all">
+              <TabsTrigger value="global" className="text-base px-4 py-1.5 rounded-full !font-bold data-[state=active]:bg-green-600 data-[state=active]:text-white transition-all">
                 🌍 Global
               </TabsTrigger>
-              <TabsTrigger value="friends" className="text-sm px-3 py-1 rounded-full !font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-green-900 transition-all">
+              <TabsTrigger value="friends" className="text-base px-4 py-1.5 rounded-full !font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-green-900 transition-all">
                 🧑‍🤝‍🧑 Friends
               </TabsTrigger>
             </TabsList>
@@ -146,11 +149,11 @@ const LeaderboardPage = () => {
             ➕ Create a New Challenge
           </Link>
         </div>
-      </div>
+      </main>
       <BottomNav />
       {/* Fun motivational footer badge */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30">
-        <div className="bg-white/80 rounded-full px-5 py-2 shadow-lg border-2 border-green-400 text-green-700 font-bold animate-fade-in">
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-full flex justify-center pointer-events-none">
+        <div className="bg-white/90 rounded-full px-5 py-2 shadow-lg border-2 border-green-400 text-green-700 font-bold animate-fade-in max-w-xs w-full text-center pointer-events-auto">
           🚀 Level up your eco journey with Kelp!
         </div>
       </div>
