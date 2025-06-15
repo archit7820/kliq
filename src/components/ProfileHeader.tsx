@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import UserBadges from "@/components/UserBadges";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import BadgesInfoDialog, { BADGE_INFO } from "@/components/BadgesInfoDialog";
+import OG3DBadge from "./OG3DBadge";
+import ProfileInfoButton from "./ProfileInfoButton";
 
 type ProfileHeaderProps = {
   profile: {
@@ -81,166 +83,92 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     return [];
   }, [badges, profile, badgesLoading]);
 
-  // Helper: 3D Modern OG badge JSX
-  const OG3DBadge = (
-    <div className="relative group">
-      <div className="w-12 h-12 bg-gradient-to-br from-orange-400 via-yellow-200 to-pink-400 rounded-full shadow-2xl flex items-center justify-center ring-4 ring-orange-200 animate-pulse">
-        {/* "OG" text with shadow + depth */}
-        <span className="text-white drop-shadow-lg text-2xl font-extrabold tracking-widest" style={{
-          textShadow: "0 2px 8px #faad2d,0 1px 6px #000C, 2px 2px 0 #FFF2"
-        }}>OG</span>
-        {/* 3D top shine */}
-        <span className="absolute top-1 left-1 w-5 h-3 bg-white/20 rounded-full blur-[2px]" />
-        {/* 3D bottom dot */}
-        <span className="absolute bottom-1 right-2 w-2 h-2 bg-orange-300/80 rounded-full blur-[1px]" />
-      </div>
-      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-orange-50 text-xs font-semibold text-orange-600 shadow mt-2 border border-orange-300 animate-fade-in">
-        OG
-      </div>
-    </div>
-  );
-
   return (
-    <div className="overflow-hidden border rounded-xl mb-6 animate-fade-in shadow-lg" style={{ background: "linear-gradient(180deg,#e0ffe6 0%,white 80%)" }}>
-      {/* Big colored hero header */}
-      <div className="bg-green-100 h-32 sm:h-40 relative flex justify-center items-end">
-        {/* Animated bubbles or shapes */}
-        <div className="absolute top-4 left-8 w-8 h-8 bg-green-200 rounded-full blur animate-bounce" style={{ animationDuration: "2.2s" }} />
-        <div className="absolute top-12 right-12 w-6 h-6 bg-teal-100 rounded-full blur animate-pulse" style={{ animationDuration: "3.1s" }} />
-        {/* fun underline or highlight */}
+    <div className="overflow-hidden border rounded-xl mb-6 animate-fade-in shadow-lg relative" style={{ background: "linear-gradient(180deg,#e0ffe6 0%,white 80%)" }}>
+      {/* Hero header with BG shapes & glows */}
+      <div className="bg-gradient-to-b from-green-100 to-white h-40 sm:h-48 relative flex justify-center items-end shadow-inner">
+        {/* Glowing background blobs */}
+        <div className="absolute top-3 left-6 w-14 h-14 bg-green-100 rounded-full blur-3xl opacity-60 animate-float" style={{ animationDuration: "3.1s" }}/>
+        <div className="absolute top-8 right-10 w-10 h-10 bg-teal-100 rounded-full blur-2xl opacity-50 animate-float-slow" style={{ animationDuration: "4s" }}/>
+        {/* Subtle sparkle */}
+        <div className="absolute left-1/2 top-5 -translate-x-1/2 w-20 h-3 rounded-full bg-white/60 blur-2xl opacity-60"/>
+        {/* Accent dot */}
+        <div className="absolute bottom-1 right-6 w-4 h-4 bg-green-200 rounded-full blur-lg opacity-40 animate-pulse"/>
       </div>
-      <div className="pt-0 pb-4 px-6 -mt-16 sm:-mt-20 flex flex-col items-center z-10 relative">
+      <div className="pt-0 pb-4 px-6 -mt-20 sm:-mt-24 flex flex-col items-center z-10 relative">
         <div className="flex flex-col items-center relative w-full">
-          {editing ? (
-            <>
-              {/* Avatar upload with hover pop and pulse */}
-              <label className="relative group cursor-pointer">
-                <img
-                  src={editForm.avatar_url || ""}
-                  alt="avatar"
-                  className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 object-cover border-white ring-4 ring-green-400 shadow-xl transition-transform duration-200 group-hover:scale-110 animate-scale-in pulse"
-                  style={{ animation: "scale-in 0.5s, pulse 2s infinite" }}
-                />
-                <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
-                <span className="absolute bottom-2 right-2 bg-primary text-white rounded-full p-1 shadow hover:scale-110 transition">
-                  <Upload className="w-5 h-5" />
-                </span>
-                {avatarUploading && (
-                  <LoaderCircle className="absolute w-7 h-7 animate-spin top-2 right-2 text-muted-foreground" />
-                )}
-              </label>
-              <Input
-                className="mt-2"
-                placeholder="Full name"
-                value={editForm.full_name}
-                onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+          {/* Avatar and info row */}
+          <div className="relative flex flex-col items-center">
+            <div className="group">
+              <img
+                src={profile.avatar_url || ""}
+                alt="avatar"
+                className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 object-cover border-white ring-4 ring-green-400 shadow-xl transition-transform duration-200 group-hover:scale-105 animate-scale-in pulse"
+                style={{ animation: "scale-in 0.5s, pulse 2s infinite" }}
               />
-              <Input
-                className="mt-2"
-                placeholder="Username"
-                value={editForm.username}
-                onChange={e => setEditForm(prev => ({ ...prev, username: e.target.value.replace(/\W/g, '') }))}
-              />
-              <Input
-                className="mt-2"
-                placeholder="Location"
-                value={editForm.location}
-                onChange={e => setEditForm(prev => ({ ...prev, location: e.target.value }))}
-              />
-              <div className="flex flex-wrap gap-2 mt-2">
-                {ALL_TAGS.map(tag => (
-                  <button
-                    key={tag}
-                    type="button"
-                    className={`px-3 py-1 rounded-full border shadow-sm hover:shadow-md focus:ring-2 ${editForm.lifestyle_tags.includes(tag) ? 'bg-green-300 text-green-900 font-semibold border-green-400' : 'bg-gray-100 text-gray-600 border-gray-200'} transition-all`}
-                    onClick={() => handleTagToggle(tag)}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-              {/* badges row */}
-              <div className="w-full flex justify-center mt-3 animate-fade-in items-center gap-3">
-                <BadgesInfoDialog />
-                {!badgesLoading && displayBadges.length > 0 && (
-                  <div className="flex gap-2">
-                    {displayBadges.map(badge =>
-                      badge.name === "OG" ? OG3DBadge : <UserBadges badges={[badge]} key={badge.id} />
-                    )}
-                  </div>
-                )}
-                {!badgesLoading && displayBadges.length === 0 && (
-                  <div className="text-center text-xs text-gray-400 ml-2">No badges yet</div>
-                )}
-              </div>
-              <Button className="w-full mt-2 hover:scale-105 transition-transform duration-150" onClick={updateProfile}>Save Profile</Button>
-              <Button variant="outline" className="w-full mt-2 hover:scale-105 transition-transform duration-150" onClick={() => setEditing(false)}>Cancel</Button>
-              {errorMsg && (
-                <div className="text-red-500 text-xs mt-2 text-center">{errorMsg}</div>
+              {/* Fun shimmer on hover */}
+              <span className="absolute right-3 top-3 w-6 h-6 pointer-events-none">
+                <span className="block w-full h-full bg-white/25 rounded-full blur-[2px] animate-og-bounce"/>
+              </span>
+            </div>
+            {/* Name and info button row */}
+            <div className="flex gap-2 items-center mt-3 mb-2">
+              <h2 className="text-3xl font-black flex items-center animate-fade-in tracking-wide drop-shadow-sm">{profile.full_name || `@${profile.username}`}</h2>
+              <ProfileInfoButton />
+            </div>
+            {profile.username && (
+              <p className="text-muted-foreground text-sm font-semibold">@{profile.username}</p>
+            )}
+            {/* Badge row */}
+            <div className="flex justify-center w-full mt-2 min-h-[54px]">
+              {!badgesLoading && displayBadges.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center w-full">
+                  {displayBadges.map(badge =>
+                    badge.name === "OG"
+                      ? <OG3DBadge key="ogbadge" />
+                      : <UserBadges badges={[badge]} key={badge.id} />
+                  )}
+                </div>
               )}
-            </>
-          ) : (
-            // VIEW MODE: fun avatar, name, new badges/info etc
-            <>
-              {/* Avatar with fun ring, bobble, and tooltip */}
-              <div className="relative group animate-scale-in" style={{ animation: "scale-in 0.5s" }}>
-                <Avatar className="w-28 h-28 sm:w-36 sm:h-36 mb-2 border-4 border-white ring-4 ring-green-400 shadow-xl transition-transform duration-200 group-hover:scale-110">
-                  <AvatarImage src={profile.avatar_url || undefined} />
-                  <AvatarFallback className="text-4xl bg-secondary">
-                    {profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                {/* Animated "sparkle" or confetti on hover, just as an accent */}
-                <span className="absolute -bottom-4 right-2 flex">
-                  <span className="w-3 h-3 rounded-full bg-green-300 animate-pulse mr-1" />
-                  <span className="w-2 h-2 rounded-full bg-teal-200 animate-bounce" />
-                </span>
-              </div>
-              <div className="flex gap-2 items-center mt-2">
-                <h2 className="text-3xl font-extrabold flex items-center animate-fade-in">{profile.full_name || `@${profile.username}`}</h2>
-                <BadgesInfoDialog />
-              </div>
-              {profile.username && (
-                <p className="text-muted-foreground text-sm font-medium">@{profile.username}</p>
+              {!badgesLoading && displayBadges.length === 0 && (
+                <div className="text-center text-xs text-gray-400 ml-2">No badges yet</div>
               )}
-              {/* Badges section with fun pop + anims */}
-              <div className="flex justify-center w-full mt-3 min-h-[44px] animate-fade-in gap-3">
-                {!badgesLoading && displayBadges.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 justify-center w-full">
-                    {displayBadges.map(badge =>
-                      badge.name === "OG" ? OG3DBadge : <UserBadges badges={[badge]} key={badge.id} />
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center text-xs text-gray-400">No badges yet</div>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3 hover:scale-105 hover:bg-primary/10 hover:text-primary transition-all anime-button"
-                onClick={() => setEditing(true)}
-              >
-                Edit Profile
-              </Button>
-            </>
-          )}
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-5 hover:scale-105 hover:bg-primary/10 hover:text-primary transition-all anime-button"
+            onClick={() => setEditing(true)}
+          >
+            Edit Profile
+          </Button>
         </div>
 
-        {/* Stats section - rounded, animated cards */}
+        {/* Stats cards section */}
         <div className="grid grid-cols-2 gap-6 mt-8 text-center w-full">
-          <div className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition select-none border-2 border-green-100 animate-scale-in hover:scale-105">
+          <div className="p-7 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition select-none border-2 border-green-100 animate-scale-in hover:scale-105">
             <p className="font-bold text-3xl text-green-700 animate-fade-in">{activitiesCount}</p>
             <p className="text-base text-gray-500 mt-1">Activities</p>
           </div>
-          <div className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition select-none border-2 border-green-100 animate-scale-in hover:scale-105">
+          <div className="p-7 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition select-none border-2 border-green-100 animate-scale-in hover:scale-105">
             <p className="font-bold text-3xl text-green-700 animate-fade-in">{kelpPoints}</p>
             <p className="text-base text-gray-500 mt-1">Kelp Points</p>
           </div>
         </div>
       </div>
-      {/* Animations keyframes for added fun */}
+      {/* BG micro-animations and fun effects */}
       <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0);}
+          50% { transform: translateY(-12px);}
+        }
+        .animate-float { animation: float 2.3s ease-in-out infinite; }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0);}
+          50% { transform: translateY(-8px);}
+        }
+        .animate-float-slow { animation: float-slow 4s ease-in-out infinite; }
         @keyframes fade-in {
           0% { opacity: 0; transform: translateY(10px);}
           100% { opacity: 1; transform: translateY(0);}
