@@ -84,18 +84,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   }, [badges, profile, badgesLoading]);
 
   return (
-    <div className="overflow-hidden border rounded-xl mb-6 animate-fade-in shadow-lg relative" style={{ background: "linear-gradient(180deg,#e0ffe6 0%,white 80%)" }}>
+    <div
+      className="overflow-hidden border rounded-xl mb-6 animate-fade-in shadow-xl relative"
+      style={{
+        background:
+          "linear-gradient(135deg, #FDE68A 0%, #BBF7D0 44%, #FAFAFA 85%)",
+        borderColor: "rgba(34,197,94,0.13)",
+      }}
+    >
       {/* Hero header with BG shapes & glows */}
-      <div className="bg-gradient-to-b from-green-100 to-white h-40 sm:h-48 relative flex justify-center items-end shadow-inner">
-        {/* Glowing background blobs */}
-        <div className="absolute top-3 left-6 w-14 h-14 bg-green-100 rounded-full blur-3xl opacity-60 animate-float" style={{ animationDuration: "3.1s" }}/>
-        <div className="absolute top-8 right-10 w-10 h-10 bg-teal-100 rounded-full blur-2xl opacity-50 animate-float-slow" style={{ animationDuration: "4s" }}/>
+      <div className="bg-gradient-to-br from-yellow-100 via-green-50 to-white h-44 sm:h-56 relative flex justify-center items-end shadow-inner">
+        {/* Glowing background blobs, updated colors */}
+        <div className="absolute top-2 left-6 w-16 h-16 bg-yellow-200 rounded-full blur-3xl opacity-80 animate-float" style={{ animationDuration: "2.7s" }} />
+        <div className="absolute top-8 right-10 w-12 h-12 bg-green-200 rounded-full blur-2xl opacity-70 animate-float-slow" style={{ animationDuration: "3.8s" }} />
         {/* Subtle sparkle */}
-        <div className="absolute left-1/2 top-5 -translate-x-1/2 w-20 h-3 rounded-full bg-white/60 blur-2xl opacity-60"/>
+        <div className="absolute left-1/2 top-6 -translate-x-1/2 w-24 h-4 rounded-full bg-white/70 blur-2xl opacity-70"/>
         {/* Accent dot */}
-        <div className="absolute bottom-1 right-6 w-4 h-4 bg-green-200 rounded-full blur-lg opacity-40 animate-pulse"/>
+        <div className="absolute bottom-3 right-7 w-5 h-5 bg-primary/20 rounded-full blur-lg opacity-60 animate-pulse"/>
       </div>
-      <div className="pt-0 pb-4 px-6 -mt-20 sm:-mt-24 flex flex-col items-center z-10 relative">
+      <div className="pt-0 pb-4 px-6 -mt-20 sm:-mt-28 flex flex-col items-center z-10 relative">
         <div className="flex flex-col items-center relative w-full">
           {/* Avatar and info row */}
           <div className="relative flex flex-col items-center">
@@ -103,7 +110,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               <img
                 src={profile.avatar_url || ""}
                 alt="avatar"
-                className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 object-cover border-white ring-4 ring-green-400 shadow-xl transition-transform duration-200 group-hover:scale-105 animate-scale-in pulse"
+                className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 object-cover border-white ring-4 ring-yellow-300 shadow-2xl transition-transform duration-200 group-hover:scale-105 animate-scale-in pulse"
                 style={{ animation: "scale-in 0.5s, pulse 2s infinite" }}
               />
               {/* Fun shimmer on hover */}
@@ -113,7 +120,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </div>
             {/* Name and info button row */}
             <div className="flex gap-2 items-center mt-3 mb-2">
-              <h2 className="text-3xl font-black flex items-center animate-fade-in tracking-wide drop-shadow-sm">{profile.full_name || `@${profile.username}`}</h2>
+              <h2 className="text-3xl font-black flex items-center animate-fade-in tracking-wider drop-shadow-md text-green-900">
+                {profile.full_name || `@${profile.username}`}
+              </h2>
               <ProfileInfoButton />
             </div>
             {profile.username && (
@@ -138,7 +147,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="mt-5 hover:scale-105 hover:bg-primary/10 hover:text-primary transition-all anime-button"
+            className="mt-5 hover:scale-105 hover:bg-primary/10 hover:text-primary border-yellow-200/80 text-green-900 font-medium transition-all anime-button"
             onClick={() => setEditing(true)}
           >
             Edit Profile
@@ -147,13 +156,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
         {/* Stats cards section */}
         <div className="grid grid-cols-2 gap-6 mt-8 text-center w-full">
-          <div className="p-7 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition select-none border-2 border-green-100 animate-scale-in hover:scale-105">
-            <p className="font-bold text-3xl text-green-700 animate-fade-in">{activitiesCount}</p>
-            <p className="text-base text-gray-500 mt-1">Activities</p>
+          <div className="p-7 bg-gradient-to-b from-white via-yellow-100 to-yellow-50 rounded-2xl shadow-lg hover:shadow-xl border-2 border-yellow-200 animate-scale-in hover:scale-105 transition select-none">
+            <p className="font-extrabold text-3xl text-yellow-600 animate-fade-in drop-shadow"> {activitiesCount}</p>
+            <p className="text-base text-yellow-900 mt-1">Activities</p>
           </div>
-          <div className="p-7 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition select-none border-2 border-green-100 animate-scale-in hover:scale-105">
-            <p className="font-bold text-3xl text-green-700 animate-fade-in">{kelpPoints}</p>
-            <p className="text-base text-gray-500 mt-1">Kelp Points</p>
+          <div className="p-7 bg-gradient-to-b from-white via-green-100 to-green-50 rounded-2xl shadow-lg hover:shadow-xl border-2 border-green-200 animate-scale-in hover:scale-105 transition select-none">
+            <p className="font-extrabold text-3xl text-green-700 animate-fade-in drop-shadow"> {kelpPoints}</p>
+            <p className="text-base text-green-900 mt-1">Kelp Points</p>
           </div>
         </div>
       </div>
@@ -161,12 +170,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0);}
-          50% { transform: translateY(-12px);}
+          50% { transform: translateY(-15px);}
         }
         .animate-float { animation: float 2.3s ease-in-out infinite; }
         @keyframes float-slow {
           0%, 100% { transform: translateY(0);}
-          50% { transform: translateY(-8px);}
+          50% { transform: translateY(-10px);}
         }
         .animate-float-slow { animation: float-slow 4s ease-in-out infinite; }
         @keyframes fade-in {
