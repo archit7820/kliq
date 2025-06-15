@@ -10,8 +10,12 @@ const headers = {
   Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
 };
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 async function getActiveUsers() {
-  // Get users who have activities in the past week
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/activities?select=user_id&created_at=gte.${since}`,
@@ -19,7 +23,6 @@ async function getActiveUsers() {
   );
   if (!res.ok) return [];
   const activities = await res.json();
-  // Unique user_ids
   return Array.from(new Set(activities.map((a: any) => a.user_id)));
 }
 
@@ -56,7 +59,6 @@ async function insertInsight(userId: string, insight: string) {
 }
 
 async function generateEcoInsight(userId: string, activities: any[]) {
-  // Summarize activity for prompt
   const summary =
     activities.length === 0
       ? "No activities logged recently."
@@ -98,6 +100,11 @@ async function generateEcoInsight(userId: string, activities: any[]) {
 }
 
 serve(async (req) => {
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     const users = await getActiveUsers();
     let createdCount = 0;
@@ -111,12 +118,12 @@ serve(async (req) => {
     }
     return new Response(
       JSON.stringify({ ok: true, insightsCreated: createdCount }),
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
