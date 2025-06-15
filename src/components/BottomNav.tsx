@@ -8,7 +8,7 @@ const navItems = [
   { path: '/feed', icon: Compass, label: 'Explore' },
   { path: '/log-activity', icon: PlusSquare, label: 'Log' },
   { path: '/leaderboard', icon: BarChart2, label: 'Stats' },
-  { path: '/communities', icon: Users, label: 'Communities' }, // <-- NEW tab added
+  { path: '/communities', icon: Users, label: 'Communities' },
   { path: '/profile', icon: UserCircle, label: 'Profile' },
 ];
 
@@ -16,7 +16,8 @@ const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-sm border-t md:hidden z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-sm border-t z-50">
+      {/* Removed md:hidden to show BottomNav on all devices */}
       <div className="max-w-screen-md mx-auto flex justify-around items-center h-16 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname.startsWith(item.path);
