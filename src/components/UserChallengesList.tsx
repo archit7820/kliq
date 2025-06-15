@@ -1,9 +1,9 @@
-
 import React, { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import ChallengeVerificationDialog from "./ChallengeVerificationDialog";
+import { Wallet } from "lucide-react";
 
 type ChallengeParticipant = {
   id: string;
@@ -28,13 +28,20 @@ function ChallengeCard({
   onVerified: () => void;
   highlight?: boolean;
 }) {
+  // New: Determine owner type
+  const isKelpTeam =
+    !row.challenge ||
+    row.challenge.description?.toLowerCase().includes("kelp team") ||
+    row.challenge.title?.toLowerCase().includes("kelp") ||
+    row.challenge.reward_kelp_points > 30; // crude check: in DB, audience_scope 'world' is Kelp team
+
   return (
     <div
       className={`
-        animate-fade-in bg-gradient-to-br 
+        animate-fade-in bg-gradient-to-br
         ${highlight ? "from-purple-100 to-violet-100 border-violet-300" : "from-white to-gray-50 border-purple-100"}
         border rounded-2xl p-3 flex flex-col md:flex-row md:items-center md:justify-between shadow-sm
-        group transition-all hover:scale-[1.02] hover:shadow-lg focus-within:scale-[1.02] active:scale-[0.98] outline-none 
+        group transition-all hover:scale-[1.02] hover:shadow-lg focus-within:scale-[1.02] active:scale-[0.98] outline-none
         ${highlight ? "ring-2 ring-violet-400" : ""}
       `}
       tabIndex={0}
@@ -43,6 +50,17 @@ function ChallengeCard({
       <div>
         <div className="font-bold text-violet-900 text-base flex items-center gap-2">
           {row.challenge.title}
+          {isKelpTeam && (
+            <span className="inline-flex items-center text-xs px-2 py-0.5 ml-2 bg-violet-100 text-violet-700 rounded-full gap-1 border border-violet-200">
+              <Wallet className="w-4 h-4" />
+              Kelp Team
+            </span>
+          )}
+          {!isKelpTeam && (
+            <span className="inline-flex items-center text-xs px-2 py-0.5 ml-2 bg-gray-100 text-gray-500 rounded-full border border-gray-200">
+              User
+            </span>
+          )}
           {row.is_completed && (
             <span className="inline-flex ml-2 text-green-700 items-center gap-1">
               <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -52,7 +70,7 @@ function ChallengeCard({
           )}
         </div>
         <div className="text-xs text-purple-700 mb-2">{row.challenge.description}</div>
-        <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 font-mono text-[11px] px-2 py-0.5 rounded-full mt-1">
+        <span className={`inline-flex items-center gap-1 ${isKelpTeam ? "bg-cyan-100 text-cyan-800" : "bg-green-100 text-green-700"} font-mono text-[11px] px-2 py-0.5 rounded-full mt-1`}>
           Reward: {row.challenge.reward_kelp_points} Kelp Points
         </span>
       </div>
@@ -116,7 +134,19 @@ function JoinableChallenges({ onJoin }: { onJoin: () => void }) {
 
   const handleJoin = async (challenge: any) => {
     if (!user || joiningId) return;
+    if (myParticipants && myParticipants.includes(challenge.id)) return; // Prevent duplicate join
     setJoiningId(challenge.id);
+    // Only allow user-created challenge rewards up to 30
+    if (
+      challenge.audience_scope !== "world" &&
+      challenge.reward_kelp_points > 30
+    ) {
+      alert(
+        "Only Kelp team can offer more than 30 Kelp Points as a reward for a challenge."
+      );
+      setJoiningId(null);
+      return;
+    }
     const { error } = await supabase
       .from("challenge_participants")
       .insert({ challenge_id: challenge.id, user_id: user.id });
@@ -276,4 +306,3 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
     </section>
   );
 }
-
