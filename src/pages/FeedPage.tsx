@@ -1,9 +1,9 @@
 
-import React, { useState, useCallback } from "react";
+import React from "react";
 import FeedHeader from "@/components/FeedHeader";
 import FeedContent from "@/components/FeedContent";
 import BottomNav from "@/components/BottomNav";
-import KelpWallet from "@/components/KelpWallet";
+import KelpWalletBanner from "@/components/KelpWalletBanner";
 import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 
 // Feed page with required props passed to FeedHeader
@@ -16,26 +16,21 @@ export default function FeedPage() {
     // include refetch if needed for onRefresh
   } = useProfileWithStats();
 
-  // Refetch state for refreshing header, you might want to wire this to a real API-refetch
-  const [isRefetching, setIsRefetching] = useState(false);
-  const handleRefresh = useCallback(async () => {
-    setIsRefetching(true);
-    // Implement actual refetch logic here if needed (react-query or supabase query)
-    setTimeout(() => {
-      setIsRefetching(false);
-    }, 1000);
-  }, []);
+  // Remove refetch state for now, as we aren't wiring refresh yet
+  // Place KelpWalletBanner above FeedContent, and restore FeedContent filter prominence
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
       <FeedHeader
         userProfile={profile}
-        onRefresh={handleRefresh}
-        isRefetching={isRefetching}
+        onRefresh={() => {}} // Just keep for API compatibility
+        isRefetching={false}
       />
+      {/* Top bar: wallet banner above feed filters */}
+      <div className="w-full max-w-lg mx-auto mt-2 px-2 sm:px-4 flex flex-col gap-2">
+        <KelpWalletBanner />
+      </div>
       <main className="flex-1 px-1 sm:px-2 md:px-4 py-4 max-w-lg mx-auto w-full">
-        {/* Kelp Wallet with real-time points */}
-        <KelpWallet />
         <FeedContent user={profile} />
       </main>
       <BottomNav />

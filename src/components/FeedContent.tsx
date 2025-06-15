@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LoaderCircle } from "lucide-react";
@@ -141,6 +140,7 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
       </div>
     );
 
+  // -- New: category filters get more top priority visually --
   return (
     <div className="flex flex-col gap-6">
       <FeedFilters
@@ -151,7 +151,6 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
         onLocationChange={setSelectedLocation}
         onFriendsOnlyChange={setShowFriendsOnly}
       />
-
       {posts.length === 0 ? (
         <div className="mt-5 p-6 rounded-xl bg-card border text-center text-muted-foreground">
           {showFriendsOnly ? 
