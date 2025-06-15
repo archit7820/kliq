@@ -71,11 +71,14 @@ const LeaderboardPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-100 flex flex-col relative">
       <div className="bg-gradient-to-b from-green-700 via-green-700 to-green-500 text-white p-6 pb-2 relative rounded-b-3xl shadow-xl z-10">
         <div className="max-w-screen-md mx-auto flex flex-col items-center gap-2 animate-fade-in">
+          {/* Enhance: Icon/logo beside heading for more gamification */}
           <h1 className="text-4xl font-extrabold tracking-tight flex items-center gap-2 mb-1">
-            🌊 Kelp Leaderboard!
-            <span className="animate-bounce text-2xl">🏆</span>
+            <span className="text-4xl align-middle"><img src="/kelp-logo.svg" alt="Logo" className="inline-block w-8 h-8 mr-1" /></span>
+            Kelp Leaderboard!
+            <span className="animate-bounce text-2xl" role="img" aria-label="trophy">🏆</span>
           </h1>
           <p className="text-green-100 text-md mb-2 text-center">Race to the top — earn points, inspire friends, and unlock new badges by making an eco difference every day!</p>
+          {/* Move badge IN the header to prevent overlay! */}
           <div className="flex items-center gap-3 mb-1">
             <span className="bg-white/20 px-4 py-1 rounded-full text-md font-semibold shadow animate-pulse">
               Your rank: <span className="text-yellow-200">{user ? getUserRank(user.id) : "-"}</span>
@@ -84,7 +87,8 @@ const LeaderboardPage = () => {
         </div>
       </div>
       <main className="max-w-screen-md mx-auto w-full px-0 pt-4 pb-20 relative z-20">
-        <div className="rounded-2xl shadow-lg bg-white/90 px-2 py-4 mb-4 -mt-12 z-10 animate-fade-in animate-scale-in">
+        {/* Remove -mt-12 and overlapping z-index fixes */}
+        <div className="rounded-2xl shadow-lg bg-white/90 px-2 py-4 mb-4 z-10 animate-fade-in animate-scale-in">
           <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
         </div>
         <EcoInsightsList insights={insights} />
