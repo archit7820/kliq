@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,14 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import BadgesInfoDialog, { BADGE_INFO } from "@/components/BadgesInfoDialog";
 import OG3DBadge from "./OG3DBadge";
 import ProfileInfoButton from "./ProfileInfoButton";
+
+// Accent color definitions
+const SEA_GREEN = "#2ec4b6";
+const SEA_GREEN_LIGHT = "#cff9f5";
+const RED = "#ff647c";
+const BLUE = "#62b6ff";
+const BLUE_SOFT = "#e7f4fd";
+const BLUE_MED = "#b8e0ff";
 
 type ProfileHeaderProps = {
   profile: {
@@ -88,19 +97,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       className="overflow-hidden border rounded-xl mb-6 animate-fade-in shadow-xl relative"
       style={{
         background:
-          "linear-gradient(135deg, #FDE68A 0%, #BBF7D0 44%, #FAFAFA 85%)",
-        borderColor: "rgba(34,197,94,0.13)",
+          "linear-gradient(135deg, #e7f4fd 0%, #fff 36%, #cff9f5 98%)", // white/blue/sea green
+        borderColor: "rgba(46,196,182,0.22)", // subtle sea green border
       }}
     >
       {/* Hero header with BG shapes & glows */}
-      <div className="bg-gradient-to-br from-yellow-100 via-green-50 to-white h-44 sm:h-56 relative flex justify-center items-end shadow-inner">
-        {/* Glowing background blobs, updated colors */}
-        <div className="absolute top-2 left-6 w-16 h-16 bg-yellow-200 rounded-full blur-3xl opacity-80 animate-float" style={{ animationDuration: "2.7s" }} />
-        <div className="absolute top-8 right-10 w-12 h-12 bg-green-200 rounded-full blur-2xl opacity-70 animate-float-slow" style={{ animationDuration: "3.8s" }} />
+      <div className="bg-gradient-to-br from-blue-50 via-white to-[#cff9f5] h-44 sm:h-56 relative flex justify-center items-end shadow-inner">
+        {/* Glowing background blobs updated: blue, sea green */}
+        <div className="absolute top-2 left-6 w-16 h-16 bg-blue-100 rounded-full blur-3xl opacity-75 animate-float" style={{ animationDuration: "2.7s" }} />
+        <div className="absolute top-8 right-10 w-12 h-12" style={{
+          background: "radial-gradient(circle, #ffbdbd 60%, transparent 100%)",
+          borderRadius: "100%",
+          filter: "blur(12px)",
+          opacity: 0.56,
+          animation: "float-slow 3.8s infinite",
+        }} />
         {/* Subtle sparkle */}
-        <div className="absolute left-1/2 top-6 -translate-x-1/2 w-24 h-4 rounded-full bg-white/70 blur-2xl opacity-70"/>
-        {/* Accent dot */}
-        <div className="absolute bottom-3 right-7 w-5 h-5 bg-primary/20 rounded-full blur-lg opacity-60 animate-pulse"/>
+        <div className="absolute left-1/2 top-6 -translate-x-1/2 w-24 h-4 rounded-full bg-white/90 blur-2xl opacity-70"/>
+        {/* Accent dot blue */}
+        <div className="absolute bottom-3 right-7 w-5 h-5 bg-[#cff9f5] rounded-full blur-lg opacity-75 animate-pulse"/>
       </div>
       <div className="pt-0 pb-4 px-6 -mt-20 sm:-mt-28 flex flex-col items-center z-10 relative">
         <div className="flex flex-col items-center relative w-full">
@@ -110,8 +125,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               <img
                 src={profile.avatar_url || ""}
                 alt="avatar"
-                className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 object-cover border-white ring-4 ring-yellow-300 shadow-2xl transition-transform duration-200 group-hover:scale-105 animate-scale-in pulse"
-                style={{ animation: "scale-in 0.5s, pulse 2s infinite" }}
+                className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 object-cover border-white ring-4"
+                style={{
+                  borderColor: "#fff",
+                  boxShadow: `0 0 0 6px #62b6ff55, 0 0 0 12px #2ec4b655`, // blue/sea green subtle double ring
+                  animation: "scale-in 0.5s, pulse 2s infinite"
+                }}
               />
               {/* Fun shimmer on hover */}
               <span className="absolute right-3 top-3 w-6 h-6 pointer-events-none">
@@ -120,7 +139,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </div>
             {/* Name and info button row */}
             <div className="flex gap-2 items-center mt-3 mb-2">
-              <h2 className="text-3xl font-black flex items-center animate-fade-in tracking-wider drop-shadow-md text-green-900">
+              <h2 className="text-3xl font-black flex items-center animate-fade-in tracking-wider drop-shadow-md text-blue-900">
                 {profile.full_name || `@${profile.username}`}
               </h2>
               <ProfileInfoButton />
@@ -147,8 +166,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="mt-5 hover:scale-105 hover:bg-primary/10 hover:text-primary border-yellow-200/80 text-green-900 font-medium transition-all anime-button"
+            className="mt-5 hover:scale-105 border-blue-200 bg-white/80 hover:bg-blue-50 text-blue-900 font-medium transition-all anime-button"
             onClick={() => setEditing(true)}
+            style={{
+              boxShadow: "0 1px 6px 0 #e7f4fd", // blue shadow
+              borderColor: "#b8e0ff"
+            }}
           >
             Edit Profile
           </Button>
@@ -156,13 +179,23 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
         {/* Stats cards section */}
         <div className="grid grid-cols-2 gap-6 mt-8 text-center w-full">
-          <div className="p-7 bg-gradient-to-b from-white via-yellow-100 to-yellow-50 rounded-2xl shadow-lg hover:shadow-xl border-2 border-yellow-200 animate-scale-in hover:scale-105 transition select-none">
-            <p className="font-extrabold text-3xl text-yellow-600 animate-fade-in drop-shadow"> {activitiesCount}</p>
-            <p className="text-base text-yellow-900 mt-1">Activities</p>
+          <div className="p-7 bg-gradient-to-b from-white via-blue-50 to-[#cff9f5] rounded-2xl shadow-lg hover:shadow-xl border-2 border-blue-100 animate-scale-in hover:scale-105 transition select-none"
+              style={{
+                boxShadow: "0 2px 18px -6px #62b6ff22, 0 1px 12px -2px #2ec4b622",
+                borderColor: "#b8e0ff"
+              }}
+            >
+            <p className="font-extrabold text-3xl text-[#1f3b75] animate-fade-in drop-shadow"> {activitiesCount}</p>
+            <p className="text-base text-blue-900 mt-1">Activities</p>
           </div>
-          <div className="p-7 bg-gradient-to-b from-white via-green-100 to-green-50 rounded-2xl shadow-lg hover:shadow-xl border-2 border-green-200 animate-scale-in hover:scale-105 transition select-none">
-            <p className="font-extrabold text-3xl text-green-700 animate-fade-in drop-shadow"> {kelpPoints}</p>
-            <p className="text-base text-green-900 mt-1">Kelp Points</p>
+          <div className="p-7 bg-gradient-to-b from-white via-[#cff9f5] to-blue-50 rounded-2xl shadow-lg hover:shadow-xl border-2 border-[#2ec4b6]/30 animate-scale-in hover:scale-105 transition select-none"
+              style={{
+                boxShadow: "0 2px 18px -6px #62b6ff22, 0 1px 12px -2px #2ec4b622",
+                borderColor: "#2ec4b6"
+              }}
+            >
+            <p className="font-extrabold text-3xl text-[#2ec4b6] animate-fade-in drop-shadow"> {kelpPoints}</p>
+            <p className="text-base text-[#01796f] mt-1">Kelp Points</p>
           </div>
         </div>
       </div>
