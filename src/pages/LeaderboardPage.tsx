@@ -11,38 +11,60 @@ import { Button } from "@/components/ui/button";
 import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
-// Real-time sync for profiles and challenges using Supabase channels
-const useRealtimeSync = () => {
+// Real-time sync for user stats, eco insights, activities, and challenges using Supabase channels
+const useRealtimeSync = (userId: string | undefined) => {
+  const queryClient = useQueryClient();
+
   useEffect(() => {
-    const profilesChannel = supabase
-      .channel("public:profiles")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "profiles" },
-        () => window.location.reload()
-      )
-      .subscribe();
-    const challengesChannel = supabase
-      .channel("public:challenges")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "challenges" },
-        () => window.location.reload()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(profilesChannel);
-      supabase.removeChannel(challengesChannel);
+    if (!userId) return;
+
+    // Callback to selectively refetch relevant queries
+    const triggerRefetch = () => {
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      queryClient.invalidateQueries({ queryKey: ["eco-insights", userId] });
+      queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["friends-leaderboard", userId] });
+      queryClient.invalidateQueries({ queryKey: ["user-challenges", userId] });
+      // Add more queryKeys here as needed (such as activities)
     };
-  }, []);
+
+    // Listen to changes on all relevant tables for the current user
+    const tables = [
+      { table: "profiles", filterKey: "id", userKey: userId },
+      { table: "eco_insights", filterKey: "user_id", userKey: userId },
+      { table: "activities", filterKey: "user_id", userKey: userId },
+      { table: "challenge_participants", filterKey: "user_id", userKey: userId },
+      { table: "challenges" }, // Any challenge update may affect rewards or activity
+    ];
+
+    const channels = tables.map(({ table, filterKey, userKey }) =>
+      supabase
+        .channel(`public:${table}-realtime`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table, ...(filterKey && userKey ? { filter: `${filterKey}=eq.${userKey}` } : {}) },
+          payload => {
+            // This will trigger on all changes to these tables, but only for rows relevant to the user when filter is set
+            triggerRefetch();
+          }
+        )
+        .subscribe()
+    );
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, [userId, queryClient]);
 };
 
 const LeaderboardPage = () => {
-  useRealtimeSync();
-
   const { profile, isProfileLoading, insights, user } = useProfileWithStats();
   const { leaderboard, isLoading, friendsLeaderboard } = useLeaderboard();
+
+  // Pass current userId to the realtime sync hook
+  useRealtimeSync(user?.id);
 
   const getUserRank = (userId: string) => {
     const index = leaderboard.findIndex((item: any) => item.id === userId);
