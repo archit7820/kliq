@@ -1,4 +1,3 @@
-
 import React, { useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { LoaderCircle, Upload, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import UserBadges from "@/components/UserBadges";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import BadgesInfoDialog, { BADGE_INFO } from "@/components/BadgesInfoDialog";
 
 type ProfileHeaderProps = {
   profile: {
@@ -48,29 +48,6 @@ const ALL_TAGS = [
   "Zero Waste", "Car Free", "Parent", "Techie", "Student", "Remote Worker"
 ];
 
-const BADGE_INFO = [
-  {
-    name: "OG",
-    description: "First 10,000 registered users!",
-  },
-  {
-    name: "Eco Hero",
-    description: "Earn 500+ kelp points",
-  },
-  {
-    name: "CO₂e Saver",
-    description: "Offset over 50kg CO₂e",
-  },
-  {
-    name: "Streak Master",
-    description: "7 day activity streak",
-  },
-  {
-    name: "Challenge Champ",
-    description: "Complete 3 team challenges",
-  },
-];
-
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
   badges,
@@ -103,6 +80,25 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
     }
     return [];
   }, [badges, profile, badgesLoading]);
+
+  // Helper: 3D Modern OG badge JSX
+  const OG3DBadge = (
+    <div className="relative group">
+      <div className="w-12 h-12 bg-gradient-to-br from-orange-400 via-yellow-200 to-pink-400 rounded-full shadow-2xl flex items-center justify-center ring-4 ring-orange-200 animate-pulse">
+        {/* "OG" text with shadow + depth */}
+        <span className="text-white drop-shadow-lg text-2xl font-extrabold tracking-widest" style={{
+          textShadow: "0 2px 8px #faad2d,0 1px 6px #000C, 2px 2px 0 #FFF2"
+        }}>OG</span>
+        {/* 3D top shine */}
+        <span className="absolute top-1 left-1 w-5 h-3 bg-white/20 rounded-full blur-[2px]" />
+        {/* 3D bottom dot */}
+        <span className="absolute bottom-1 right-2 w-2 h-2 bg-orange-300/80 rounded-full blur-[1px]" />
+      </div>
+      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-orange-50 text-xs font-semibold text-orange-600 shadow mt-2 border border-orange-300 animate-fade-in">
+        OG
+      </div>
+    </div>
+  );
 
   return (
     <div className="overflow-hidden border rounded-xl mb-6 animate-fade-in shadow-lg" style={{ background: "linear-gradient(180deg,#e0ffe6 0%,white 80%)" }}>
@@ -163,26 +159,15 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                   </button>
                 ))}
               </div>
-              {/* Badges w/ animated tooltip */}
-              <div className="w-full flex justify-center mt-3 animate-fade-in">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger tabIndex={0} className="flex gap-2 items-center">
-                      <span className="font-semibold text-sm">Your Badges</span>
-                      <Info className="text-primary w-4 h-4 cursor-pointer hover:scale-125 transition-transform" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[280px]">
-                      <div className="text-xs font-semibold mb-1">Badge Rules:</div>
-                      <ul className="ml-2 list-disc text-xs">
-                        {BADGE_INFO.map((b) => (
-                          <li key={b.name}><b>{b.name}</b>: {b.description}</li>
-                        ))}
-                      </ul>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              {/* badges row */}
+              <div className="w-full flex justify-center mt-3 animate-fade-in items-center gap-3">
+                <BadgesInfoDialog />
                 {!badgesLoading && displayBadges.length > 0 && (
-                  <UserBadges badges={displayBadges} />
+                  <div className="flex gap-2">
+                    {displayBadges.map(badge =>
+                      badge.name === "OG" ? OG3DBadge : <UserBadges badges={[badge]} key={badge.id} />
+                    )}
+                  </div>
                 )}
                 {!badgesLoading && displayBadges.length === 0 && (
                   <div className="text-center text-xs text-gray-400 ml-2">No badges yet</div>
@@ -195,6 +180,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               )}
             </>
           ) : (
+            // VIEW MODE: fun avatar, name, new badges/info etc
             <>
               {/* Avatar with fun ring, bobble, and tooltip */}
               <div className="relative group animate-scale-in" style={{ animation: "scale-in 0.5s" }}>
@@ -212,39 +198,21 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               </div>
               <div className="flex gap-2 items-center mt-2">
                 <h2 className="text-3xl font-extrabold flex items-center animate-fade-in">{profile.full_name || `@${profile.username}`}</h2>
-                {/* Info button for badges/milestones */}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger tabIndex={0}>
-                      <Info className="w-5 h-5 text-primary/90 hover:scale-125 transition-transform cursor-pointer" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[280px]">
-                      <span className="font-semibold text-xs">Milestones &amp; Badges T&amp;C:</span>
-                      <ul className="list-disc ml-3 text-xs mt-2">
-                        {BADGE_INFO.map((b) => (
-                          <li key={b.name}>
-                            <span className={b.name === "OG" ? "text-orange-600 font-bold" : ""}>{b.name}:</span> {b.description}
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="mt-2 text-[11px] text-gray-400">
-                        * Badges auto-awarded. New badges coming soon!
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <BadgesInfoDialog />
               </div>
               {profile.username && (
                 <p className="text-muted-foreground text-sm font-medium">@{profile.username}</p>
               )}
               {/* Badges section with fun pop + anims */}
-              <div className="flex justify-center w-full mt-3 min-h-[44px]">
+              <div className="flex justify-center w-full mt-3 min-h-[44px] animate-fade-in gap-3">
                 {!badgesLoading && displayBadges.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 justify-center w-full animate-fade-in">
-                    <UserBadges badges={displayBadges} />
+                  <div className="flex flex-wrap gap-2 justify-center w-full">
+                    {displayBadges.map(badge =>
+                      badge.name === "OG" ? OG3DBadge : <UserBadges badges={[badge]} key={badge.id} />
+                    )}
                   </div>
                 ) : (
-                  <div className="text-center text-xs text-gray-400 animate-fade-in">No badges yet</div>
+                  <div className="text-center text-xs text-gray-400">No badges yet</div>
                 )}
               </div>
               <Button
@@ -258,6 +226,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </>
           )}
         </div>
+
         {/* Stats section - rounded, animated cards */}
         <div className="grid grid-cols-2 gap-6 mt-8 text-center w-full">
           <div className="p-6 bg-white rounded-2xl shadow hover:shadow-lg transition select-none border-2 border-green-100 animate-scale-in hover:scale-105">
@@ -290,4 +259,3 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 };
 
 export default ProfileHeader;
-
