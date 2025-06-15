@@ -1,11 +1,8 @@
-
 import React, { useState } from "react";
 import { Wallet } from "lucide-react";
-import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import KelpWalletModal from "./KelpWalletModal";
 
-const KelpWalletBanner = () => {
-  const { profile, isProfileLoading } = useProfileWithStats();
+const KelpWalletBanner = ({ profile }: { profile: any }) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -21,7 +18,7 @@ const KelpWalletBanner = () => {
             <Wallet className="w-5 h-5" />
           </div>
           <span className="font-semibold text-green-900 text-base">
-            {isProfileLoading ? "…" : (profile?.kelp_points ?? 0)} Kelp Points
+            {(profile?.kelp_points ?? 0)} Kelp Points
           </span>
         </div>
         <span className="text-xs text-green-700 underline ml-2 hidden sm:block group-hover:text-green-900">

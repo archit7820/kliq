@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardSummary from "@/components/DashboardSummary";
@@ -35,7 +34,8 @@ const TABS = [
 
 const HomeContent = ({ profile }: { profile: any }) => {
   const [tabValue, setTabValue] = React.useState("personalized");
-  // Gamified stats fallback logic
+
+  // All calculations below now always use the *props* profile.
   const globalRank =
     typeof profile?.global_rank !== "undefined"
       ? profile.global_rank
@@ -45,7 +45,7 @@ const HomeContent = ({ profile }: { profile: any }) => {
   const bestBadge =
     (profile?.badges && profile.badges.length > 0 && profile.badges[0].name) ||
     "Kelp Sprout";
-  const weeklyImpact = profile?.co2e_weekly_progress ?? 7.2;
+  const weeklyImpact = profile?.co2e_weekly_progress ?? 0;
 
   return (
     <main className="flex-grow px-1 sm:px-2 md:px-0 py-0 bg-gradient-to-b from-green-50 to-blue-50 min-h-screen max-w-full w-full">
@@ -60,12 +60,10 @@ const HomeContent = ({ profile }: { profile: any }) => {
             bestBadge={bestBadge}
           />
         </div>
-
         {/* Dashboard—card style */}
         <section className="rounded-2xl shadow bg-gradient-to-br from-blue-50 via-blue-100 to-white px-0 py-0">
-          <DashboardSummary />
+          <DashboardSummary /* optionally pass profile if DashboardSummary needs it */ />
         </section>
-
         {/* Animated Tabs, raised from bg */}
         <Tabs
           value={tabValue}
@@ -84,7 +82,6 @@ const HomeContent = ({ profile }: { profile: any }) => {
               </TabsTrigger>
             ))}
           </TabsList>
-
           <TabsContent value="personalized">
             <PersonalizedSuggestionsSection profile={profile} />
             <UserChallengesList highlightCurrent />
@@ -102,4 +99,3 @@ const HomeContent = ({ profile }: { profile: any }) => {
 };
 
 export default HomeContent;
-

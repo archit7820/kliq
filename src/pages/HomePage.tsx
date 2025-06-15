@@ -8,17 +8,20 @@ import HomeHeader from '@/components/HomeHeader';
 import HomeContent from '@/components/HomeContent';
 import SubscriptionPaywall from "@/components/SubscriptionPaywall";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import KelpWalletBanner from "@/components/KelpWalletBanner";
 
 const HomePage = () => {
   const { user, loading: authLoading } = useAuthStatus();
   const { subscribed, skipOrCompleteSubscription } = useSubscriptionStatus();
   const navigate = useNavigate();
 
+  // Fetch full profile + stats + eco insights in ONE place
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase.from('profiles').select('lifestyle_tags').eq('id', user.id).single();
+      // Select * instead of only lifestyle_tags
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (error) {
         console.error("Error fetching profile:", error);
         return null;
@@ -26,6 +29,8 @@ const HomePage = () => {
       return data;
     },
     enabled: !!user,
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
   });
 
   useEffect(() => {
@@ -59,6 +64,10 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <HomeHeader />
+      {/* Pass profile as prop everywhere! */}
+      <div className="max-w-xl w-full mx-auto">
+        <KelpWalletBanner profile={profile} />
+      </div>
       <HomeContent profile={profile} />
       <BottomNav />
     </div>
