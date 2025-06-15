@@ -24,8 +24,31 @@ import ImpactDashboardPage from "./pages/ImpactDashboardPage";
 import ChallengesPage from "./pages/ChallengesPage";
 import CreateChallengePage from "./pages/CreateChallengePage";
 import CreateCommunityPage from "./pages/CreateCommunityPage";
+import MainLayout from "@/components/MainLayout";
 
 const queryClient = new QueryClient();
+
+const MainAppRoutes = () => (
+  <MainLayout>
+    <Routes>
+      <Route path="/home" element={<HomePage />} />
+      <Route path="/friends" element={<FriendsPage />} />
+      <Route path="/log-activity" element={<LogActivityPage />} />
+      <Route path="/feed" element={<FeedPage />} />
+      <Route path="/leaderboard" element={<LeaderboardPage />} />
+      <Route path="/impact-dashboard" element={<ImpactDashboardPage />} />
+      <Route path="/challenges" element={<ChallengesPage />} />
+      <Route path="/create-challenge" element={<CreateChallengePage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/messages" element={<MessagesPage />} />
+      <Route path="/chat/:userId" element={<ChatPage />} />
+      <Route path="/communities" element={<CommunitiesPage />} />
+      <Route path="/communities/create" element={<CreateCommunityPage />} />
+      <Route path="/communities/:communityId" element={<CommunityPage />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </MainLayout>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -40,21 +63,8 @@ const App = () => (
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/invite" element={<InviteFlow />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/friends" element={<FriendsPage />} />
-          <Route path="/log-activity" element={<LogActivityPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/impact-dashboard" element={<ImpactDashboardPage />} />
-          <Route path="/challenges" element={<ChallengesPage />} />
-          <Route path="/create-challenge" element={<CreateChallengePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/chat/:userId" element={<ChatPage />} />
-          <Route path="/communities" element={<CommunitiesPage />} />
-          <Route path="/communities/create" element={<CreateCommunityPage />} />
-          <Route path="/communities/:communityId" element={<CommunityPage />} />
-          <Route path="*" element={<NotFound />} />
+          {/* Everything else goes through MainAppRoutes to get consistent BottomNav */}
+          <Route path="/*" element={<MainAppRoutes />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

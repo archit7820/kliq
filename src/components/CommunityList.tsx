@@ -1,10 +1,11 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Star, Users, UserPlus, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { Badge } from "@/components/ui/badge";
 
 const CommunityList = ({ user }: { user: any }) => {
   const navigate = useNavigate();
@@ -33,6 +34,31 @@ const CommunityList = ({ user }: { user: any }) => {
         .order("created_at", { ascending: false });
       return data || [];
     },
+  });
+
+  // Added: Fetch my owned (admin) communities' pending membership count
+  const { data: pendingCounts } = useQuery({
+    queryKey: ["ownedCommunitiesPendingCounts", user?.id],
+    queryFn: async () => {
+      if (!user) return {};
+      // Get all my (owner) communities
+      const { data: communities } = await supabase
+        .from("communities")
+        .select("id")
+        .eq("created_by", user.id);
+
+      const counts: Record<string, number> = {};
+      for (const c of communities || []) {
+        const { count } = await supabase
+          .from("community_memberships")
+          .select("*", { count: "exact", head: true })
+          .eq("community_id", c.id)
+          .eq("status", "pending");
+        if (count && count > 0) counts[c.id] = count;
+      }
+      return counts;
+    },
+    enabled: !!user,
   });
 
   // Helper: returns true if user has joined this community
@@ -73,6 +99,10 @@ const CommunityList = ({ user }: { user: any }) => {
                     <span className="font-bold text-green-800 text-lg">
                       {c.name}
                     </span>
+                    {/* Show pending badge if admin and there are pending requests */}
+                    {pendingCounts && pendingCounts[c.id] > 0 && (
+                      <Badge variant="destructive" className="ml-2">{pendingCounts[c.id]} pending</Badge>
+                    )}
                   </div>
                   <span className="block text-gray-500 text-sm mb-2">
                     {c.description}
