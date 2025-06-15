@@ -140,8 +140,18 @@ const CommunityPage = () => {
         )}
 
         <div className="my-6">
-          {user && myMembership && myMembership.status === "approved" && (
-            <CommunityChat user={user} communityId={communityId!} />
+          {user && myMembership && (
+            myMembership.status === "approved" ? (
+              <CommunityChat user={user} communityId={communityId!} />
+            ) : myMembership.status === "pending" ? (
+              <div className="bg-yellow-50 border border-yellow-300 text-yellow-700 rounded p-4 text-center font-semibold">
+                Your join request is pending approval. You will get access to the group chat once approved by the admin.
+              </div>
+            ) : myMembership.status === "rejected" ? (
+              <div className="bg-red-100 border border-red-300 text-red-700 rounded p-4 text-center font-semibold">
+                Your join request was rejected.
+              </div>
+            ) : null
           )}
         </div>
       </div>
