@@ -1,6 +1,7 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// import { TooltipProvider } from "@/components/ui/tooltip"; // temporarily remove
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -52,23 +53,23 @@ const MainAppRoutes = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<WelcomePage />} />
-          <Route path="/welcome" element={<WelcomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/invite" element={<InviteFlow />} />
-          {/* Everything else goes through MainAppRoutes to get consistent BottomNav */}
-          <Route path="/*" element={<MainAppRoutes />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    {/* Removed TooltipProvider to address double-React/context bug */}
+    <Toaster />
+    <Sonner />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/invite" element={<InviteFlow />} />
+        {/* Everything else goes through MainAppRoutes to get consistent BottomNav */}
+        <Route path="/*" element={<MainAppRoutes />} />
+      </Routes>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
 export default App;
+
