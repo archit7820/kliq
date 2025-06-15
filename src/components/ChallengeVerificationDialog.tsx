@@ -70,19 +70,27 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       if (updateErr) throw updateErr;
 
       // 4. Reward user kelp points
-      const { error: profileErr } = await supabase.rpc("increment_profile_points", { user_id_param: user.id, points: challenge.reward });
+      // Fetch current kelp_points
+      const { data: profile, error: profileErr } = await supabase
+        .from("profiles")
+        .select("kelp_points")
+        .eq("id", user.id)
+        .single();
       if (profileErr) {
-        // fallback: update direct
-        await supabase.from("profiles").update({
-          kelp_points: supabase.rpc("kelp_points") + challenge.reward
-        }).eq("id", user.id);
+        throw profileErr;
       }
+      const currentPoints = Number(profile?.kelp_points ?? 0);
+      const { error: pointsErr } = await supabase.from("profiles").update({
+        kelp_points: currentPoints + challenge.reward,
+      }).eq("id", user.id);
+      if (pointsErr) throw pointsErr;
 
       toast.success("Challenge completed! Rewarded " + challenge.reward + " Kelp Points.");
       setOpen(false);
       if (onFinish) onFinish();
     } catch (err: any) {
       toast.error("Failed to verify challenge", { description: err?.message });
+      console.error("Error verifying challenge: ", err);
     } finally {
       setSubmitting(false);
     }
@@ -126,7 +134,11 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
             disabled={submitting}
           />
           <DialogFooter>
-            <Button type="submit" className="bg-green-700 hover:bg-green-800" loading={submitting}>
+            <Button
+              type="submit"
+              className="bg-green-700 hover:bg-green-800"
+              disabled={submitting}
+            >
               {submitting ? "Submitting..." : "Submit"}
             </Button>
             <DialogClose asChild>
@@ -140,3 +152,4 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
 };
 
 export default ChallengeVerificationDialog;
+
