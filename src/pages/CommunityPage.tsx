@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -10,9 +9,20 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import CommunityMembersManager from "@/components/CommunityMembersManager";
 
+const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
 const CommunityPage = () => {
   const { user } = useAuthStatus();
   const { communityId } = useParams();
+
+  // If we're on /communities/create or the id is invalid, show "Not found"
+  if (!communityId || communityId === "create" || !isValidUUID(communityId)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-red-500">
+        Community not found.
+      </div>
+    );
+  }
 
   const { data: community, isLoading, error } = useQuery({
     queryKey: ["community", communityId],
