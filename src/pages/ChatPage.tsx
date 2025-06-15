@@ -20,7 +20,7 @@ const ChatPage = () => {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Fetch friend's profile, robust fallback for missing user/profile
+    // Fetch friend's profile
     const { data: friendProfile, isLoading: isLoadingProfile, error: profileError } = useQuery({
         queryKey: ['profile', friendId],
         queryFn: async () => {
@@ -32,14 +32,16 @@ const ChatPage = () => {
         enabled: !!friendId,
     });
 
+    // Correct: use nested and/or in or= for correct DM filter.
     const { data: messages, isLoading: isLoadingMessages, error: messagesError } = useQuery({
         queryKey: ['messages', friendId],
         queryFn: async () => {
             if (!user || !friendId) return [];
+            // Fixed the query syntax for .or()
             const { data, error } = await supabase
                 .from('direct_messages')
                 .select('*')
-                .or(`(sender_id.eq.${user.id},receiver_id.eq.${friendId}),(sender_id.eq.${friendId},receiver_id.eq.${user.id})`)
+                .or(`and(sender_id.eq.${user.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${user.id})`)
                 .order('created_at', { ascending: true });
             if (error) throw error;
             return data;
@@ -107,7 +109,7 @@ const ChatPage = () => {
         }
     };
 
-    // Error and empty state handling
+    // Loading/Error states
     if (isLoadingProfile || isLoadingMessages) {
         return <div className="flex justify-center items-center h-screen"><LoaderCircle className="w-8 h-8 animate-spin text-green-600" /><span className="ml-4 text-green-700">Loading...</span></div>;
     }
@@ -121,6 +123,7 @@ const ChatPage = () => {
         </div>;
     }
 
+    // Adjust mobile chat page to add space for BottomNav (h-0 and pb-24/pb-28 for safe area).
     return (
         <div className="flex flex-col h-screen bg-gray-50">
             <header className="bg-white/80 shadow-sm p-3 flex items-center gap-3 sticky top-0 z-20 backdrop-blur-sm border-b">
@@ -138,7 +141,7 @@ const ChatPage = () => {
                     </div>
                 </Link>
             </header>
-            <main className="flex-1 overflow-y-auto p-4 space-y-4">
+            <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-32"> {/* pb-32 ensures the input is always visible above BottomNav */}
                 {messagesError && (
                   <div className="text-center text-red-500">Could not load messages.</div>
                 )}
@@ -163,8 +166,12 @@ const ChatPage = () => {
                 ))}
                 <div ref={messagesEndRef} />
             </main>
-            <footer className="p-4 bg-white border-t">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            {/* Make the footer sticky above the bottom nav. */}
+            <footer
+              className="fixed bottom-[65px] left-0 right-0 z-40 bg-white border-t flex items-center p-4"
+              style={{ maxWidth: '100vw' }}
+            >
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2 w-full">
                     <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -182,3 +189,4 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
+
