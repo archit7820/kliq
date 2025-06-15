@@ -9,122 +9,85 @@ type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const FeedContent = ({ user }: { user: Profile | null }) => {
-  const [posts, setPosts] = useState<Activity[]>([]);
   const [allPosts, setAllPosts] = useState<Activity[]>([]);
-  const [profiles, setProfiles] = useState<{[userId: string]: Profile}>({});
+  const [posts, setPosts] = useState<Activity[]>([]);
+  const [profiles, setProfiles] = useState<{ [userId: string]: Profile }>({});
   const [loading, setLoading] = useState(true);
-  
+
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [showFriendsOnly, setShowFriendsOnly] = useState(false);
+  const [friendIds, setFriendIds] = useState<string[]>([]);
 
+  // Fetch all activities & author profiles, and friend ids (once per user login)
   useEffect(() => {
     if (!user) return;
     setLoading(true);
 
-    const fetchFeed = async () => {
-      // Fetch friend user ids (2-way)
-      const fetchFriendIds = async (): Promise<string[]> => {
-        const { data, error } = await supabase
-          .from("friends")
-          .select("user1_id,user2_id")
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-        if (error) {
-          console.error("Error fetching friends:", error);
-          return [];
-        }
-        if (!data) return [];
-        return data.map(row =>
+    const fetchEverything = async () => {
+      // Get friend user ids
+      const { data: friendsData } = await supabase
+        .from("friends")
+        .select("user1_id,user2_id")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      let ids: string[] = [];
+      if (friendsData) {
+        ids = friendsData.map(row =>
           row.user1_id === user.id ? row.user2_id : row.user1_id
         );
-      };
+        setFriendIds(ids);
+      }
 
-      const { data: activities, error: activitiesError } = await supabase
+      // Fetch all posts/activities (desc)
+      const { data: activities, error } = await supabase
         .from("activities")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (activitiesError) {
-        console.error("Error fetching activities:", activitiesError);
-        setPosts([]);
-        setAllPosts([]);
-        setLoading(false);
-        return;
-      }
-
-      const friendIds = await fetchFriendIds();
-
-      // Store all posts for filtering
       setAllPosts(activities || []);
 
-      // Fetch user profiles for all post authors in batch
-      const userIdsToFetch = Array.from(new Set((activities || []).map(a => a.user_id)));
-      if (userIdsToFetch.length > 0) {
-        const { data: userProfiles, error: profilesError } = await supabase
+      // Get all authors (batch)
+      const userIds = Array.from(new Set((activities || []).map(a => a.user_id)));
+      if (userIds.length > 0) {
+        const { data: userProfiles } = await supabase
           .from("profiles")
           .select("*")
-          .in("id", userIdsToFetch);
-
-        if (profilesError) {
-          console.error("Error fetching profiles:", profilesError);
-          setProfiles({});
-        } else {
-          const map: {[userId: string]: Profile} = {};
-          (userProfiles || []).forEach((p: Profile) => { map[p.id] = p; });
-          setProfiles(map);
-        }
+          .in("id", userIds);
+        const map: { [id: string]: Profile } = {};
+        (userProfiles || []).forEach(p => { map[p.id] = p; });
+        setProfiles(map);
       }
       setLoading(false);
     };
-
-    fetchFeed();
+    fetchEverything();
   }, [user]);
 
-  // Apply filters whenever filter states or allPosts change
+  // Filtering logic: keep always in sync with state
   useEffect(() => {
-    if (!user) return;
+    if (!user) return setPosts([]);
+    let filtered: Activity[] = [...allPosts];
 
-    let filteredPosts = [...allPosts];
-
-    // Apply friends filter
-    if (showFriendsOnly) {
-      const fetchFriendIds = async () => {
-        const { data, error } = await supabase
-          .from("friends")
-          .select("user1_id,user2_id")
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-        
-        if (!error && data) {
-          const friendIds = data.map(row =>
-            row.user1_id === user.id ? row.user2_id : row.user1_id
-          );
-          filteredPosts = filteredPosts.filter(post => friendIds.includes(post.user_id));
-          applyOtherFilters(filteredPosts);
-        }
-      };
-      fetchFriendIds();
-    } else {
-      applyOtherFilters(filteredPosts);
+    // Friends-only
+    if (showFriendsOnly && friendIds.length > 0) {
+      filtered = filtered.filter(post => friendIds.includes(post.user_id));
     }
 
-    function applyOtherFilters(posts: Activity[]) {
-      // Apply category filter
-      if (selectedCategory) {
-        posts = posts.filter(post => post.category === selectedCategory);
-      }
-
-      // Apply location filter
-      if (selectedLocation) {
-        posts = posts.filter(post => {
-          const profile = profiles[post.user_id];
-          return profile?.location === selectedLocation;
-        });
-      }
-
-      setPosts(posts);
+    // Category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(post => (post.category?.toLowerCase() === selectedCategory.toLowerCase()));
     }
-  }, [allPosts, selectedCategory, selectedLocation, showFriendsOnly, user, profiles]);
+
+    // Location filter (by author's profile.location)
+    if (selectedLocation) {
+      filtered = filtered.filter(post => {
+        const author = profiles[post.user_id];
+        return author?.location === selectedLocation;
+      });
+    }
+
+    setPosts(filtered);
+  }, [allPosts, selectedCategory, selectedLocation, showFriendsOnly, profiles, user, friendIds]);
 
   if (!user)
     return (
@@ -140,7 +103,6 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
       </div>
     );
 
-  // -- New: category filters get more top priority visually --
   return (
     <div className="flex flex-col gap-6">
       <FeedFilters
@@ -153,7 +115,7 @@ const FeedContent = ({ user }: { user: Profile | null }) => {
       />
       {posts.length === 0 ? (
         <div className="mt-5 p-6 rounded-xl bg-card border text-center text-muted-foreground">
-          {showFriendsOnly ? 
+          {showFriendsOnly ?
             "No activities found from your friends with the current filters." :
             "No activities match your current filters. Try adjusting your search criteria."
           }

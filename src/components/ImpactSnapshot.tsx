@@ -24,3 +24,4 @@ const ImpactSnapshot = ({ impact }: { impact: { food: number; travel: number; sh
 );
 
 export default ImpactSnapshot;
+
