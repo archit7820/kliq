@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LearnCard from '@/components/LearnCard';
@@ -51,28 +52,59 @@ const marketplaceBrands = [
 ];
 
 const HomeContent = ({ profile }: { profile: any }) => {
-  const [tabValue, setTabValue] = useState("marketplace");
+  const [tabValue, setTabValue] = useState("personalized");
 
   return (
-    <main className="flex-grow p-4 md:p-6 space-y-6 mb-16">
-      <div className="max-w-4xl mx-auto mb-6">
+    <main className="flex-grow px-2 sm:px-4 md:px-6 py-4 space-y-6 mb-20">
+      <div className="max-w-2xl mx-auto flex flex-col gap-3">
         <DashboardSummary />
         <UserChallengesList />
       </div>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         <Tabs
           value={tabValue}
           onValueChange={setTabValue}
-          defaultValue="marketplace"
         >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="marketplace">Offset Marketplace</TabsTrigger>
-            <TabsTrigger value="learn">Learn</TabsTrigger>
-            <TabsTrigger value="personalized">For You</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-purple-50 mt-4 overflow-hidden shadow-sm">
+            <TabsTrigger
+              value="personalized"
+              className="font-bold text-base data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900 transition-colors"
+            >
+              For You
+            </TabsTrigger>
+            <TabsTrigger
+              value="marketplace"
+              className="font-bold text-base data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900 transition-colors"
+            >
+              Offset Marketplace
+            </TabsTrigger>
+            <TabsTrigger
+              value="learn"
+              className="font-bold text-base data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900 transition-colors"
+            >
+              Learn
+            </TabsTrigger>
           </TabsList>
+          <TabsContent value="personalized">
+            <div className="bg-white p-5 mt-2 rounded-2xl shadow animate-fade-in">
+              <h3 className="font-semibold text-xl mb-3 text-gray-800">Personalized Suggestions</h3>
+              {profile?.lifestyle_tags && profile.lifestyle_tags.length > 0 ? (
+                  <div>
+                      <p className="text-gray-600 mb-3">
+                          Here are some suggestions based on your interests: <span className="font-semibold text-purple-800">{profile.lifestyle_tags.join(', ')}</span>.
+                      </p>
+                      <p className="text-gray-500">More personalized content coming soon!</p>
+                  </div>
+              ) : (
+                  <p className="text-gray-500 mt-2">
+                      Complete your onboarding to get personalized suggestions!
+                  </p>
+              )}
+            </div>
+          </TabsContent>
           <TabsContent value="marketplace">
-            <div className="bg-white p-4 mt-2 rounded-lg shadow">
+            <div className="bg-white p-4 mt-2 rounded-2xl shadow animate-fade-in">
               <h3 className="font-semibold text-lg mb-4 text-gray-800">Offset Marketplace</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {marketplaceBrands.map((brand) => (
@@ -82,30 +114,13 @@ const HomeContent = ({ profile }: { profile: any }) => {
             </div>
           </TabsContent>
           <TabsContent value="learn">
-            <div className="bg-white p-4 mt-2 rounded-lg shadow">
+            <div className="bg-white p-4 mt-2 rounded-2xl shadow animate-fade-in">
               <h3 className="font-semibold text-lg mb-4 text-gray-800">Learn About Offsetting</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {learnContent.map((item) => (
                   <LearnCard key={item.title} {...item} />
                 ))}
               </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="personalized">
-            <div className="bg-white p-6 mt-2 rounded-lg shadow">
-              <h3 className="font-semibold text-lg text-gray-800">Personalized Suggestions</h3>
-              {profile?.lifestyle_tags && profile.lifestyle_tags.length > 0 ? (
-                  <div>
-                      <p className="text-gray-600 mt-2 mb-4">
-                          Here are some suggestions based on your interests: {profile.lifestyle_tags.join(', ')}.
-                      </p>
-                      <p className="text-gray-500">More personalized content coming soon!</p>
-                  </div>
-              ) : (
-                  <p className="text-gray-500 mt-2">
-                      Complete your onboarding to get personalized suggestions!
-                  </p>
-              )}
             </div>
           </TabsContent>
         </Tabs>
