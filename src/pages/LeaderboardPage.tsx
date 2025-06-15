@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import ImpactDashboard from "@/components/ImpactDashboard";
 import BottomNav from "@/components/BottomNav";
