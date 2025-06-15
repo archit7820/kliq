@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LearnCard from '@/components/LearnCard';
 import BrandCard from '@/components/BrandCard';
 import DashboardSummary from "@/components/DashboardSummary";
+import UserChallengesList from "@/components/UserChallengesList";
 
 const learnContent = [
   {
@@ -57,6 +57,7 @@ const HomeContent = ({ profile }: { profile: any }) => {
     <main className="flex-grow p-4 md:p-6 space-y-6 mb-16">
       <div className="max-w-4xl mx-auto mb-6">
         <DashboardSummary />
+        <UserChallengesList />
       </div>
 
       <div className="max-w-4xl mx-auto">
