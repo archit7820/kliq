@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -51,15 +50,21 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       const imageUrl = await uploadChallengeSnap(file, user.id, challenge.id);
 
       // 2. Insert into activities feed as a "challenge-completion" activity
-      const emission = offset ? -Math.abs(Number(offset)) : 0;
+      const emission = offset
+        ? -Math.abs(Number(offset))
+        : 0;
+      const explanation = offset
+        ? `Verified by photo. ${Number(offset) ? `(Offset: ${-Math.abs(Number(offset))} CO₂e kg)` : ""}`
+        : "Verified by photo.";
+
       const { error: activityErr } = await supabase.from("activities").insert({
         user_id: user.id,
         activity: "Completed challenge: " + challenge.title,
         caption,
         category: "challenge",
         image_url: imageUrl,
-        explanation: "Verified by photo.",
-        carbon_footprint_kg: emission, // <-- log offset as negative, else 0
+        explanation,
+        carbon_footprint_kg: emission,
         emoji: "🏆",
       });
       if (activityErr) throw activityErr;

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import ChallengeVerificationDialog from "./ChallengeVerificationDialog";
 import { Wallet } from "lucide-react";
 
 type ChallengeParticipant = {
@@ -18,74 +17,10 @@ type ChallengeParticipant = {
     reward_kelp_points: number;
   };
 };
+import ChallengeCard from "./ChallengeCard";
+import JoinableChallengeCard from "./JoinableChallengeCard";
 
-function ChallengeCard({
-  row,
-  onVerified,
-  highlight,
-}: {
-  row: ChallengeParticipant;
-  onVerified: () => void;
-  highlight?: boolean;
-}) {
-  // Determine owner type & style
-  const isKelpTeam =
-    !row.challenge ||
-    row.challenge.description?.toLowerCase().includes("kelp team") ||
-    row.challenge.title?.toLowerCase().includes("kelp") ||
-    row.challenge.reward_kelp_points > 30;
-
-  return (
-    <div
-      className={`
-        animate-fade-in bg-white
-        ${highlight ? "ring-2 ring-violet-400 shadow-lg" : "border border-violet-100 shadow-sm"}
-        rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3
-        group transition-all hover:scale-[1.01] focus-within:scale-[1.01] active:scale-[0.98] outline-none
-      `}
-      tabIndex={0}
-      role="group"
-    >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center flex-wrap gap-2">
-          <span className="font-bold text-violet-900 text-lg">{row.challenge.title}</span>
-          {isKelpTeam ? (
-            <span className="inline-flex items-center text-xs px-3 py-1 bg-violet-100 text-violet-800 rounded-full gap-1 border border-violet-200 font-semibold">
-              <Wallet className="w-4 h-4" />
-              Kelp Team
-            </span>
-          ) : (
-            <span className="inline-flex items-center text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full border border-gray-200">
-              User
-            </span>
-          )}
-        </div>
-        <div className="text-[13px] text-purple-700 mt-1 mb-1.5">{row.challenge.description}</div>
-        <span className={`inline-flex items-center gap-1 ${isKelpTeam ? "bg-cyan-50 text-cyan-800 border-cyan-100" : "bg-green-50 text-green-700 border-green-100"} font-mono text-[11px] px-2 py-0.5 rounded-full border`}>
-          Reward: {row.challenge.reward_kelp_points} Kelp Points
-        </span>
-      </div>
-      <div className="flex flex-row gap-2 items-center sm:mt-0 mt-3 min-w-[120px] justify-end">
-        {!row.is_completed ? (
-          <ChallengeVerificationDialog
-            challenge={{
-              id: row.challenge.id,
-              title: row.challenge.title,
-              description: row.challenge.description || "",
-              reward: row.challenge.reward_kelp_points,
-            }}
-            participantId={row.id}
-            onFinish={onVerified}
-          />
-        ) : (
-          <span className="inline-flex items-center text-green-700 text-base px-3 py-1.5 rounded-lg bg-green-50 font-semibold ml-2 transition-all animate-fade-in">
-            ✓ Completed!
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
+// Remove ChallengeCard and JoinableChallenges from this file, use extracted components instead
 
 // NEW: Show available global challenges user can join at top
 function JoinableChallenges({ onJoin }: { onJoin: () => void }) {
@@ -125,9 +60,9 @@ function JoinableChallenges({ onJoin }: { onJoin: () => void }) {
 
   const handleJoin = async (challenge: any) => {
     if (!user || joiningId) return;
-    if (myParticipants && myParticipants.includes(challenge.id)) return; // Prevent duplicate join
+    if (myParticipants && myParticipants.includes(challenge.id)) return;
     setJoiningId(challenge.id);
-    // Only allow user-created challenge rewards up to 30
+
     if (
       challenge.audience_scope !== "world" &&
       challenge.reward_kelp_points > 30
@@ -157,22 +92,14 @@ function JoinableChallenges({ onJoin }: { onJoin: () => void }) {
   if (notJoined.length === 0) return null;
 
   return (
-    <div className="mb-2">
+    <div className="mb-2 flex flex-col gap-2">
       {notJoined.map((ch: any) => (
-        <div
+        <JoinableChallengeCard
           key={ch.id}
-          className="bg-violet-50 border border-violet-200 rounded-2xl px-3 py-2 flex items-center justify-between mb-2 animate-fade-in"
-        >
-          <div className="text-violet-800 font-bold text-sm">{ch.title}</div>
-          <button
-            onClick={() => handleJoin(ch)}
-            disabled={joiningId === ch.id}
-            className="ml-2 px-3 py-1 text-xs bg-violet-600 text-white rounded-lg font-semibold shadow hover:bg-violet-700 transition"
-            aria-label="Join Kelp Challenge"
-          >
-            {joiningId === ch.id ? "Joining..." : "Join"}
-          </button>
-        </div>
+          title={ch.title}
+          onJoin={() => handleJoin(ch)}
+          isJoining={joiningId === ch.id}
+        />
       ))}
     </div>
   );
@@ -273,9 +200,7 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
           </svg>
         </button>
       </h2>
-      {/* Show joinable Kelp team challenges (global) at the top */}
       <JoinableChallenges onJoin={refetch} />
-
       {isLoading && (
         <div className="text-gray-400 py-4 animate-pulse">Loading your challenges...</div>
       )}
@@ -285,7 +210,7 @@ export default function UserChallengesList({ highlightCurrent = false }: { highl
         </div>
       )}
       <div className="flex flex-col gap-2 sm:gap-3">
-        {userChallenges && userChallenges.map((row: ChallengeParticipant) => (
+        {userChallenges && userChallenges.map((row: any) => (
           <ChallengeCard
             key={row.id}
             row={row}
