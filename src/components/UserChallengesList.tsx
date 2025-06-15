@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,23 +21,33 @@ type ChallengeParticipant = {
 
 function ChallengeCard({
   row,
-  onVerified
+  onVerified,
+  highlight
 }: {
   row: ChallengeParticipant;
   onVerified: () => void;
+  highlight?: boolean;
 }) {
   return (
     <div
-      className={`animate-fade-in bg-white border border-purple-100 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between shadow-sm group transition hover:scale-[1.02] hover:shadow-lg focus-within:scale-[1.02] active:scale-[0.98] outline-none`}
+      className={`
+        animate-fade-in bg-gradient-to-br 
+        ${highlight ? "from-purple-100 to-violet-100 border-violet-300" : "from-white to-gray-50 border-purple-100"}
+        border rounded-2xl p-3 flex flex-col md:flex-row md:items-center md:justify-between shadow-sm
+        group transition-all hover:scale-[1.02] hover:shadow-lg focus-within:scale-[1.02] active:scale-[0.98] outline-none 
+        ${highlight ? "ring-2 ring-violet-400" : ""}
+      `}
       tabIndex={0}
       role="group"
     >
       <div>
-        <div className="font-bold text-purple-900 text-base flex items-center gap-2">
+        <div className="font-bold text-violet-900 text-base flex items-center gap-2">
           {row.challenge.title}
           {row.is_completed && (
             <span className="inline-flex ml-2 text-green-700 items-center gap-1">
-              <CheckCircle2 className="w-5 h-5 animate-[pulse_1s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
+              <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
             </span>
           )}
         </div>
@@ -47,7 +56,7 @@ function ChallengeCard({
           Reward: {row.challenge.reward_kelp_points} Kelp Points
         </span>
       </div>
-      <div className="flex flex-row gap-2 items-center mt-3 md:mt-0 transition-all min-w-[130px] justify-end">
+      <div className="flex flex-row gap-2 items-center mt-3 md:mt-0 min-w-[120px] justify-end">
         {!row.is_completed ? (
           <ChallengeVerificationDialog
             challenge={{
@@ -61,7 +70,7 @@ function ChallengeCard({
           />
         ) : (
           <span className="inline-flex items-center text-green-700 text-base px-3 py-1.5 rounded-lg bg-green-50 font-semibold ml-2 transition-all animate-fade-in">
-            <CheckCircle2 className="w-5 h-5 mr-1" /> Completed!
+            ✓ Completed!
           </span>
         )}
       </div>
@@ -69,7 +78,7 @@ function ChallengeCard({
   );
 }
 
-export default function UserChallengesList() {
+export default function UserChallengesList({ highlightCurrent = false }: { highlightCurrent?: boolean }) {
   const { user } = useAuthStatus();
   const [subscribing, setSubscribing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -123,37 +132,51 @@ export default function UserChallengesList() {
 
   if (!user) return null;
 
+  // Find latest active challenge for highlighting
+  let highlightId: string | null = null;
+  if (highlightCurrent && userChallenges && userChallenges.length > 0) {
+    const active = userChallenges.find((row: any) => !row.is_completed);
+    highlightId = active?.id ?? null;
+  }
+
   return (
-    <section className="mt-4 animate-fade-in" id="user-my-current-challenges">
-      <h2 className="text-base sm:text-lg font-bold mb-4 flex gap-2 items-center text-purple-800 tracking-tight">
-        <Clock className="w-5 h-5 text-purple-400" />
+    <section className="mt-2 animate-fade-in" id="user-my-current-challenges">
+      <h2 className="text-base sm:text-lg font-bold mb-3 flex gap-2 items-center text-violet-800 tracking-tight">
+        <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" strokeDasharray="4 2" />
+        </svg>
         My Current Challenges
         <button
           aria-label="refresh"
-          className="ml-2 text-purple-400 hover:text-purple-700 transition"
+          className="ml-2 text-violet-400 hover:text-violet-700 transition"
           onClick={async () => {
             setRefreshing(true);
             await refetch();
             setRefreshing(false);
           }}
         >
-          <RefreshCw className={refreshing ? "w-4 h-4 animate-spin" : "w-4 h-4"} />
+          <svg className={refreshing ? "w-4 h-4 animate-spin" : "w-4 h-4"} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M4 4v5h.582M20 20v-5h-.581" />
+            <path d="M5.582 9A7.962 7.962 0 0 1 12 4c3.042 0 5.824 1.721 7.418 4.286" />
+            <path d="M18.418 15A7.962 7.962 0 0 1 12 20c-3.042 0-5.824-1.721-7.418-4.286" />
+          </svg>
         </button>
       </h2>
       {isLoading && (
         <div className="text-gray-400 py-4 animate-pulse">Loading your challenges...</div>
       )}
       {userChallenges && userChallenges.length === 0 && (
-        <div className="text-gray-400 py-6 rounded-xl text-center bg-purple-50 border border-purple-100">
+        <div className="text-gray-400 py-5 rounded-xl text-center bg-purple-50 border border-purple-100">
           You haven't joined any challenges yet.
         </div>
       )}
-      <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex flex-col gap-2 sm:gap-3">
         {userChallenges && userChallenges.map((row: ChallengeParticipant) => (
           <ChallengeCard
             key={row.id}
             row={row}
             onVerified={refetch}
+            highlight={highlightCurrent && row.id === highlightId}
           />
         ))}
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LearnCard from '@/components/LearnCard';
 import BrandCard from '@/components/BrandCard';
@@ -60,53 +60,51 @@ const marketplaceBrands = [
 
 const HomeContent = ({ profile }: { profile: any }) => {
   const [tabValue, setTabValue] = React.useState("personalized");
+  // Tab button labels (short for mobile)
+  const TABS = [
+    { key: "personalized", label: <span className="sm:block hidden">For You</span>, short: "You" },
+    { key: "marketplace", label: <span className="sm:block hidden">Offset Marketplace</span>, short: "Market" },
+    { key: "learn", label: <span className="sm:block hidden">Learn</span>, short: "Learn" },
+  ];
 
   return (
-    <main className="flex-grow px-2 sm:px-3 md:px-4 py-4 space-y-6 mb-20 max-w-xl mx-auto">
+    <main className="flex-grow px-1 sm:px-2 md:px-4 py-2 sm:py-4 space-y-4 mb-24 max-w-lg mx-auto">
       {/* Dashboard summary card (top) */}
-      <section className="rounded-2xl mb-2">
+      <section className="rounded-2xl mb-1">
         <DashboardSummary />
       </section>
 
-      {/* "For You" comes FIRST */}
+      {/* Short & Responsive Tabs */}
       <Tabs
         value={tabValue}
         onValueChange={setTabValue}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-purple-50 mt-4 mb-2 overflow-hidden shadow-sm">
-          <TabsTrigger
-            value="personalized"
-            className="font-bold text-[0.97rem] data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900 transition-colors"
-          >
-            For You
-          </TabsTrigger>
-          <TabsTrigger
-            value="marketplace"
-            className="font-bold text-[0.97rem] data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900 transition-colors"
-          >
-            Offset Marketplace
-          </TabsTrigger>
-          <TabsTrigger
-            value="learn"
-            className="font-bold text-[0.97rem] data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900 transition-colors"
-          >
-            Learn
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-violet-50 mt-4 mb-2 overflow-hidden shadow-sm h-10 sm:h-12">
+          {TABS.map((tab) => (
+            <TabsTrigger
+              key={tab.key}
+              value={tab.key}
+              className="font-bold text-sm sm:text-base px-1 py-0 data-[state=active]:bg-violet-100 data-[state=active]:text-violet-900 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-300"
+            >
+              <span className="sm:hidden">{tab.short}</span>
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        {/* For You First */}
+        {/* For You */}
         <TabsContent value="personalized">
-          <div className="bg-white p-5 rounded-2xl shadow animate-fade-in mb-6">
-            <h3 className="font-semibold text-lg mb-2 text-purple-900">Personalized Suggestions</h3>
+          <section className="bg-white p-4 rounded-2xl shadow animate-fade-in mb-4">
+            <h3 className="font-semibold text-lg mb-2 text-violet-900">Personalized Suggestions</h3>
             {profile?.lifestyle_tags && profile.lifestyle_tags.length > 0 ? (
                 <div>
-                    <p className="text-gray-700 mb-3">
+                    <p className="text-gray-700 mb-2 sm:mb-3">
                         Here are some suggestions based on your interests:
-                        <span className="block my-1 font-semibold text-purple-700">
+                        <span className="block my-1 font-semibold text-violet-700">
                             {profile.lifestyle_tags.map((tag: string, i: number) => (
                               <span key={tag}>
-                                <span className="hover:underline cursor-pointer animate-fade-in">{tag}</span>
+                                <span className="hover:underline cursor-pointer transition-all animate-fade-in">{tag}</span>
                                 {i !== profile.lifestyle_tags.length - 1 && ", "}
                               </span>
                             ))}
@@ -115,24 +113,24 @@ const HomeContent = ({ profile }: { profile: any }) => {
                     <p className="text-gray-400 text-xs">More personalized content coming soon!</p>
                 </div>
             ) : (
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-400 text-xs sm:text-sm">
                     Complete your onboarding to get personalized suggestions!
                 </p>
             )}
-          </div>
-          {/* Show user challenges and status right below in personalized */}
-          <UserChallengesList />
+          </section>
+          {/* Accepted and current challenges */}
+          <UserChallengesList highlightCurrent />
         </TabsContent>
 
-        {/* Marketplace: with affiliate links, beautiful cards */}
+        {/* Marketplace */}
         <TabsContent value="marketplace">
-          <div className="bg-white p-4 rounded-2xl shadow animate-fade-in">
-            <h3 className="font-semibold text-lg mb-3 text-green-900">Offset Marketplace</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <section className="bg-white p-4 rounded-2xl shadow animate-fade-in">
+            <h3 className="font-semibold text-lg mb-3 text-green-800">Offset Marketplace</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {marketplaceBrands.map((brand) => (
                 <div
                   key={brand.brandName}
-                  className="hover:scale-105 transition-transform duration-200 animate-fade-in"
+                  className="hover:scale-102 transition-transform duration-200 animate-fade-in"
                 >
                   <BrandCard {...brand} />
                 </div>
@@ -141,21 +139,21 @@ const HomeContent = ({ profile }: { profile: any }) => {
             <div className="text-xs text-gray-400 mt-4">
               Some links may be affiliate and support green efforts 🌱
             </div>
-          </div>
+          </section>
         </TabsContent>
 
-        {/* Learn: educational cards */}
+        {/* Learn */}
         <TabsContent value="learn">
-          <div className="bg-white p-4 rounded-2xl shadow animate-fade-in">
-            <h3 className="font-semibold text-lg mb-3 text-blue-900">Learn About Offsetting</h3>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <section className="bg-white p-4 rounded-2xl shadow animate-fade-in">
+            <h3 className="font-semibold text-lg mb-3 text-blue-900">Learn</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {learnContent.map((item) => (
                 <div key={item.title} className="hover:scale-102 transition-transform duration-200 animate-fade-in">
                   <LearnCard {...item} />
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         </TabsContent>
       </Tabs>
     </main>
