@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { toast } from "sonner";
 
 const ChallengeCreate = () => {
   const { user } = useAuthStatus();
@@ -19,6 +21,8 @@ const ChallengeCreate = () => {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("You must be logged in");
+      // Log for debugging
+      console.log("Submitting challenge:", { title, description, reward, audienceScope, userId: user.id });
       const { error } = await supabase.from("challenges").insert({
         title,
         description,
@@ -26,7 +30,10 @@ const ChallengeCreate = () => {
         audience_scope: audienceScope,
         created_by: user.id,
       });
-      if (error) throw error;
+      if (error) {
+        console.log("Supabase challenge creation error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       setTitle("");
@@ -35,9 +42,12 @@ const ChallengeCreate = () => {
       setAudienceScope("world");
       setError("");
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
+      toast.success("Challenge created!");
     },
     onError: (err: any) => {
       setError(err.message || "Failed to create challenge");
+      toast.error("Failed to create challenge: " + (err.message || "Unknown error"));
+      console.log("Challenge creation error (react-query):", err);
     },
   });
 
