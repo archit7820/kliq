@@ -209,6 +209,102 @@ const ProfilePage = () => {
                 </div>
             </header>
             <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 mb-16">
+
+                {/* EDIT MODE MODAL: Show if editing is true */}
+                {editing && (
+                    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+                        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl max-w-lg w-full p-8 relative">
+                            <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
+                            <form
+                              onSubmit={e => {
+                                  e.preventDefault();
+                                  updateProfile();
+                              }}
+                              className="space-y-4"
+                            >
+                                <div>
+                                    <label className="block font-medium mb-1">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.full_name}
+                                        onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
+                                        className="w-full border rounded p-2"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Username</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.username}
+                                        onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))}
+                                        className="w-full border rounded p-2"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Location</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.location}
+                                        onChange={e => setEditForm(f => ({ ...f, location: e.target.value }))}
+                                        className="w-full border rounded p-2"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Lifestyle Tags</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {["Vegetarian", "Vegan", "Cyclist", "Gardener", "Minimalist", "Composter", "Zero Waste", "Car Free", "Parent", "Techie", "Student", "Remote Worker"].map(tag => (
+                                            <button
+                                                key={tag}
+                                                type="button"
+                                                className={`px-3 py-1 rounded-full border ${editForm.lifestyle_tags.includes(tag) ? 'bg-blue-100 border-blue-400 text-blue-900' : 'bg-gray-100 border-gray-300 text-gray-600'}`}
+                                                onClick={() => handleTagToggle(tag)}
+                                            >
+                                                {tag}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Avatar</label>
+                                    <div className="flex items-center gap-3">
+                                        <img src={editForm.avatar_url || "/placeholder.svg"} alt="avatar" className="w-16 h-16 rounded-full border" />
+                                        <label className="inline-block cursor-pointer">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleAvatarUpload}
+                                                disabled={avatarUploading}
+                                            />
+                                            <span className="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                                                {avatarUploading ? "Uploading..." : "Change"}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                {errorMsg && <div className="text-red-500 text-sm">{errorMsg}</div>}
+                                <div className="flex justify-end gap-2 mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditing(false)}
+                                        className="bg-gray-200 hover:bg-gray-300 text-gray-900 px-5 py-2 rounded"
+                                        disabled={avatarUploading}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded"
+                                        disabled={avatarUploading}
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
                 {/* Refactored header section! */}
                 <ProfileHeader
                     profile={profile}
