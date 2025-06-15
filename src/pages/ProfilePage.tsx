@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import ProfileHeader from "@/components/ProfileHeader";
 import { useUserBadges } from "@/hooks/useUserBadges";
 import UserBadges from "@/components/UserBadges";
+import EditProfileModal from "@/components/EditProfileModal";
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -195,6 +196,9 @@ const ProfilePage = () => {
         { icon: Users, title: 'Social Butterfly', description: 'Made 5 friends.' },
     ];
 
+    // Hide BottomNav while editing (for mobile)
+    const renderBottomNav = !editing;
+
     return (
         <div className="min-h-screen bg-background flex flex-col">
             <header className="bg-card/80 backdrop-blur-sm p-4 sticky top-0 z-40 flex justify-between items-center border-b">
@@ -209,121 +213,18 @@ const ProfilePage = () => {
                 </div>
             </header>
             <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 mb-16">
-
-                {/* EDIT MODE MODAL: Show if editing is true */}
-                {editing && (
-                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">
-                        <div
-                            className={`
-                                bg-white dark:bg-zinc-900 w-full sm:max-w-lg
-                                h-dvh max-h-dvh sm:h-auto sm:max-h-[90vh]
-                                rounded-t-2xl sm:rounded-xl shadow-2xl
-                                p-4 sm:p-8 relative flex flex-col
-                                overflow-y-auto
-                                transition-all
-                                sm:mt-0 mt-auto
-                                ${editing ? "animate-in fade-in-0 slide-in-from-bottom-8" : ""}
-                            `}
-                            style={{
-                                minHeight: '50vh',
-                                maxHeight: '95vh'
-                            }}
-                        >
-                            <h2 className="text-2xl font-bold mb-4 sm:mb-6 text-center">Edit Profile</h2>
-                            <form
-                              onSubmit={e => {
-                                  e.preventDefault();
-                                  updateProfile();
-                              }}
-                              className="space-y-4 pb-20"
-                            >
-                                <div>
-                                    <label className="block font-medium mb-1">Full Name</label>
-                                    <input
-                                        type="text"
-                                        value={editForm.full_name}
-                                        onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
-                                        className="w-full border rounded p-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block font-medium mb-1">Username</label>
-                                    <input
-                                        type="text"
-                                        value={editForm.username}
-                                        onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))}
-                                        className="w-full border rounded p-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block font-medium mb-1">Location</label>
-                                    <input
-                                        type="text"
-                                        value={editForm.location}
-                                        onChange={e => setEditForm(f => ({ ...f, location: e.target.value }))}
-                                        className="w-full border rounded p-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block font-medium mb-1">Lifestyle Tags</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {[
-                                            "Vegetarian", "Vegan", "Cyclist", "Gardener", "Minimalist",
-                                            "Composter", "Zero Waste", "Car Free", "Parent", "Techie",
-                                            "Student", "Remote Worker"
-                                        ].map(tag => (
-                                            <button
-                                                key={tag}
-                                                type="button"
-                                                className={`px-3 py-1 rounded-full border ${editForm.lifestyle_tags.includes(tag) ? 'bg-blue-100 border-blue-400 text-blue-900' : 'bg-gray-100 border-gray-300 text-gray-600'}`}
-                                                onClick={() => handleTagToggle(tag)}
-                                            >
-                                                {tag}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block font-medium mb-1">Avatar</label>
-                                    <div className="flex items-center gap-3">
-                                        <img src={editForm.avatar_url || "/placeholder.svg"} alt="avatar" className="w-16 h-16 rounded-full border" />
-                                        <label className="inline-block cursor-pointer">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={handleAvatarUpload}
-                                                disabled={avatarUploading}
-                                            />
-                                            <span className="inline-flex items-center gap-1 text-blue-600 hover:underline">
-                                                {avatarUploading ? "Uploading..." : "Change"}
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-                                {errorMsg && <div className="text-red-500 text-sm">{errorMsg}</div>}
-                                <div className="flex justify-end gap-2 mt-4 sticky bottom-0 bg-white dark:bg-zinc-900 py-2 sm:static sm:bg-transparent">
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditing(false)}
-                                        className="bg-gray-200 hover:bg-gray-300 text-gray-900 px-5 py-2 rounded"
-                                        disabled={avatarUploading}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded"
-                                        disabled={avatarUploading}
-                                    >
-                                        Save
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
+                {/* EDIT MODE MODAL: moved to component */}
+                <EditProfileModal
+                    open={editing}
+                    onClose={() => setEditing(false)}
+                    editForm={editForm}
+                    setEditForm={setEditForm}
+                    avatarUploading={avatarUploading}
+                    handleAvatarUpload={handleAvatarUpload}
+                    handleTagToggle={handleTagToggle}
+                    errorMsg={errorMsg}
+                    onSave={() => { updateProfile(); }}
+                />
                 {/* Refactored header section! */}
                 <ProfileHeader
                     profile={profile}
@@ -411,7 +312,7 @@ const ProfilePage = () => {
                     </CardContent>
                 </Card>
             </main>
-            <BottomNav />
+            {renderBottomNav && <BottomNav />}
         </div>
     );
 };
