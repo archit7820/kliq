@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   AreaChart,
@@ -17,6 +18,7 @@ import { BadgeDollarSign, Flame, Trophy } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
 import { useImpactDashboardData } from "@/hooks/useImpactDashboardData";
+import { toast } from "@/components/ui/use-toast";
 
 // Use the reusable hook
 const tabOptions = [
@@ -27,6 +29,7 @@ const tabOptions = [
 
 export default function ImpactDashboard() {
   const [tab, setTab] = useState("week");
+  const [loadingInsight, setLoadingInsight] = useState(false);
   const {
     profile,
     ecoInsights,
@@ -61,6 +64,37 @@ export default function ImpactDashboard() {
   // Figure out category breakdown coloring (by category key)
   const showBreakdown = Object.keys(breakdown || {}).length > 0;
 
+  // Handler for manual insights generation
+  const handleGenerateInsights = async () => {
+    setLoadingInsight(true);
+    try {
+      const response = await fetch(
+        "https://tdqdeddshvjlqmefxwzj.functions.supabase.co/generate_daily_eco_insights",
+        { method: "POST" }
+      );
+      const result = await response.json();
+      if (response.ok && result.ok) {
+        toast({
+          title: "Insights Created",
+          description: `${result.insightsCreated} new insights generated for today!`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Insight Generation Failed",
+          description: result.error || "Could not generate insights.",
+        });
+      }
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Insight Generation Failed",
+        description: e.message || "Could not generate insights.",
+      });
+    }
+    setLoadingInsight(false);
+  };
+
   // Show eco insights (always show, real-time updates)
   return (
     <Card className="w-full bg-white rounded-2xl shadow-xl border">
@@ -77,6 +111,16 @@ export default function ImpactDashboard() {
               View your CO₂e savings trends and progress.
             </TooltipContent>
           </Tooltip>
+          {/* Manual Insights Button */}
+          <button
+            className={`ml-auto px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition disabled:opacity-40`}
+            disabled={loadingInsight}
+            onClick={handleGenerateInsights}
+            title="Generate today's eco insights for all active users"
+            type="button"
+          >
+            {loadingInsight ? "Generating..." : "Generate Insights Now"}
+          </button>
         </CardTitle>
         <div className="flex gap-2 my-2">
           {tabOptions.map(opt => (
@@ -196,8 +240,14 @@ export default function ImpactDashboard() {
         {/* Eco Badge Footer */}
         <div className="flex w-full justify-between items-center flex-wrap mt-3 gap-2">
           <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-gray-100 border text-xs text-gray-700 shadow">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Google_Gemini_logo.svg" alt="Gemini" width={20} height={20} style={{ display: 'inline', verticalAlign: 'middle' }}/>
-            <span className="font-semibold">Eco insights powered by Gemini</span>
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/4/4a/OpenAI_Logo.svg"
+              alt="OpenAI"
+              width={20}
+              height={20}
+              style={{ display: 'inline', verticalAlign: 'middle' }}
+            />
+            <span className="font-semibold">Eco insights powered by OpenAI</span>
           </span>
           {/* Live insights */}
           <div className="flex flex-col items-end gap-0">
@@ -218,3 +268,4 @@ export default function ImpactDashboard() {
     </Card>
   );
 }
+
