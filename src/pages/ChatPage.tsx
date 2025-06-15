@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -62,6 +61,8 @@ const ChatPage = () => {
         },
         onSuccess: () => {
             setNewMessage('');
+            // Invalidate messages query to force refetch and always show latest message
+            queryClient.invalidateQueries({ queryKey: ['messages', friendId] });
         },
     });
 
@@ -123,7 +124,7 @@ const ChatPage = () => {
         </div>;
     }
 
-    // Adjust mobile chat page to add space for BottomNav (h-0 and pb-24/pb-28 for safe area).
+    // Ensure always enough space for input above bottom nav, always stays pinned/padded, and auto-scroll works.
     return (
         <div className="flex flex-col h-screen bg-gray-50">
             <header className="bg-white/80 shadow-sm p-3 flex items-center gap-3 sticky top-0 z-20 backdrop-blur-sm border-b">
@@ -141,7 +142,7 @@ const ChatPage = () => {
                     </div>
                 </Link>
             </header>
-            <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-32"> {/* pb-32 ensures the input is always visible above BottomNav */}
+            <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-32">
                 {messagesError && (
                   <div className="text-center text-red-500">Could not load messages.</div>
                 )}
@@ -166,7 +167,6 @@ const ChatPage = () => {
                 ))}
                 <div ref={messagesEndRef} />
             </main>
-            {/* Make the footer sticky above the bottom nav. */}
             <footer
               className="fixed bottom-[65px] left-0 right-0 z-40 bg-white border-t flex items-center p-4"
               style={{ maxWidth: '100vw' }}
@@ -178,8 +178,10 @@ const ChatPage = () => {
                         placeholder="Type a message..."
                         className="flex-1 rounded-full"
                         autoComplete="off"
+                        disabled={sendMessageMutation.isPending}
                     />
-                    <Button type="submit" size="icon" className="rounded-full bg-green-600 hover:bg-green-700" disabled={sendMessageMutation.isPending}>
+                    <Button type="submit" size="icon" className="rounded-full bg-green-600 hover:bg-green-700"
+                        disabled={sendMessageMutation.isPending || !newMessage.trim()}>
                         <Send className="w-5 h-5" />
                     </Button>
                 </form>
@@ -189,4 +191,3 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
-
