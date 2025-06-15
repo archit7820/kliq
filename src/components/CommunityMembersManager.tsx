@@ -20,17 +20,21 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
         .eq("community_id", communityId);
 
       if (error) throw new Error(error.message);
+      console.log("[CommunityMembersManager] Fetched members:", data);
       return data || [];
     }
   });
 
   function getMembersWithOptimistic() {
+    // Merges local optimistic status with raw members
     if (!optimistic) return members;
-    return members.map(m =>
+    const result = members.map(m =>
       m.id === optimistic.id
         ? { ...m, status: optimistic.status }
         : m
     );
+    console.log("[CommunityMembersManager] Members with optimistic:", result);
+    return result;
   }
 
   const approveMutation = useMutation({
@@ -88,6 +92,11 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
 
   const pending = memberList.filter((m: any) => m.status === "pending");
   const approved = memberList.filter((m: any) => m.status === "approved");
+
+  // Log filtered outputs
+  console.log("[CommunityMembersManager] FINAL: memberList:", memberList);
+  console.log("[CommunityMembersManager] FINAL: pending:", pending);
+  console.log("[CommunityMembersManager] FINAL: approved:", approved);
 
   return (
     <div className="border rounded-xl bg-white shadow mt-5 p-4">
