@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import ImpactDashboard from "@/components/ImpactDashboard";
@@ -15,7 +14,6 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const useRealtimeSync = (userId: string | undefined) => {
   const queryClient = useQueryClient();
-
   useEffect(() => {
     if (!userId) return;
     const triggerRefetch = () => {
@@ -60,37 +58,70 @@ const LeaderboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-100 flex flex-col relative">
-      {/* Responsive header */}
+      {/* Header with Logo and Title, fixes icon and layout */}
       <div className="
         bg-gradient-to-b from-green-700 via-green-700 to-green-500 relative rounded-b-3xl shadow-xl z-10
-        px-4 pt-7 pb-3
+        px-2 pt-7 pb-4
         flex flex-col items-center
         animate-fade-in
         sm:p-6 sm:pb-2 sm:pt-8
       ">
-        {/* Main Title and Icon */}
-        <div className="w-full text-center flex flex-col items-center gap-1 sm:gap-2">
-          <h1 className="
-            text-2xl font-extrabold tracking-tight flex items-center gap-2
-            justify-center mb-1 sm:mb-2
-            text-white
-            sm:text-4xl
-          ">
-            <span className="align-middle flex items-center">
-              <img src="/kelp-logo.svg" alt="Logo" className="inline-block w-8 h-8 mr-1 sm:w-9 sm:h-9" />
+        <div className="w-full flex flex-col items-center gap-2">
+          <div className="flex flex-row items-center justify-center gap-2 w-full">
+            <span className="flex items-center justify-center">
+              <img
+                src="/kelp-logo.svg"
+                alt="Logo"
+                className="w-8 h-8 mr-1 sm:w-9 sm:h-9 object-contain"
+                style={{ minWidth: 32, minHeight: 32 }}
+                onError={e => {
+                  // Hide broken logo
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
             </span>
-            <span>Kelp Leaderboard!</span>
-            <span className="ml-1 animate-bounce text-2xl sm:text-3xl" role="img" aria-label="trophy">🏆</span>
-          </h1>
-          <p className="text-green-100 text-[13px] leading-5 font-medium sm:text-md mb-1 sm:mb-2 text-center w-full max-w-xs mx-auto px-2">
+            <h1
+              className="
+                text-2xl font-extrabold tracking-tight flex items-center
+                text-white justify-center mb-0 sm:text-4xl
+              "
+              style={{ lineHeight: 1.1 }}
+            >
+              Kelp Leaderboard!
+              <span className="ml-2 animate-bounce text-2xl sm:text-3xl" role="img" aria-label="trophy">🏆</span>
+            </h1>
+          </div>
+          <p className="text-green-100 text-xs leading-5 font-medium sm:text-md mb-2 text-center w-full max-w-xs mx-auto px-2">
             Race to the top — earn points, inspire friends, and unlock new badges by making an eco difference every day!
           </p>
         </div>
-        {/* Rank badge, styled like in screenshot */}
-        <div className="
-          relative w-full flex justify-center z-10
-          mt-2
-        ">
+
+        {/* Tabs centered */}
+        <div className="w-full flex justify-center pt-1 pb-1 z-20 relative">
+          <Tabs defaultValue="global" className="w-full">
+            <TabsList className="
+              w-fit rounded-full shadow bg-green-100 overflow-hidden flex items-center mx-auto px-1
+            ">
+              <TabsTrigger value="global" className="
+                text-[15px] px-4 py-1.5 rounded-full !font-bold
+                data-[state=active]:bg-green-600 data-[state=active]:text-white
+                transition-all select-none
+              ">
+                🌍 Global
+              </TabsTrigger>
+              <TabsTrigger value="friends" className="
+                text-[15px] px-4 py-1.5 rounded-full !font-bold
+                data-[state=active]:bg-yellow-400 data-[state=active]:text-green-900
+                transition-all select-none
+              ">
+                🧑‍🤝‍🧑 Friends
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* "Your Rank" badge under tabs */}
+        <div className="relative w-full flex justify-center z-10 mt-1">
           <span className="
             bg-white/15
             text-green-50
@@ -112,41 +143,23 @@ const LeaderboardPage = () => {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-screen-md mx-auto w-full px-0 pt-2 sm:pt-4 pb-20 relative z-20">
-        {/* Card spacing fixed & responsive */}
-        <div className="rounded-2xl shadow-lg bg-white/90 px-2 sm:px-4 py-2 sm:py-4 mb-3 z-10 animate-fade-in animate-scale-in mt-[-14px] sm:mt-0">
+      <main className="max-w-screen-md mx-auto w-full px-1 pt-2 sm:pt-4 pb-20 relative z-20 flex flex-col gap-y-2">
+        {/* ProfileStats Card */}
+        <div className="rounded-2xl shadow-lg bg-white/90 px-2 sm:px-4 py-2 sm:py-4 mb-2 z-10 animate-fade-in animate-scale-in mt-[-14px] sm:mt-0">
           <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
         </div>
-        <EcoInsightsList insights={insights} />
-
-        <div className="w-full flex flex-col animate-fade-in">
-          <Tabs defaultValue="global">
-            <div className="flex justify-center pt-1 pb-2 gap-1">
-              <TabsList className="w-fit rounded-full shadow bg-green-100 overflow-hidden">
-                <TabsTrigger value="global" className="
-                  text-[15px] px-4 py-1.5 rounded-full !font-bold
-                  data-[state=active]:bg-green-600 data-[state=active]:text-white
-                  transition-all
-                ">
-                  🌍 Global
-                </TabsTrigger>
-                <TabsTrigger value="friends" className="
-                  text-[15px] px-4 py-1.5 rounded-full !font-bold
-                  data-[state=active]:bg-yellow-400 data-[state=active]:text-green-900
-                  transition-all
-                ">
-                  🧑‍🤝‍🧑 Friends
-                </TabsTrigger>
-              </TabsList>
-            </div>
-            <TabsContent value="global" className="p-0">
+        {/* Leaderboard Section, moves tabs up on mobile */}
+        <div className="w-full flex flex-col items-center animate-fade-in px-0 sm:px-2">
+          <Tabs defaultValue="global" className="w-full">
+            {/* Only the TabsContent, TabsList is above in header */}
+            <TabsContent value="global" className="p-0 w-full">
               {isLoading ? (
                 <div className="p-8 text-center text-gray-500 animate-pulse">Loading...</div>
               ) : (
                 <LeaderboardList leaderboard={leaderboard} userId={user?.id} />
               )}
             </TabsContent>
-            <TabsContent value="friends" className="p-0">
+            <TabsContent value="friends" className="p-0 w-full">
               {friendsLeaderboard.length ? (
                 <LeaderboardList leaderboard={friendsLeaderboard} userId={user?.id} />
               ) : (
@@ -163,6 +176,10 @@ const LeaderboardPage = () => {
             </TabsContent>
           </Tabs>
         </div>
+        {/* Insights */}
+        <EcoInsightsList insights={insights} />
+
+        {/* Impact Dashboard */}
         <section className="max-w-screen-md mx-auto w-full mt-5 rounded-2xl shadow bg-white/60 animate-fade-in">
           <div className="flex flex-row items-center justify-between mb-1 pt-4 px-4">
             <h2 className="font-bold text-lg text-green-900">Your Kelp Points Impact</h2>
@@ -170,6 +187,7 @@ const LeaderboardPage = () => {
           </div>
           <ImpactDashboard />
         </section>
+
         <div className="w-full text-center my-3">
           <Link
             to="/challenges"
@@ -187,9 +205,8 @@ const LeaderboardPage = () => {
           </Link>
         </div>
       </main>
-
       <BottomNav />
-      {/* Fun motivational footer badge */}
+      {/* Footer Motivational Badge - Unchanged */}
       <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-full flex justify-center pointer-events-none">
         <div className="bg-white/90 rounded-full px-5 py-2 shadow-lg border-2 border-green-400 text-green-700 font-bold animate-fade-in max-w-xs w-full text-center pointer-events-auto text-sm sm:text-base">
           🚀 Level up your eco journey with Kelp!
