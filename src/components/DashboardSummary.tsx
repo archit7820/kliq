@@ -20,14 +20,19 @@ const DashboardSummary = () => {
   };
 
   return (
-    <section className="w-full flex flex-col gap-3">
+    <section className="w-full flex flex-col gap-2 sm:gap-3 px-2 py-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow">
       {/* Weekly Savings & Streak */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-4 rounded-2xl bg-gradient-to-r from-cyan-100 to-indigo-100 shadow border">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-3 rounded-2xl bg-gradient-to-r from-blue-100 via-blue-50 to-white shadow border">
+        <div className="flex-1">
           <p className="text-xs text-gray-500 mb-1">CO₂e Saved This Week</p>
-          <p className="text-2xl font-semibold text-cyan-800">{weeklySavings} kg</p>
+          <p className="text-2xl font-semibold text-blue-900">{weeklySavings} kg</p>
         </div>
-        <StreakTracker days={streak} />
+        <div className="flex-1 flex flex-col items-end sm:items-center">
+          <div className="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-xl shadow text-orange-800 font-bold text-base">
+            <span className="text-orange-500 text-xl">🔥</span>
+            <span>{streak} day streak</span>
+          </div>
+        </div>
       </div>
 
       {/* Impact Snapshot */}

@@ -48,53 +48,55 @@ const HomeContent = ({ profile }: { profile: any }) => {
   const weeklyImpact = profile?.co2e_weekly_progress ?? 7.2;
 
   return (
-    <main className="flex-grow px-1 sm:px-2 md:px-4 py-2 sm:py-4 space-y-4 mb-24 max-w-lg mx-auto">
-      {/* Top Gamified User Summary */}
-      <GamifiedUserSummary
-        kelpPoints={profile?.kelp_points ?? 0}
-        streakCount={profile?.streak_count ?? 0}
-        weeklyImpact={weeklyImpact}
-        globalRank={globalRank}
-        bestBadge={bestBadge}
-      />
+    <main className="flex-grow px-1 sm:px-2 md:px-0 py-0 bg-gradient-to-b from-green-50 to-blue-50 min-h-screen max-w-full w-full">
+      <section className="mx-auto max-w-lg w-full flex flex-col gap-3 mt-1 pb-24">
+        {/* Gamified summary—gradient, card style */}
+        <div className="rounded-3xl shadow-lg bg-gradient-to-br from-green-100 via-cyan-50 to-yellow-50 p-0.5 mt-2 mb-1">
+          <GamifiedUserSummary
+            kelpPoints={profile?.kelp_points ?? 0}
+            streakCount={profile?.streak_count ?? 0}
+            weeklyImpact={weeklyImpact}
+            globalRank={globalRank}
+            bestBadge={bestBadge}
+          />
+        </div>
 
-      {/* Dashboard Summary */}
-      <section className="rounded-2xl mb-1">
-        <DashboardSummary />
+        {/* Dashboard—card style */}
+        <section className="rounded-2xl shadow bg-gradient-to-br from-blue-50 via-blue-100 to-white px-0 py-0">
+          <DashboardSummary />
+        </section>
+
+        {/* Animated Tabs, raised from bg */}
+        <Tabs
+          value={tabValue}
+          onValueChange={setTabValue}
+          className="w-full mt-2 drop-shadow-sm"
+        >
+          <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-violet-50 overflow-hidden shadow-xs h-10 sm:h-12 mb-3">
+            {TABS.map((tab) => (
+              <TabsTrigger
+                key={tab.key}
+                value={tab.key}
+                className="font-bold text-sm sm:text-base px-1 py-0 data-[state=active]:bg-violet-100 data-[state=active]:text-violet-900 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-300"
+              >
+                <span className="sm:hidden">{tab.short}</span>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="personalized">
+            <PersonalizedSuggestionsSection profile={profile} />
+            <UserChallengesList highlightCurrent />
+          </TabsContent>
+          <TabsContent value="marketplace">
+            <MarketplaceSection />
+          </TabsContent>
+          <TabsContent value="learn">
+            <LearnSection />
+          </TabsContent>
+        </Tabs>
       </section>
-
-      {/* Interactive Tabs */}
-      <Tabs
-        value={tabValue}
-        onValueChange={setTabValue}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-violet-50 mt-4 mb-2 overflow-hidden shadow-sm h-10 sm:h-12">
-          {TABS.map((tab) => (
-            <TabsTrigger
-              key={tab.key}
-              value={tab.key}
-              className="font-bold text-sm sm:text-base px-1 py-0 data-[state=active]:bg-violet-100 data-[state=active]:text-violet-900 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-300"
-            >
-              <span className="sm:hidden">{tab.short}</span>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        <TabsContent value="personalized">
-          <PersonalizedSuggestionsSection profile={profile} />
-          <UserChallengesList highlightCurrent />
-        </TabsContent>
-
-        <TabsContent value="marketplace">
-          <MarketplaceSection />
-        </TabsContent>
-
-        <TabsContent value="learn">
-          <LearnSection />
-        </TabsContent>
-      </Tabs>
     </main>
   );
 };

@@ -37,50 +37,52 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
   const xp = pointsToLevel(kelpPoints);
 
   return (
-    <section className="w-full bg-gradient-to-r from-green-50 via-green-100 to-yellow-50 rounded-2xl shadow-lg px-3 py-4 mb-2 flex flex-row gap-3 items-center animate-fade-in">
-      {/* Big XP/Level badge */}
-      <div className="flex flex-col items-center justify-center pr-2">
-        <div className="relative flex items-center justify-center">
-          <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-yellow-500 text-xl animate-bounce">🏅</span>
-          <div className="bg-gradient-to-br from-yellow-200 to-yellow-50 border-2 border-yellow-400 rounded-full flex flex-col items-center justify-center w-14 h-14 text-yellow-900 shadow-lg font-extrabold text-2xl animate-scale-in">
-            {xp.level}
-            <span className="text-xs font-semibold text-yellow-700 tracking-tight -mt-1">Lvl</span>
+    <section className="relative w-full animate-fade-in p-2 sm:p-3 rounded-3xl min-h-[142px] flex flex-col items-center justify-between bg-gradient-to-tr from-green-100 via-yellow-50 to-cyan-50 shadow-md">
+      <div className="w-full flex justify-between items-center gap-2">
+        {/* Big level/avatar medallion */}
+        <div className="flex flex-col items-center justify-center min-w-[80px]">
+          <div className="relative flex items-center justify-center">
+            <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-yellow-500 text-xl animate-bounce">🏅</span>
+            <div className="bg-gradient-to-br from-yellow-200 to-yellow-50 border-2 border-yellow-400 rounded-full w-14 h-14 flex flex-col items-center justify-center text-yellow-900 shadow-lg font-extrabold text-2xl animate-scale-in">
+              {xp.level}
+              <span className="text-xs font-semibold text-yellow-700 tracking-tight -mt-1">Lvl</span>
+            </div>
+          </div>
+          <span className="mt-1 text-xs font-semibold text-yellow-700 bg-yellow-50 rounded-full px-2 py-0.5 shadow">{bestBadge}</span>
+        </div>
+        {/* Stats cards row */}
+        <div className="flex-1 flex flex-wrap gap-2 justify-end">
+          <div className="rounded-xl bg-white/80 px-4 py-2 flex flex-col items-center min-w-[66px] shadow-sm">
+            <span className="text-yellow-500 text-xl">🏆</span>
+            <span className="font-bold text-green-900 text-base">{kelpPoints}</span>
+            <span className="text-xs text-green-700 font-medium">Points</span>
+          </div>
+          <div className="rounded-xl bg-white/80 px-4 py-2 flex flex-col items-center min-w-[66px] shadow-sm">
+            <span className="text-orange-400 text-xl">🔥</span>
+            <span className="font-bold text-orange-900 text-base">{streakCount}</span>
+            <span className="text-xs text-orange-700 font-medium">Streak</span>
+          </div>
+          <div className="rounded-xl bg-white/80 px-4 py-2 flex flex-col items-center min-w-[66px] shadow-sm">
+            <span className="text-cyan-600 text-xl">🍃</span>
+            <span className="font-bold text-cyan-900 text-base">{weeklyImpact}</span>
+            <span className="text-xs text-cyan-700 font-medium">CO₂e kg</span>
+          </div>
+          <div className="rounded-xl bg-blue-50 px-4 py-2 flex flex-col items-center min-w-[66px] shadow-sm">
+            <span className="text-blue-500 text-xl">🎖️</span>
+            <span className="font-bold text-blue-900 text-base">{globalRank}</span>
+            <span className="text-xs text-blue-700 font-medium">Rank</span>
           </div>
         </div>
-        <span className="mt-1 text-xs font-semibold text-yellow-700 bg-yellow-50 rounded-full px-2 py-0.5">{bestBadge}</span>
       </div>
-      {/* Stats tiles */}
-      <div className="flex flex-1 flex-row flex-wrap gap-2">
-        <div className="bg-green-100 rounded-xl p-3 flex flex-col items-center min-w-[62px] shadow hover:scale-105 transition group animate-fade-in">
-          <Trophy className="h-5 w-5 text-yellow-500 group-hover:scale-110" />
-          <span className="font-bold text-green-900 text-base">{kelpPoints}</span>
-          <span className="text-xs text-green-700 font-medium">Points</span>
-        </div>
-        <div className="bg-orange-100 rounded-xl p-3 flex flex-col items-center min-w-[62px] shadow hover:scale-110 transition group animate-fade-in">
-          <Flame className="h-5 w-5 text-orange-500 animate-pulse" />
-          <span className="font-bold text-orange-900 text-base">{streakCount}</span>
-          <span className="text-xs text-orange-700 font-medium">Streak</span>
-        </div>
-        <div className="bg-cyan-100 rounded-xl p-3 flex flex-col items-center min-w-[62px] shadow hover:scale-110 transition group animate-fade-in">
-          <Leaf className="h-5 w-5 text-green-700" />
-          <span className="font-bold text-cyan-900 text-base">{weeklyImpact}</span>
-          <span className="text-xs text-cyan-700 font-medium">CO₂e kg</span>
-        </div>
-        <div className="bg-blue-100 rounded-xl p-3 flex flex-col items-center min-w-[62px] shadow hover:scale-110 transition group animate-fade-in">
-          <Award className="h-5 w-5 text-blue-600 animate-bounce" />
-          <span className="font-bold text-blue-900 text-base">{globalRank}</span>
-          <span className="text-xs text-blue-700 font-medium">Rank</span>
-        </div>
-      </div>
-      {/* XP Bar */}
-      <div className="absolute left-0 right-0 bottom-[-18px] flex flex-col items-center w-full">
+      {/* Playful XP bar at bottom */}
+      <div className="absolute left-0 right-0 bottom-[-18px] flex flex-col items-center w-full pointer-events-none">
         <div className="w-4/5 bg-gray-200 h-2.5 rounded-full relative overflow-hidden shadow animate-scale-in">
           <div
             className="bg-gradient-to-r from-yellow-300 to-green-400 h-full rounded-full transition-all"
             style={{ width: `${xp.curr}%` }}
           />
         </div>
-        <span className="text-xs text-gray-500 mt-1 font-medium">
+        <span className="text-[11px] text-gray-500 mt-1 font-medium">
           {xp.nextLevel} points to next level!
         </span>
       </div>
@@ -89,3 +91,4 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
 };
 
 export default GamifiedUserSummary;
+
