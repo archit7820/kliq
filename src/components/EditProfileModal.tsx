@@ -57,12 +57,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         }}
       >
         <h2 className="text-2xl font-bold mb-4 sm:mb-6 text-center">Edit Profile</h2>
+        {/* Main form: add pb-24 for room for sticky bottom bar */}
         <form
           onSubmit={e => {
             e.preventDefault();
             onSave();
           }}
-          className="space-y-4 pb-24" // extra padding bottom for actions
+          className="space-y-4 pb-36 sm:pb-24" // provide enough padding for action bar and nav
         >
           <div>
             <label className="block font-medium mb-1">Full Name</label>
@@ -128,10 +129,29 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             </div>
           </div>
           {errorMsg && <div className="text-red-500 text-sm">{errorMsg}</div>}
-          <div className="h-10" />
         </form>
-        {/* Bottom bar: sticky actions for mobile */}
-        <div className="fixed left-0 right-0 bottom-0 sm:static sm:bg-transparent bg-white dark:bg-zinc-900 w-full flex justify-end gap-2 px-4 py-3 border-t sm:border-0 z-40">
+        {/* Sticky Action Bar, always visible above BottomNav */}
+        <div
+          className="
+            fixed
+            left-0 right-0
+            bottom-[65px] sm:static
+            sm:bg-transparent
+            bg-white dark:bg-zinc-900
+            flex justify-end gap-2 px-4 py-3
+            border-t sm:border-0
+            z-50
+            shadow-[0_-2px_16px_0_rgba(0,0,0,0.06)]
+            w-full
+            sm:rounded-b-xl
+            transition-all
+          "
+          style={{
+            // 65px is the height of BottomNav
+            // if BottomNav height changes, adjust this.
+            pointerEvents: "auto"
+          }}
+        >
           <Button
             variant="outline"
             type="button"
