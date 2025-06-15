@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { useQuery } from '@tanstack/react-query';
@@ -14,7 +13,7 @@ import ActivityCard from '@/components/ActivityCard';
 import { Database } from '@/integrations/supabase/types';
 import { Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-// NEW: Import user badges hook/component
+import ProfileHeader from "@/components/ProfileHeader";
 import { useUserBadges } from "@/hooks/useUserBadges";
 import UserBadges from "@/components/UserBadges";
 
@@ -200,103 +199,23 @@ const ProfilePage = () => {
                 </div>
             </header>
             <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 mb-16">
-                <Card className="overflow-hidden border">
-                    <div className="bg-primary/10 h-24 sm:h-32" />
-                    <CardContent className="pt-0">
-                        <div className="flex flex-col items-center -mt-12 sm:-mt-16">
-                            {editing ? (
-                                <>
-                                    <label className="relative group cursor-pointer">
-                                        <img
-                                            src={editForm.avatar_url || ""}
-                                            alt="avatar"
-                                            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 object-cover border-background ring-2 ring-primary"
-                                        />
-                                        <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
-                                        <span className="absolute bottom-2 right-2 bg-primary text-white rounded-full p-1">
-                                            <Upload className="w-5 h-5" />
-                                        </span>
-                                        {avatarUploading && <LoaderCircle className="absolute w-5 h-5 animate-spin top-2 right-2 text-muted-foreground" />}
-                                    </label>
-                                    <Input
-                                        className="mt-2"
-                                        placeholder="Full name"
-                                        value={editForm.full_name}
-                                        onChange={e => setEditForm({ ...editForm, full_name: e.target.value })}
-                                    />
-                                    <Input
-                                        className="mt-2"
-                                        placeholder="Username"
-                                        value={editForm.username}
-                                        onChange={e => setEditForm({ ...editForm, username: e.target.value.replace(/\W/g, '') })}
-                                    />
-                                    <Input
-                                        className="mt-2"
-                                        placeholder="Location"
-                                        value={editForm.location}
-                                        onChange={e => setEditForm({ ...editForm, location: e.target.value })}
-                                    />
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {[
-                                            "Vegetarian", "Vegan", "Cyclist", "Gardener", "Minimalist", "Composter",
-                                            "Zero Waste", "Car Free", "Parent", "Techie", "Student", "Remote Worker"
-                                        ].map(tag => (
-                                            <button
-                                                key={tag}
-                                                type="button"
-                                                className={`px-3 py-1 rounded-full border ${editForm.lifestyle_tags.includes(tag) ? 'bg-green-300 text-green-900 font-semibold border-green-400' : 'bg-gray-100 text-gray-600 border-gray-200'} transition-all`}
-                                                onClick={() => handleTagToggle(tag)}
-                                            >
-                                                {tag}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {/* NEW: show badges under avatar (edit mode) */}
-                                    <div className="w-full flex justify-center mt-4">
-                                        {!badgesLoading && badges && badges.length > 0 && (
-                                            <UserBadges badges={badges} />
-                                        )}
-                                    </div>
-                                    <Button className="w-full mt-2" onClick={updateProfile}>Save Profile</Button>
-                                    <Button variant="outline" className="w-full mt-2" onClick={() => setEditing(false)}>Cancel</Button>
-                                    {errorMsg && (
-                                        <div className="text-red-500 text-xs mt-2 text-center">{errorMsg}</div>
-                                    )}
-                                </>
-                            ) : (
-                                <>
-                                    <Avatar className="w-24 h-24 sm:w-32 sm:h-32 mb-2 border-4 border-background ring-2 ring-primary">
-                                        <AvatarImage src={profile.avatar_url || undefined} />
-                                        <AvatarFallback className="text-4xl bg-secondary">
-                                            {profile.full_name?.charAt(0) || profile.username?.charAt(0) || 'U'}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <h2 className="text-2xl font-bold mt-2">{profile.full_name || `@${profile.username}`}</h2>
-                                    <p className="text-muted-foreground">{profile.username ? `@${profile.username}` : null}</p>
-                                    {/* NEW: show badges under avatar/name */}
-                                    <div className="w-full flex justify-center mt-2">
-                                        {!badgesLoading && badges && badges.length > 0 && (
-                                            <UserBadges badges={badges} />
-                                        )}
-                                    </div>
-                                    <Button variant="outline" size="sm" className="mt-2" onClick={() => setEditing(true)}>
-                                        Edit Profile
-                                    </Button>
-                                </>
-                            )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 mt-6 text-center">
-                            <div className="p-4 bg-secondary rounded-lg">
-                                <p className="font-bold text-2xl text-primary">{activities?.length || 0}</p>
-                                <p className="text-sm text-muted-foreground">Activities</p>
-                            </div>
-                            <div className="p-4 bg-secondary rounded-lg">
-                                <p className="font-bold text-2xl text-primary">{profile.kelp_points || 0}</p>
-                                <p className="text-sm text-muted-foreground">Kelp Points</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Refactored header section! */}
+                <ProfileHeader
+                    profile={profile}
+                    badges={badges}
+                    badgesLoading={badgesLoading}
+                    activitiesCount={activities?.length || 0}
+                    kelpPoints={profile.kelp_points || 0}
+                    editing={editing}
+                    editForm={editForm}
+                    avatarUploading={avatarUploading}
+                    errorMsg={errorMsg}
+                    setEditing={setEditing}
+                    updateProfile={updateProfile}
+                    setEditForm={setEditForm}
+                    handleTagToggle={handleTagToggle}
+                    handleAvatarUpload={handleAvatarUpload}
+                />
 
                 <Card>
                     <CardHeader>
