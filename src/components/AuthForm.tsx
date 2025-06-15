@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, Mail, Lock, LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import { Leaf, Mail, Lock, LogIn, UserPlus, AlertCircle, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
 
@@ -18,6 +18,40 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Invite code state
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviteValid, setInviteValid] = useState<boolean | null>(null);
+  const [checkingInvite, setCheckingInvite] = useState(false);
+
+  // Prefill invite code from URL param
+  useEffect(() => {
+    if (mode !== "signup") return;
+    const search = new URLSearchParams(window.location.search);
+    const code = search.get("inviteCode");
+    if (code && !inviteCode) setInviteCode(code);
+  }, [mode, inviteCode]);
+
+  // Validate invite code on change (signup only)
+  useEffect(() => {
+    if (mode !== "signup" || !inviteCode) {
+      setInviteValid(null);
+      return;
+    }
+    setCheckingInvite(true);
+    // Debounce to avoid spamming Supabase on every keystroke
+    const timeout = setTimeout(async () => {
+      const { data, error } = await supabase
+        .from("invites")
+        .select("code")
+        .eq("code", inviteCode.trim())
+        .eq("is_active", true)
+        .maybeSingle();
+      setInviteValid(!!(data && !error));
+      setCheckingInvite(false);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [inviteCode, mode]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -26,7 +60,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
     const redirectUrl = `${window.location.origin}/`;
 
     if (mode === 'signup') {
-      const { error: signUpError } = await supabase.auth.signUp({
+      // Require valid invite code
+      if (!inviteCode) {
+        setIsLoading(false);
+        setError('Invite code is required to sign up.');
+        toast({ title: "No Invite Code", description: "Please enter your invite code.", variant: "destructive" });
+        return;
+      }
+      if (!inviteValid) {
+        setIsLoading(false);
+        setError('Invalid or inactive invite code.');
+        toast({ title: "Invalid Invite Code", description: "Please check your code and try again.", variant: "destructive" });
+        return;
+      }
+      // Signup via Supabase
+      const { error: signUpError, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -36,10 +84,27 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
       if (signUpError) {
         setError(signUpError.message);
         toast({ title: "Signup Failed", description: signUpError.message, variant: "destructive" });
+        setIsLoading(false);
+        return;
       } else {
         toast({ title: "Signup Successful", description: "Please check your email to verify your account." });
-        // onSuccess will be called by onAuthStateChange in LoginPage
       }
+
+      // Wait for the new user session, then update their profile with the invite code
+      const pollSession = async (tries = 0) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          // Patch profile with invite code
+          await supabase
+            .from('profiles')
+            .update({ invite_code: inviteCode.trim() })
+            .eq('id', session.user.id);
+          onSuccess();
+        } else if (tries < 10) {
+          setTimeout(() => pollSession(tries + 1), 300);
+        }
+      };
+      pollSession();
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -49,13 +114,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
         setError(signInError.message);
         toast({ title: "Login Failed", description: signInError.message, variant: "destructive" });
       } else {
-        // onSuccess will be called by onAuthStateChange in LoginPage
+        onSuccess();
       }
+      setIsLoading(false);
     }
     setIsLoading(false);
   };
-
-  // Removed handleGoogleSignIn function
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -74,6 +138,32 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {mode === "signup" && (
+            <div>
+              <Label htmlFor="invite-code" className="text-gray-700 flex items-center">
+                <Gift className="inline-block w-5 h-5 mr-2 text-green-400" />
+                Invite Code
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="invite-code"
+                  autoFocus
+                  placeholder="e.g. FRIEND123"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  required
+                  className={`pl-3 ${inviteValid === false ? 'border-red-500' : inviteValid === true ? 'border-green-500' : ''}`}
+                  disabled={isLoading}
+                />
+                {inviteCode && (
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold"
+                        style={{ color: inviteValid === true ? "#16a34a" : inviteValid === false ? "#e11d48" : "#64748b" }}>
+                    {checkingInvite ? "…" : inviteValid === true ? "Valid" : inviteValid === false ? "Invalid" : ""}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
           <div>
             <Label htmlFor="email" className="text-gray-700">Email</Label>
             <div className="relative mt-1">
@@ -86,6 +176,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
                 required
                 className="pl-10"
                 placeholder="you@example.com"
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -101,32 +192,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
                 required
                 className="pl-10"
                 placeholder="••••••••"
+                disabled={isLoading}
               />
             </div>
           </div>
-          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={isLoading || (mode === 'signup' && !inviteCode)}>
             {isLoading ? 'Processing...' : (mode === 'signup' ? 'Sign Up' : 'Login')}
             {mode === 'signup' ? <UserPlus className="ml-2 w-5 h-5" /> : <LogIn className="ml-2 w-5 h-5" />}
           </Button>
         </form>
-
-        {/* Removed the "Or continue with" divider and Google Sign-In button */}
-        {/*
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
-            </div>
-          </div>
-          <Button onClick={handleGoogleSignIn} variant="outline" className="w-full mt-4" disabled={isLoading}>
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-2" />
-            Sign in with Google
-          </Button>
-        </div>
-        */}
       </div>
     </div>
   );
