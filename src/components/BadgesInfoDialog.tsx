@@ -26,17 +26,25 @@ export const BADGE_INFO = [
   },
 ];
 
-const BadgesInfoDialog: React.FC = () => {
+type BadgesInfoDialogProps = {
+  trigger?: React.ReactNode;
+};
+
+const BadgesInfoDialog: React.FC<BadgesInfoDialogProps> = ({ trigger }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button
-          aria-label="Badge Info"
-          className="flex items-center gap-1 p-1 rounded-full hover:bg-primary/10 transition shadow-md active:scale-95"
-        >
-          <Info className="w-5 h-5 text-primary hover:scale-125 transition-transform" />
-          <span className="sr-only">Info</span>
-        </button>
+        {trigger ? (
+          trigger
+        ) : (
+          <button
+            aria-label="Badge Info"
+            className="flex items-center gap-1 p-1 rounded-full hover:bg-primary/10 transition shadow-md active:scale-95"
+          >
+            <Info className="w-5 h-5 text-primary hover:scale-125 transition-transform" />
+            <span className="sr-only">Info</span>
+          </button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-sm rounded-2xl animate-fade-in">
         <DialogHeader>
