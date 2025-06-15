@@ -250,7 +250,14 @@ const ProfilePage = () => {
                                 </div>
                             </div>
                         ) : <p className="text-sm text-muted-foreground">No lifestyle tags added yet.</p>}
-                        <Button variant="outline" className="w-full mt-2">Edit Profile</Button>
+                        {/* Updated: Add onClick to show edit mode */}
+                        <Button
+                          variant="outline"
+                          className="w-full mt-2"
+                          onClick={() => setEditing(true)}
+                        >
+                          Edit Profile
+                        </Button>
                     </CardContent>
                 </Card>
 
