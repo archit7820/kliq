@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileStats from "@/components/ProfileStats";
 import EcoInsightsList from "@/components/EcoInsightsList";
 import LeaderboardList from "@/components/LeaderboardList";
-import ChallengeCreate from "@/components/ChallengeCreate";
 import { Button } from "@/components/ui/button";
 import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
@@ -61,7 +60,6 @@ const LeaderboardPage = () => {
         </div>
       </div>
       <div className="max-w-screen-md mx-auto w-full p-4 pb-20">
-
         <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
         <EcoInsightsList insights={insights} />
 
@@ -99,9 +97,6 @@ const LeaderboardPage = () => {
             )}
           </TabsContent>
         </Tabs>
-
-        <ChallengeCreate />
-
         {/* --- Impact Dashboard Preview --- */}
         <section className="max-w-screen-md mx-auto w-full mt-6">
           <div className="flex flex-row items-center justify-between mb-1">
@@ -135,3 +130,4 @@ const LeaderboardPage = () => {
 };
 
 export default LeaderboardPage;
+
