@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, PlusSquare, BarChart2, UserCircle, Compass } from 'lucide-react';
+import { Home, PlusSquare, BarChart2, UserCircle, Compass, Users } from 'lucide-react';
 
 const navItems = [
   { path: '/home', icon: Home, label: 'Home' },
   { path: '/feed', icon: Compass, label: 'Explore' },
   { path: '/log-activity', icon: PlusSquare, label: 'Log' },
   { path: '/leaderboard', icon: BarChart2, label: 'Stats' },
+  { path: '/communities', icon: Users, label: 'Communities' }, // <-- NEW tab added
   { path: '/profile', icon: UserCircle, label: 'Profile' },
 ];
 
@@ -15,7 +16,7 @@ const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-sm border-t md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-sm border-t md:hidden z-50">
       <div className="max-w-screen-md mx-auto flex justify-around items-center h-16 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname.startsWith(item.path);
