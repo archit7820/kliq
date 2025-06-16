@@ -15,7 +15,6 @@ const InviteFlow = () => {
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
   const [codeError, setCodeError] = useState("");
-  const [successCopy, setSuccessCopy] = useState(false);
 
   // --- For Unauthenticated User (join with code)
   const [joinCode, setJoinCode] = useState("");
@@ -24,7 +23,7 @@ const InviteFlow = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch referral/invite code for logged-in user
+  // Fetch referral code for logged-in user
   useEffect(() => {
     const fetchCode = async () => {
       if (!user) return;
@@ -50,16 +49,14 @@ const InviteFlow = () => {
   const handleCopyCode = () => {
     if (inviteCode) {
       navigator.clipboard.writeText(inviteCode);
-      setSuccessCopy(true);
       toast({
         title: "Copied!",
         description: "Your invite code is ready to share.",
       });
-      setTimeout(() => setSuccessCopy(false), 1100);
     }
   };
 
-  // Handler to regenerate referral code (optional, like modal)
+  // Handler to regenerate referral code
   const handleRegenerate = async () => {
     if (!user) return;
     setFetching(true);
@@ -88,10 +85,9 @@ const InviteFlow = () => {
     setIsChecking(true);
 
     const { data, error: supabaseError } = await supabase
-      .from("invites")
-      .select("code")
-      .eq("code", joinCode.trim())
-      .eq("is_active", true)
+      .from("profiles")
+      .select("referral_code")
+      .eq("referral_code", joinCode.trim())
       .maybeSingle();
 
     setIsChecking(false);
@@ -101,7 +97,7 @@ const InviteFlow = () => {
       return;
     }
     if (!data) {
-      setError("Invalid or inactive invite code.");
+      setError("Invalid invite code.");
       return;
     }
     setSuccess(true);
@@ -129,7 +125,7 @@ const InviteFlow = () => {
           <Sparkles className="w-12 h-12 text-green-600 mb-5 animate-pulse" />
           <h1 className="text-2xl font-bold text-green-800 mb-2 text-center">Share Your Kelp Invite Code</h1>
           <p className="text-gray-600 text-center mb-4">
-            Give your invite code to friends! When they join, you both earn 50 Kelp Points and become friends.
+            Give your invite code to friends! When they join, you both earn 50 Kelp Points.
           </p>
           <div className="flex items-center gap-2 bg-gray-100 px-5 py-3 rounded-xl font-mono text-xl text-green-800 mb-3 select-all">
             {fetching ? (
@@ -170,7 +166,7 @@ const InviteFlow = () => {
                 toast({
                   title: "Invite Copied",
                   description:
-                    "The invite message is ready to paste in any chat. You both get 50 Kelp Points and become friends!",
+                    "The invite message is ready to paste in any chat. You both get 50 Kelp Points!",
                 });
               }
             }}
@@ -179,7 +175,7 @@ const InviteFlow = () => {
             Share Invite Message
           </Button>
           <div className="mt-3 text-xs text-green-700 text-center">
-            Every successful invite becomes your Kelp friend!
+            Every successful invite earns both of you 50 Kelp Points!
           </div>
         </div>
         <div className="mt-8 text-center text-sm text-gray-400 max-w-xs leading-relaxed">

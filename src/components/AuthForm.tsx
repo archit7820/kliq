@@ -41,10 +41,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
     // Debounce to avoid spamming Supabase on every keystroke
     const timeout = setTimeout(async () => {
       const { data, error } = await supabase
-        .from("invites")
-        .select("code")
-        .eq("code", inviteCode.trim())
-        .eq("is_active", true)
+        .from("profiles")
+        .select("referral_code")
+        .eq("referral_code", inviteCode.trim())
         .maybeSingle();
       setInviteValid(!!(data && !error));
       setCheckingInvite(false);
@@ -69,32 +68,34 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
       }
       if (!inviteValid) {
         setIsLoading(false);
-        setError('Invalid or inactive invite code.');
+        setError('Invalid invite code.');
         toast({ title: "Invalid Invite Code", description: "Please check your code and try again.", variant: "destructive" });
         return;
       }
+      
       // Signup via Supabase
-      const { error: signUpError, data } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
         },
       });
+      
       if (signUpError) {
         setError(signUpError.message);
         toast({ title: "Signup Failed", description: signUpError.message, variant: "destructive" });
         setIsLoading(false);
         return;
-      } else {
-        toast({ title: "Signup Successful", description: "Please check your email to verify your account." });
       }
+
+      toast({ title: "Signup Successful", description: "Please check your email to verify your account." });
 
       // Wait for the new user session, then update their profile with the invite code
       const pollSession = async (tries = 0) => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id) {
-          // Patch profile with invite code
+          // Update profile with invite code to trigger the referral system
           await supabase
             .from('profiles')
             .update({ invite_code: inviteCode.trim() })

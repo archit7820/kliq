@@ -514,54 +514,6 @@ export type Database = {
           },
         ]
       }
-      invites: {
-        Row: {
-          code: string
-          consumed_at: string | null
-          consumed_by: string | null
-          created_at: string
-          created_by: string | null
-          is_active: boolean
-          usage_count: number
-          usage_limit: number
-        }
-        Insert: {
-          code: string
-          consumed_at?: string | null
-          consumed_by?: string | null
-          created_at?: string
-          created_by?: string | null
-          is_active?: boolean
-          usage_count?: number
-          usage_limit?: number
-        }
-        Update: {
-          code?: string
-          consumed_at?: string | null
-          consumed_by?: string | null
-          created_at?: string
-          created_by?: string | null
-          is_active?: boolean
-          usage_count?: number
-          usage_limit?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invites_consumed_by_fkey"
-            columns: ["consumed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invites_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       milestones: {
         Row: {
           created_at: string | null
@@ -601,6 +553,8 @@ export type Database = {
           full_name: string | null
           id: string
           invite_code: string | null
+          invited_by_code: string | null
+          invited_by_user_id: string | null
           is_og_user: boolean | null
           kelp_points: number | null
           lifestyle_tags: string[] | null
@@ -619,6 +573,8 @@ export type Database = {
           full_name?: string | null
           id: string
           invite_code?: string | null
+          invited_by_code?: string | null
+          invited_by_user_id?: string | null
           is_og_user?: boolean | null
           kelp_points?: number | null
           lifestyle_tags?: string[] | null
@@ -637,6 +593,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           invite_code?: string | null
+          invited_by_code?: string | null
+          invited_by_user_id?: string | null
           is_og_user?: boolean | null
           kelp_points?: number | null
           lifestyle_tags?: string[] | null
@@ -649,11 +607,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_invite_code_fkey"
-            columns: ["invite_code"]
+            foreignKeyName: "profiles_invited_by_user_id_fkey"
+            columns: ["invited_by_user_id"]
             isOneToOne: false
-            referencedRelation: "invites"
-            referencedColumns: ["code"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -745,6 +703,10 @@ export type Database = {
           last_message_at: string
           unread_count: number
         }[]
+      }
+      is_valid_invite_code: {
+        Args: { code: string }
+        Returns: boolean
       }
     }
     Enums: {

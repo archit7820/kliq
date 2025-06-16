@@ -145,7 +145,7 @@ const FriendInviteModal = ({
                   toast({
                     title: "Invite Copied",
                     description:
-                      "The invite message is ready to paste in any chat. You both get 50 Kelp Points on join!",
+                      "The invite message is ready to paste in any chat. You both get 50 Kelp Points!",
                   });
                 }
               }}
