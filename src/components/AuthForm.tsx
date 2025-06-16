@@ -33,21 +33,37 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
 
   // Validate invite code on change (signup only)
   useEffect(() => {
-    if (mode !== "signup" || !inviteCode) {
+    if (mode !== "signup" || !inviteCode.trim()) {
       setInviteValid(null);
       return;
     }
+    
     setCheckingInvite(true);
+    
     // Debounce to avoid spamming Supabase on every keystroke
     const timeout = setTimeout(async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("referral_code")
-        .eq("referral_code", inviteCode.trim())
-        .maybeSingle();
-      setInviteValid(!!(data && !error));
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("referral_code")
+          .eq("referral_code", inviteCode.trim().toUpperCase())
+          .maybeSingle();
+        
+        console.log("Invite validation result:", { data, error, searchCode: inviteCode.trim().toUpperCase() });
+        
+        if (error) {
+          console.error("Error validating invite code:", error);
+          setInviteValid(false);
+        } else {
+          setInviteValid(!!data);
+        }
+      } catch (err) {
+        console.error("Exception validating invite code:", err);
+        setInviteValid(false);
+      }
       setCheckingInvite(false);
     }, 300);
+    
     return () => clearTimeout(timeout);
   }, [inviteCode, mode]);
 
@@ -60,7 +76,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
 
     if (mode === 'signup') {
       // Require valid invite code
-      if (!inviteCode) {
+      if (!inviteCode.trim()) {
         setIsLoading(false);
         setError('Invite code is required to sign up.');
         toast({ title: "No Invite Code", description: "Please enter your invite code.", variant: "destructive" });
@@ -74,7 +90,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
       }
       
       // Signup via Supabase
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -89,20 +105,38 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
         return;
       }
 
+      console.log("Signup successful, user:", signUpData.user?.id);
       toast({ title: "Signup Successful", description: "Please check your email to verify your account." });
 
       // Wait for the new user session, then update their profile with the invite code
       const pollSession = async (tries = 0) => {
+        console.log(`Polling for session, attempt ${tries + 1}`);
         const { data: { session } } = await supabase.auth.getSession();
+        
         if (session?.user?.id) {
+          console.log("Session found, updating profile with invite code:", inviteCode.trim().toUpperCase());
+          
           // Update profile with invite code to trigger the referral system
-          await supabase
+          const { error: updateError } = await supabase
             .from('profiles')
-            .update({ invite_code: inviteCode.trim() })
+            .update({ invite_code: inviteCode.trim().toUpperCase() })
             .eq('id', session.user.id);
+            
+          if (updateError) {
+            console.error("Error updating profile with invite code:", updateError);
+            toast({ title: "Warning", description: "Account created but invite code processing failed.", variant: "destructive" });
+          } else {
+            console.log("Profile updated successfully with invite code");
+            toast({ title: "Success!", description: "Account created and invite code applied. You both earned 50 Kelp Points!" });
+          }
+          
           onSuccess();
-        } else if (tries < 10) {
-          setTimeout(() => pollSession(tries + 1), 300);
+        } else if (tries < 15) {
+          setTimeout(() => pollSession(tries + 1), 500);
+        } else {
+          console.error("Failed to get session after multiple attempts");
+          toast({ title: "Warning", description: "Account created but please log in manually.", variant: "destructive" });
+          onSuccess();
         }
       };
       pollSession();
@@ -197,7 +231,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
               />
             </div>
           </div>
-          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={isLoading || (mode === 'signup' && !inviteCode)}>
+          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={isLoading || (mode === 'signup' && (!inviteCode || !inviteValid))}>
             {isLoading ? 'Processing...' : (mode === 'signup' ? 'Sign Up' : 'Login')}
             {mode === 'signup' ? <UserPlus className="ml-2 w-5 h-5" /> : <LogIn className="ml-2 w-5 h-5" />}
           </Button>

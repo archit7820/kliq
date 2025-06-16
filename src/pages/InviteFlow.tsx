@@ -84,27 +84,39 @@ const InviteFlow = () => {
     setSuccess(false);
     setIsChecking(true);
 
-    const { data, error: supabaseError } = await supabase
-      .from("profiles")
-      .select("referral_code")
-      .eq("referral_code", joinCode.trim())
-      .maybeSingle();
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("referral_code", joinCode.trim().toUpperCase())
+        .maybeSingle();
 
-    setIsChecking(false);
+      console.log("Invite validation result:", { data, error: supabaseError, searchCode: joinCode.trim().toUpperCase() });
 
-    if (supabaseError) {
+      if (supabaseError) {
+        console.error("Error validating invite code:", supabaseError);
+        setError("Something went wrong, try again.");
+        setIsChecking(false);
+        return;
+      }
+      
+      if (!data) {
+        setError("Invalid invite code.");
+        setIsChecking(false);
+        return;
+      }
+      
+      setSuccess(true);
+      toast({ title: "Invite Accepted!", description: "Welcome to Kelp!" });
+      setTimeout(() => {
+        window.location.href = `/signup?inviteCode=${joinCode.trim().toUpperCase()}`;
+      }, 900);
+    } catch (err) {
+      console.error("Exception validating invite code:", err);
       setError("Something went wrong, try again.");
-      return;
     }
-    if (!data) {
-      setError("Invalid invite code.");
-      return;
-    }
-    setSuccess(true);
-    toast({ title: "Invite Accepted!", description: "Welcome to Kelp!" });
-    setTimeout(() => {
-      window.location.href = `/signup?inviteCode=${joinCode.trim()}`;
-    }, 900);
+    
+    setIsChecking(false);
   };
 
   // Loading UI
@@ -200,7 +212,7 @@ const InviteFlow = () => {
             autoFocus
             placeholder="Enter invite code"
             value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
+            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
             disabled={isChecking || success}
             className="text-lg"
           />
