@@ -43,19 +43,26 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
     // Debounce to avoid spamming Supabase on every keystroke
     const timeout = setTimeout(async () => {
       try {
+        const searchCode = inviteCode.trim().toUpperCase();
+        console.log("Validating invite code:", searchCode);
+        
         const { data, error } = await supabase
           .from("profiles")
-          .select("referral_code")
-          .eq("referral_code", inviteCode.trim().toUpperCase())
+          .select("referral_code, id, username")
+          .eq("referral_code", searchCode)
           .maybeSingle();
         
-        console.log("Invite validation result:", { data, error, searchCode: inviteCode.trim().toUpperCase() });
+        console.log("Invite validation result:", { data, error, searchCode });
         
         if (error) {
           console.error("Error validating invite code:", error);
           setInviteValid(false);
+        } else if (data) {
+          console.log("Valid invite code found for user:", data.username || data.id);
+          setInviteValid(true);
         } else {
-          setInviteValid(!!data);
+          console.log("No user found with referral code:", searchCode);
+          setInviteValid(false);
         }
       } catch (err) {
         console.error("Exception validating invite code:", err);
@@ -84,7 +91,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
       }
       if (!inviteValid) {
         setIsLoading(false);
-        setError('Invalid invite code.');
+        setError('Invalid invite code. Please check and try again.');
         toast({ title: "Invalid Invite Code", description: "Please check your code and try again.", variant: "destructive" });
         return;
       }

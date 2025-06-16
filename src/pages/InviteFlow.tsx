@@ -85,13 +85,16 @@ const InviteFlow = () => {
     setIsChecking(true);
 
     try {
+      const searchCode = joinCode.trim().toUpperCase();
+      console.log("Validating invite code:", searchCode);
+
       const { data, error: supabaseError } = await supabase
         .from("profiles")
-        .select("referral_code")
-        .eq("referral_code", joinCode.trim().toUpperCase())
+        .select("referral_code, id, username")
+        .eq("referral_code", searchCode)
         .maybeSingle();
 
-      console.log("Invite validation result:", { data, error: supabaseError, searchCode: joinCode.trim().toUpperCase() });
+      console.log("Invite validation result:", { data, error: supabaseError, searchCode });
 
       if (supabaseError) {
         console.error("Error validating invite code:", supabaseError);
@@ -101,15 +104,17 @@ const InviteFlow = () => {
       }
       
       if (!data) {
-        setError("Invalid invite code.");
+        console.log("No user found with referral code:", searchCode);
+        setError("Invalid invite code. Please check and try again.");
         setIsChecking(false);
         return;
       }
       
+      console.log("Valid invite code found for user:", data.username || data.id);
       setSuccess(true);
       toast({ title: "Invite Accepted!", description: "Welcome to Kelp!" });
       setTimeout(() => {
-        window.location.href = `/signup?inviteCode=${joinCode.trim().toUpperCase()}`;
+        window.location.href = `/signup?inviteCode=${searchCode}`;
       }, 900);
     } catch (err) {
       console.error("Exception validating invite code:", err);
