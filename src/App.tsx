@@ -9,7 +9,6 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import SignupPage from "./pages/SignupPage";
-import InviteFlow from "./pages/InviteFlow";
 import FriendsPage from "./pages/FriendsPage";
 import LogActivityPage from "./pages/LogActivityPage";
 import FeedPage from "./pages/FeedPage";
@@ -20,7 +19,6 @@ import MessagesPage from "./pages/MessagesPage";
 import ChatPage from "./pages/ChatPage";
 import CommunitiesPage from "./pages/CommunitiesPage";
 import CommunityPage from "./pages/CommunityPage";
-import WelcomePage from "./pages/WelcomePage";
 import ImpactDashboardPage from "./pages/ImpactDashboardPage";
 import ChallengesPage from "./pages/ChallengesPage";
 import CreateChallengePage from "./pages/CreateChallengePage";
@@ -58,12 +56,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<WelcomePage />} />
-          <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/" element={<Index />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/invite" element={<InviteFlow />} />
           {/* Everything else goes through MainAppRoutes to get consistent BottomNav */}
           <Route path="/*" element={<MainAppRoutes />} />
         </Routes>

@@ -12,12 +12,11 @@ const Index = () => {
       if (user) {
         navigate('/home');
       } else {
-        navigate('/welcome');
+        navigate('/login');
       }
     }
   }, [user, loading, navigate]);
 
-  // Optional: Show a loading spinner or a blank page while redirecting
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -27,7 +26,7 @@ const Index = () => {
     );
   }
 
-  return null; // Or some minimal loading UI
+  return null;
 };
 
 export default Index;
