@@ -5,7 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, LoaderCircle, MessageSquare, User } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, MessageSquare, User, Sparkles, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 const MessagesPage = () => {
@@ -20,49 +22,98 @@ const MessagesPage = () => {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <header className="bg-white/80 shadow-sm p-4 flex items-center gap-2 sticky top-0 z-20 backdrop-blur-sm">
-                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                    <ArrowLeft />
+        <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
+            <header className="bg-white shadow-sm border-b p-4 flex items-center gap-3 sticky top-0 z-20">
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-gray-100">
+                    <ArrowLeft className="w-5 h-5" />
                 </Button>
-                <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Messages</h1>
+                <div className="flex items-center gap-2">
+                    <MessageSquare className="w-6 h-6 text-blue-600" />
+                    <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
+                </div>
+                <div className="flex items-center gap-1 text-sm text-gray-500 ml-auto">
+                    <Sparkles className="w-4 h-4" />
+                    <span>AI-enhanced</span>
+                </div>
             </header>
-            <main className="flex-grow">
+
+            <main className="flex-grow p-6 max-w-2xl mx-auto w-full">
                 {isLoading ? (
-                    <div className="flex justify-center items-center h-full p-8">
-                        <LoaderCircle className="w-8 h-8 animate-spin text-green-600" />
+                    <div className="space-y-3">
+                        {[1, 2, 3].map((i) => (
+                            <Card key={i}>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center gap-4 animate-pulse">
+                                        <div className="w-12 h-12 bg-gray-200 rounded-full" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-4 bg-gray-200 rounded w-1/3" />
+                                            <div className="h-3 bg-gray-200 rounded w-1/2" />
+                                        </div>
+                                        <div className="h-3 bg-gray-200 rounded w-12" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 ) : !conversations || conversations.length === 0 ? (
-                    <div className="text-center p-8 mt-16 flex flex-col items-center">
-                        <MessageSquare className="w-16 h-16 text-gray-300 mb-4" />
-                        <h2 className="text-xl font-semibold text-gray-600">No Messages Yet</h2>
-                        <p className="text-gray-400 mt-2">Start a conversation with a friend from the friends page.</p>
-                        <Button className="mt-6" onClick={() => navigate('/friends')}>Find Friends</Button>
-                    </div>
+                    <Card className="border-dashed border-2 border-gray-200">
+                        <CardContent className="p-12 text-center">
+                            <div className="p-4 bg-blue-100 rounded-full w-fit mx-auto mb-6">
+                                <MessageSquare className="w-12 h-12 text-blue-600" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-3">No conversations yet</h2>
+                            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                                Start meaningful conversations with friends who share your interests and values.
+                            </p>
+                            <div className="flex items-center justify-center gap-2 mb-4 text-sm text-gray-400">
+                                <Zap className="w-4 h-4" />
+                                <span>AI will help suggest conversation starters</span>
+                            </div>
+                            <Button onClick={() => navigate('/friends')} className="bg-blue-600 hover:bg-blue-700">
+                                Find Friends to Chat With
+                            </Button>
+                        </CardContent>
+                    </Card>
                 ) : (
-                    <div className="divide-y divide-gray-200">
+                    <div className="space-y-3">
                         {conversations.map((convo) => (
-                            <Link to={`/chat/${convo.other_user_id}`} key={convo.other_user_id} className="flex items-center gap-4 p-4 hover:bg-gray-100 transition-colors duration-150">
-                                <Avatar className="h-12 w-12 border">
-                                    <AvatarImage src={convo.avatar_url || undefined} />
-                                    <AvatarFallback>
-                                        {convo.full_name?.charAt(0) || <User />}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex justify-between items-start">
-                                        <p className="font-semibold text-gray-800 truncate">{convo.full_name || convo.username}</p>
-                                        <p className="text-xs text-gray-400 shrink-0 ml-2">{convo.last_message_at ? formatDistanceToNow(new Date(convo.last_message_at), { addSuffix: true }) : ''}</p>
-                                    </div>
-                                    <div className="flex justify-between items-center mt-1">
-                                        <p className="text-sm text-gray-500 truncate">{convo.last_message_content}</p>
-                                        {convo.unread_count > 0 && (
-                                            <span className="bg-green-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                                                {String(convo.unread_count)}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
+                            <Link 
+                                to={`/chat/${convo.other_user_id}`} 
+                                key={convo.other_user_id} 
+                                className="block"
+                            >
+                                <Card className="hover:shadow-md transition-all duration-200 hover:scale-[1.01]">
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="h-12 w-12 border-2 border-gray-100">
+                                                <AvatarImage src={convo.avatar_url || undefined} />
+                                                <AvatarFallback className="bg-gray-100">
+                                                    {convo.full_name?.charAt(0) || <User className="w-6 h-6 text-gray-400" />}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h3 className="font-medium text-gray-900 truncate">
+                                                        {convo.full_name || convo.username}
+                                                    </h3>
+                                                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                                                        {convo.unread_count > 0 && (
+                                                            <Badge className="bg-blue-600 text-white text-xs px-2 py-1">
+                                                                {String(convo.unread_count)}
+                                                            </Badge>
+                                                        )}
+                                                        <span className="text-xs text-gray-400">
+                                                            {convo.last_message_at ? formatDistanceToNow(new Date(convo.last_message_at), { addSuffix: true }) : ''}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-gray-500 truncate">
+                                                    {convo.last_message_content || "No messages yet"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </Link>
                         ))}
                     </div>

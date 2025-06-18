@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { Users, UserCheck, UserMinus, UserPlus, Smile } from "lucide-react";
+import { Users, UserCheck, UserMinus, UserPlus, Bell, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -140,78 +142,99 @@ const FriendRequests = () => {
   };
 
   return (
-    <section>
-      <h2 className="font-extrabold text-xl mb-3 flex gap-2 items-center text-blue-700 tracking-tight">
-        <UserPlus className="w-6 h-6 text-blue-500" />
-        <span className="bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">Friend Requests</span>
-      </h2>
-
-      <div className="space-y-3">
-        {loading && (
-          <div className="animate-pulse px-4 py-6 rounded-lg bg-gradient-to-r from-blue-100 via-green-100 to-green-50 flex items-center gap-3">
-            <UserPlus className="w-8 h-8 text-blue-200 animate-pulse" />
-            <div className="h-4 w-32 bg-blue-100 rounded" />
-          </div>
+    <section className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-orange-100 rounded-lg">
+          <Bell className="w-5 h-5 text-orange-600" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900">Friend Requests</h2>
+        {reqs.length > 0 && (
+          <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+            {reqs.length} pending
+          </Badge>
         )}
-        {!loading && reqs.length === 0 && (
-          <div className="bg-white border-2 border-dashed border-blue-200 rounded-2xl flex flex-col gap-2 items-center p-7 mt-1 shadow-[0_6px_40px_rgba(37,99,235,0.09)] animate-fade-in">
-            <Smile className="w-10 h-10 text-blue-200 mb-1" />
-            <span className="text-blue-400 font-semibold">No friend requests</span>
-            <span className="text-gray-400 text-xs">Share your invite or ask friends to add you!</span>
-          </div>
-        )}
+        <div className="flex items-center gap-1 text-sm text-gray-500">
+          <Sparkles className="w-4 h-4" />
+          <span>Smart suggestions</span>
+        </div>
+      </div>
 
-        <div className="flex flex-col gap-4">
-          {reqs.map(req => (
-            <div
-              key={req.id}
-              className="bg-gradient-to-br from-blue-50/80 via-green-50/80 to-white rounded-3xl shadow-lg px-6 py-4 flex items-center gap-5 border border-blue-100 hover:shadow-2xl transition group"
-            >
-              {req.profile?.avatar_url ? (
-                <img
-                  src={req.profile.avatar_url}
-                  alt="avatar"
-                  className="w-11 h-11 rounded-full border-2 border-blue-300 object-cover shadow"
-                />
-              ) : (
-                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-200 via-green-200 to-green-100 flex items-center justify-center text-blue-500 border-2 border-blue-100">
-                  <Users className="w-6 h-6" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <span className="block font-bold text-blue-700 truncate">
-                  {req.profile?.full_name || req.profile?.username || "User"}
-                </span>
-                <span className="block text-xs text-blue-400 font-mono truncate">
-                  @{req.profile?.username || ""}
-                </span>
+      {loading && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 animate-pulse">
+              <div className="w-12 h-12 bg-gray-200 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-1/3" />
+                <div className="h-3 bg-gray-200 rounded w-1/4" />
               </div>
-              <div className="flex flex-col gap-1 items-end">
-                <Badge variant="secondary" className="mb-1 bg-gradient-to-r from-blue-400 to-green-300 text-white shadow">
-                  Pending
-                </Badge>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    className="rounded-full border border-blue-300 bg-blue-50 hover:bg-blue-100 px-2.5 py-2"
-                    onClick={() => handleRespond(req, true)}
-                    title="Accept"
-                  >
-                    <UserCheck className="w-5 h-5 text-green-500" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="rounded-full border border-red-300 bg-red-50 hover:bg-red-100 px-2.5 py-2"
-                    onClick={() => handleRespond(req, false)}
-                    title="Decline"
-                  >
-                    <UserMinus className="w-5 h-5 text-red-400" />
-                  </Button>
-                </div>
+              <div className="flex gap-2">
+                <div className="w-8 h-8 bg-gray-200 rounded" />
+                <div className="w-8 h-8 bg-gray-200 rounded" />
               </div>
             </div>
-          ))}
-        </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && reqs.length === 0 && (
+        <Card className="border-dashed border-2 border-gray-200">
+          <CardContent className="p-8 text-center">
+            <div className="p-3 bg-gray-100 rounded-full w-fit mx-auto mb-4">
+              <Bell className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="font-medium text-gray-900 mb-2">No pending requests</h3>
+            <p className="text-sm text-gray-500">New friend requests will appear here when received.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-3">
+        {reqs.map(req => (
+          <Card key={req.id} className="hover:shadow-md transition-shadow duration-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                {req.profile?.avatar_url ? (
+                  <img
+                    src={req.profile.avatar_url}
+                    alt="avatar"
+                    className="w-12 h-12 rounded-full border-2 border-gray-100 object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-gray-400" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 truncate">
+                    {req.profile?.full_name || req.profile?.username || "User"}
+                  </h3>
+                  <p className="text-sm text-gray-500 truncate">@{req.profile?.username || ""}</p>
+                  <p className="text-xs text-gray-400 mt-1">Wants to connect with you</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleRespond(req, true)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <UserCheck className="w-4 h-4 mr-1" />
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleRespond(req, false)}
+                    className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                  >
+                    <UserMinus className="w-4 h-4 mr-1" />
+                    Decline
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </section>
   );

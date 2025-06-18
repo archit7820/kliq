@@ -1,8 +1,10 @@
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { User, MessageSquare, UsersRound } from "lucide-react";
+import { User, MessageCircle, Users, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 type Friend = {
   id: string;
@@ -111,60 +113,80 @@ const FriendsList = () => {
   if (!user) return null;
 
   return (
-    <section>
-      <h2 className="font-extrabold text-xl mb-4 flex items-center gap-2 text-green-700 drop-shadow-sm tracking-wide">
-        <UsersRound className="w-6 h-6 text-green-400" />
-        <span className="bg-gradient-to-r from-green-500 to-teal-400 bg-clip-text text-transparent">Your Friends</span>
-      </h2>
-      <div className="space-y-3">
-        {loading && (
-          <div className="flex items-center gap-2 animate-pulse px-4 py-8 justify-center">
-            <User className="w-8 h-8 text-green-200 animate-pulse" />
-            <div className="h-4 w-28 rounded bg-green-100" />
-          </div>
-        )}
-        {!loading && friends.length === 0 && (
-          <div className="flex flex-col items-center gap-2 bg-white p-8 rounded-2xl border-2 border-dashed border-green-200 shadow-[0_6px_40px_rgba(16,167,132,.07)] animate-fade-in">
-            <User className="w-12 h-12 text-green-200 mb-2" />
-            <span className="text-green-400 font-semibold text-base">You have no friends yet.</span>
-            <span className="text-gray-400 text-xs mb-2">Invite your first friend!</span>
-          </div>
-        )}
-        <div className="grid gap-5 sm:grid-cols-2">
-          {friends.map((f) => {
-            const friendId = f.user1_id === user.id ? f.user2_id : f.user1_id;
-            return (
-              <div
-                key={f.id}
-                className="bg-gradient-to-br from-green-100/70 to-blue-100/60 rounded-3xl border border-green-200 shadow-xl px-6 py-5 flex items-center gap-4
-                  hover:scale-105 hover:shadow-2xl transition-transform duration-200 ease-in-out group relative"
-              >
-                {f.profile?.avatar_url ? (
-                  <img
-                    src={f.profile.avatar_url}
-                    alt="avatar"
-                    className="w-14 h-14 rounded-full border-2 border-green-400 shadow-inner object-cover"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-green-200 via-blue-200 to-green-100 flex items-center justify-center text-green-500 border-2 border-green-100">
-                    <User className="w-7 h-7" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <span className="block font-bold truncate text-green-800 text-lg">
-                    {f.profile?.full_name || f.profile?.username || "User"}
-                  </span>
-                  <span className="block text-sm text-green-400 truncate font-mono">@{f.profile?.username}</span>
-                </div>
-                <Link to={`/chat/${friendId}`} title="Message friend">
-                  <span className="flex items-center justify-center p-2 rounded-full cursor-pointer group-hover:bg-blue-100/50 transition">
-                    <MessageSquare className="w-6 h-6 text-blue-400 opacity-80 group-hover:text-blue-600 transition" />
-                  </span>
-                </Link>
-              </div>
-            )
-          })}
+    <section className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-blue-100 rounded-lg">
+          <Users className="w-5 h-5 text-blue-600" />
         </div>
+        <h2 className="text-xl font-semibold text-gray-900">Your Friends</h2>
+        <div className="flex items-center gap-1 text-sm text-gray-500">
+          <Sparkles className="w-4 h-4" />
+          <span>AI-enhanced connections</span>
+        </div>
+      </div>
+
+      {loading && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 animate-pulse">
+              <div className="w-12 h-12 bg-gray-200 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-1/3" />
+                <div className="h-3 bg-gray-200 rounded w-1/4" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && friends.length === 0 && (
+        <Card className="border-dashed border-2 border-gray-200">
+          <CardContent className="p-8 text-center">
+            <div className="p-3 bg-gray-100 rounded-full w-fit mx-auto mb-4">
+              <User className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="font-medium text-gray-900 mb-2">No friends yet</h3>
+            <p className="text-sm text-gray-500">Start connecting with people who share your interests!</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {friends.map((f) => {
+          const friendId = f.user1_id === user.id ? f.user2_id : f.user1_id;
+          return (
+            <Card key={f.id} className="hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  {f.profile?.avatar_url ? (
+                    <img
+                      src={f.profile.avatar_url}
+                      alt="avatar"
+                      className="w-12 h-12 rounded-full border-2 border-gray-100 object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                      <User className="w-6 h-6 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {f.profile?.full_name || f.profile?.username || "User"}
+                    </h3>
+                    <p className="text-sm text-gray-500 truncate">@{f.profile?.username}</p>
+                  </div>
+                  <Link 
+                    to={`/chat/${friendId}`} 
+                    className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Send message"
+                  >
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </section>
   );

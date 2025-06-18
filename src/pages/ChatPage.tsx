@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +7,8 @@ import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, User, LoaderCircle, MessageCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Send, User, MessageCircle, Sparkles, MoreVertical } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
 type Message = Tables<'direct_messages'>;
@@ -112,79 +114,134 @@ const ChatPage = () => {
 
     // Loading/Error states
     if (isLoadingProfile || isLoadingMessages) {
-        return <div className="flex justify-center items-center h-screen"><LoaderCircle className="w-8 h-8 animate-spin text-green-600" /><span className="ml-4 text-green-700">Loading...</span></div>;
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">Loading conversation...</p>
+                </div>
+            </div>
+        );
     }
-    if (profileError) {
-        return <div className="flex flex-col justify-center items-center h-screen text-red-500">Error loading friend's profile.</div>;
-    }
-    if (!friendProfile) {
-        return <div className="flex flex-col justify-center items-center h-screen text-gray-400">
-            <MessageCircle className="w-10 h-10 mb-3"/>
-            Could not load this user’s profile.
-        </div>;
+    
+    if (profileError || !friendProfile) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Card>
+                    <CardContent className="p-8 text-center">
+                        <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <h2 className="text-lg font-medium text-gray-900 mb-2">User not found</h2>
+                        <p className="text-gray-500 mb-4">Could not load this user's profile.</p>
+                        <Button onClick={() => navigate(-1)}>Go Back</Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
     }
 
-    // Ensure always enough space for input above bottom nav, always stays pinned/padded, and auto-scroll works.
     return (
         <div className="flex flex-col h-screen bg-gray-50">
-            <header className="bg-white/80 shadow-sm p-3 flex items-center gap-3 sticky top-0 z-20 backdrop-blur-sm border-b">
-                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                    <ArrowLeft />
+            <header className="bg-white shadow-sm border-b p-4 flex items-center gap-3 sticky top-0 z-20">
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-gray-100">
+                    <ArrowLeft className="w-5 h-5" />
                 </Button>
-                <Link to={`/profile/${friendId}`} className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border">
+                <Link to={`/profile/${friendId}`} className="flex items-center gap-3 flex-1">
+                    <Avatar className="h-10 w-10 border-2 border-gray-100">
                         <AvatarImage src={friendProfile?.avatar_url || undefined} />
-                        <AvatarFallback>{friendProfile?.full_name?.charAt(0) || <User />}</AvatarFallback>
+                        <AvatarFallback className="bg-gray-100">
+                            {friendProfile?.full_name?.charAt(0) || <User className="w-5 h-5 text-gray-400" />}
+                        </AvatarFallback>
                     </Avatar>
-                    <div>
-                        <h2 className="font-bold text-gray-800">{friendProfile?.full_name || friendProfile?.username}</h2>
-                        <p className="text-xs text-gray-500">@{friendProfile?.username}</p>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="font-semibold text-gray-900 truncate">
+                            {friendProfile?.full_name || friendProfile?.username}
+                        </h2>
+                        <p className="text-sm text-gray-500 truncate">@{friendProfile?.username}</p>
                     </div>
                 </Link>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                        <Sparkles className="w-3 h-3" />
+                        <span>AI</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="hover:bg-gray-100">
+                        <MoreVertical className="w-4 h-4" />
+                    </Button>
+                </div>
             </header>
+
             <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-32">
                 {messagesError && (
-                  <div className="text-center text-red-500">Could not load messages.</div>
+                    <Card className="border-red-200 bg-red-50">
+                        <CardContent className="p-4 text-center text-red-600">
+                            Could not load messages. Please try again.
+                        </CardContent>
+                    </Card>
                 )}
-                {messages?.length === 0 && (
-                  <div className="flex flex-col items-center justify-center mt-24 text-gray-400">
-                    <MessageCircle className="w-12 h-12 mb-2"/>
-                    <span>No messages yet. Start a conversation!</span>
-                  </div>
+                
+                {messages?.length === 0 && !messagesError && (
+                    <Card className="border-dashed border-2 border-gray-200">
+                        <CardContent className="p-8 text-center">
+                            <div className="p-3 bg-blue-100 rounded-full w-fit mx-auto mb-4">
+                                <MessageCircle className="w-8 h-8 text-blue-600" />
+                            </div>
+                            <h3 className="font-medium text-gray-900 mb-2">Start the conversation</h3>
+                            <p className="text-sm text-gray-500 mb-4">Send the first message to begin chatting!</p>
+                            <div className="flex items-center justify-center gap-1 text-xs text-gray-400">
+                                <Sparkles className="w-3 h-3" />
+                                <span>AI suggestions coming soon</span>
+                            </div>
+                        </CardContent>
+                    </Card>
                 )}
+
                 {messages?.map((msg) => (
-                    <div key={msg.id} className={`flex items-end gap-2 ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                    <div key={msg.id} className={`flex items-end gap-3 ${msg.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
                         {msg.sender_id !== user?.id && (
-                            <Avatar className="h-8 w-8 self-end">
+                            <Avatar className="h-8 w-8 border">
                                 <AvatarImage src={friendProfile?.avatar_url || undefined} />
-                                <AvatarFallback>{friendProfile?.full_name?.charAt(0) || 'F'}</AvatarFallback>
+                                <AvatarFallback className="bg-gray-100 text-xs">
+                                    {friendProfile?.full_name?.charAt(0) || 'F'}
+                                </AvatarFallback>
                             </Avatar>
                         )}
-                        <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-2xl ${msg.sender_id === user?.id ? 'bg-green-500 text-white rounded-br-lg' : 'bg-white text-gray-800 rounded-bl-lg border'}`}>
-                            <p>{msg.content}</p>
+                        <div className={`max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 rounded-2xl shadow-sm ${
+                            msg.sender_id === user?.id
+                                ? 'bg-blue-600 text-white rounded-br-md'
+                                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md'
+                        }`}>
+                            <p className="text-sm leading-relaxed">{msg.content}</p>
                         </div>
                     </div>
                 ))}
                 <div ref={messagesEndRef} />
             </main>
-            <footer
-              className="fixed bottom-[65px] left-0 right-0 z-40 bg-white border-t flex items-center p-4"
-              style={{ maxWidth: '100vw' }}
-            >
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2 w-full">
-                    <Input
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type a message..."
-                        className="flex-1 rounded-full"
-                        autoComplete="off"
-                        disabled={sendMessageMutation.isPending}
-                    />
-                    <Button type="submit" size="icon" className="rounded-full bg-green-600 hover:bg-green-700"
-                        disabled={sendMessageMutation.isPending || !newMessage.trim()}>
-                        <Send className="w-5 h-5" />
-                    </Button>
-                </form>
+
+            <footer className="fixed bottom-[65px] left-0 right-0 z-40 bg-white border-t p-4">
+                <div className="max-w-2xl mx-auto">
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+                        <Input
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Type your message..."
+                            className="flex-1 rounded-full border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                            autoComplete="off"
+                            disabled={sendMessageMutation.isPending}
+                        />
+                        <Button 
+                            type="submit" 
+                            size="icon" 
+                            className="rounded-full bg-blue-600 hover:bg-blue-700 shrink-0 w-10 h-10"
+                            disabled={sendMessageMutation.isPending || !newMessage.trim()}
+                        >
+                            {sendMessageMutation.isPending ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <Send className="w-4 h-4" />
+                            )}
+                        </Button>
+                    </form>
+                </div>
             </footer>
         </div>
     );
