@@ -36,7 +36,11 @@ const OnboardingPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user found');
+      return;
+    }
+    
     if (selectedInterests.length === 0) {
       toast({
         title: "Select at least one interest",
@@ -45,27 +49,44 @@ const OnboardingPage = () => {
       return;
     }
 
+    if (isSubmitting) return; // Prevent double submission
+
     setIsSubmitting(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({ lifestyle_tags: selectedInterests })
-      .eq('id', user.id);
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ lifestyle_tags: selectedInterests })
+        .eq('id', user.id);
 
-    setIsSubmitting(false);
-
-    if (error) {
+      if (error) {
+        console.error('Error updating profile:', error);
+        toast({
+          title: "Error saving preferences",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        // Invalidate queries to refresh profile data
+        await queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+        
+        toast({
+          title: "Preferences saved!",
+          description: "Welcome to Kelp!",
+        });
+        
+        // Navigate to home
+        navigate('/home', { replace: true });
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error saving preferences",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } else {
-      await queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
-      toast({
-        title: "Preferences saved!",
-        description: "Welcome to Kelp!",
-      });
-      navigate('/home');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -82,8 +103,9 @@ const OnboardingPage = () => {
               <button
                 key={interest.name}
                 onClick={() => toggleInterest(interest.name)}
+                disabled={isSubmitting}
                 className={cn(
-                  "flex flex-col items-center justify-center p-4 border rounded-lg transition-all",
+                  "flex flex-col items-center justify-center p-4 border rounded-lg transition-all disabled:opacity-50",
                   isSelected ? "bg-green-100 border-green-500 text-green-700 ring-2 ring-green-500" : "bg-white border-gray-200 hover:border-gray-300"
                 )}
               >
@@ -94,8 +116,19 @@ const OnboardingPage = () => {
           })}
         </div>
 
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-green-600 hover:bg-green-700">
-          {isSubmitting ? <LoaderCircle className="animate-spin" /> : "Continue"}
+        <Button 
+          onClick={handleSubmit} 
+          disabled={isSubmitting || selectedInterests.length === 0} 
+          className="w-full bg-green-600 hover:bg-green-700"
+        >
+          {isSubmitting ? (
+            <>
+              <LoaderCircle className="animate-spin mr-2" />
+              Saving...
+            </>
+          ) : (
+            "Continue"
+          )}
         </Button>
       </div>
     </div>
