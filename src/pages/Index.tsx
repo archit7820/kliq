@@ -29,17 +29,33 @@ const Index = () => {
   });
 
   useEffect(() => {
-    if (!loading && !profileLoading) {
-      if (!user) {
-        navigate('/login');
-      } else if (user && profile) {
-        // Check if user has completed onboarding (has lifestyle_tags)
-        if (profile.lifestyle_tags && profile.lifestyle_tags.length > 0) {
-          navigate('/home');
-        } else {
-          navigate('/onboarding');
-        }
-      }
+    console.log('Index useEffect - user:', user, 'profile:', profile, 'loading states:', { loading, profileLoading });
+    
+    if (loading || profileLoading) {
+      return; // Still loading, don't navigate yet
+    }
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // User is authenticated, check onboarding status
+    if (!profile) {
+      // Profile doesn't exist or failed to load, go to onboarding
+      navigate('/onboarding');
+      return;
+    }
+
+    // Check if user has completed onboarding (has lifestyle_tags and they're not empty)
+    const hasCompletedOnboarding = profile.lifestyle_tags && 
+                                   Array.isArray(profile.lifestyle_tags) && 
+                                   profile.lifestyle_tags.length > 0;
+
+    if (hasCompletedOnboarding) {
+      navigate('/home');
+    } else {
+      navigate('/onboarding');
     }
   }, [user, loading, profile, profileLoading, navigate]);
 

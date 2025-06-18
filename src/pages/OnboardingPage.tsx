@@ -28,6 +28,8 @@ const OnboardingPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleInterest = (interestName: string) => {
+    if (isSubmitting) return; // Prevent changes while submitting
+    
     setSelectedInterests(prev =>
       prev.includes(interestName)
         ? prev.filter(item => item !== interestName)
@@ -38,6 +40,11 @@ const OnboardingPage = () => {
   const handleSubmit = async () => {
     if (!user) {
       console.error('No user found');
+      toast({
+        title: "Error",
+        description: "User not found. Please try logging in again.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -54,6 +61,8 @@ const OnboardingPage = () => {
     setIsSubmitting(true);
     
     try {
+      console.log('Submitting interests:', selectedInterests, 'for user:', user.id);
+      
       const { error } = await supabase
         .from('profiles')
         .update({ lifestyle_tags: selectedInterests })
@@ -66,18 +75,25 @@ const OnboardingPage = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
-        // Invalidate queries to refresh profile data
-        await queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
-        
-        toast({
-          title: "Preferences saved!",
-          description: "Welcome to Kelp!",
-        });
-        
-        // Navigate to home
-        navigate('/home', { replace: true });
+        setIsSubmitting(false);
+        return;
       }
+
+      console.log('Profile updated successfully');
+      
+      // Invalidate and refetch the profile query
+      await queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+      
+      toast({
+        title: "Preferences saved!",
+        description: "Welcome to Kelp!",
+      });
+      
+      // Small delay to ensure the query cache is updated
+      setTimeout(() => {
+        navigate('/home', { replace: true });
+      }, 500);
+      
     } catch (error) {
       console.error('Unexpected error:', error);
       toast({
@@ -85,7 +101,6 @@ const OnboardingPage = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
