@@ -1,202 +1,221 @@
-
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
-const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY')
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
 
 const SYSTEM_PROMPT = `You are an expert in carbon footprint analysis. Your task is to analyze an activity and estimate its carbon footprint in kg of CO2 equivalent.
 Analyze the user's activity based on the provided image and caption.
-**You MUST prioritize the image as the primary source of information for the analysis.** Use the caption as secondary, supporting context to refine your analysis.
-If the image and caption seem to conflict, rely on the image's content. If the image is unclear, too generic, or irrelevant to an activity, then you can rely on the caption, but you must state that the image was not clear.
-Your response MUST be a valid JSON object with the exact following structure:
+- PRIORITIZE the image content; use caption as secondary context
+- If unclear, state that the image was unclear and rely on caption
+Return ONLY a valid JSON object with exactly these fields:
 {
   "carbon_footprint_kg": number,
-  "explanation": "A brief, one-sentence explanation of how you arrived at the calculation.",
-  "activity": "A short, descriptive title for the activity (e.g., 'Driving a car').",
-  "emoji": "A single emoji that represents the activity."
+  "explanation": string,
+  "activity": string,
+  "emoji": string
 }
-If the activity represents a carbon offset or a reduction in emissions (e.g., planting a tree, using a reusable cup instead of disposable), the 'carbon_footprint_kg' value should be a negative number. For neutral activities, use 0.
-Be realistic and base your estimations on scientific data about carbon emissions. For example, a steak dinner is high, taking a flight is very high, riding a bike is 0 or slightly negative if it replaces a car trip.`
-
-// Helper function to convert ArrayBuffer to base64 without stack overflow
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
-  let binary = ''
-  const chunkSize = 8192 // Process in chunks to avoid stack overflow
-  
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.slice(i, i + chunkSize)
-    binary += String.fromCharCode(...chunk)
-  }
-  
-  return btoa(binary)
-}
+If the activity represents a carbon reduction (e.g. biking instead of driving), use a NEGATIVE number. Neutral = 0.`;
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Function started - checking API key...')
-    
-    if (!GOOGLE_API_KEY) {
-      console.error('GOOGLE_API_KEY environment variable is not set')
-      return new Response(JSON.stringify({ error: 'Google API key not configured' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      })
-    }
-
-    console.log('API key found, processing request...')
-    
-    const requestBody = await req.json()
-    const { imageUrl, caption } = requestBody
-
-    console.log('Received request with imageUrl:', imageUrl ? 'present' : 'missing')
+    const { imageUrl, caption } = await req.json();
 
     if (!imageUrl) {
-      return new Response(JSON.stringify({ error: 'imageUrl is required' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ error: "imageUrl is required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
-      })
+      });
     }
 
-    // 1. Fetch image and convert to base64
-    console.log('Fetching image from URL...')
-    const imageResponse = await fetch(imageUrl)
-    if (!imageResponse.ok) {
-      console.error(`Failed to fetch image. Status: ${imageResponse.status}`)
-      return new Response(JSON.stringify({ error: 'Failed to fetch image' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
-    }
+    // Prefer OpenAI vision if available; otherwise fallback to Gemini if configured
+    if (OPENAI_API_KEY) {
+      console.log("analyze-activity: Using OpenAI Vision (gpt-4o-mini)");
+      const payload = {
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: `Analyze this activity. Caption: ${caption || "(none)"}. Return JSON only.` },
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+      } as const;
 
-    const imageArrayBuffer = await imageResponse.arrayBuffer()
-    console.log('Image size:', imageArrayBuffer.byteLength, 'bytes')
-    
-    // Use safe base64 conversion
-    const imageBase64 = arrayBufferToBase64(imageArrayBuffer)
-    const mimeType = imageResponse.headers.get('content-type') || 'image/jpeg'
-
-    console.log('Image processed, calling Gemini API...')
-
-    // 2. Prepare request for Gemini API
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GOOGLE_API_KEY}`
-
-    const geminiRequestBody = {
-      contents: [
-        {
-          parts: [
-            {
-              text: `${SYSTEM_PROMPT}\n\nAnalyze the activity in the image. The user-provided caption is: "${caption || 'No caption provided.'}"`
-            },
-            {
-              inline_data: {
-                mime_type: mimeType,
-                data: imageBase64,
-              },
-            },
-          ],
+      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
         },
-      ],
-      generation_config: {
-        response_mime_type: 'application/json',
-      },
-    }
+        body: JSON.stringify(payload),
+      });
 
-    // 3. Call Gemini API
-    const geminiResponse = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(geminiRequestBody),
-    })
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text()
-      console.error('Gemini API Error:', errorText)
-      
-      // Check if it's an API key error specifically
-      if (errorText.includes('API key not valid') || errorText.includes('INVALID_ARGUMENT')) {
-        return new Response(JSON.stringify({ error: 'Invalid Google API key - please check your configuration' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      if (!resp.ok) {
+        const err = await resp.text();
+        console.error("OpenAI error:", err);
+        return new Response(JSON.stringify({ error: "OpenAI analysis failed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
-        })
+        });
       }
-      
-      return new Response(JSON.stringify({ error: 'Analysis service unavailable' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      })
-    }
 
-    const geminiData = await geminiResponse.json()
-    console.log('Gemini response received')
-
-    // 4. Parse the response safely
-    if (!geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      console.error('Invalid Gemini response structure:', JSON.stringify(geminiData))
-      return new Response(JSON.stringify({ error: 'Invalid response from analysis service' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      })
-    }
-
-    const responseText = geminiData.candidates[0].content.parts[0].text
-    let analysisResult
-
-    try {
-      // Check if responseText is already an object or needs parsing
-      if (typeof responseText === 'string') {
-        analysisResult = JSON.parse(responseText)
-      } else {
-        analysisResult = responseText
+      const data = await resp.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (!content) {
+        return new Response(JSON.stringify({ error: "Invalid OpenAI response" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
       }
-    } catch (parseError) {
-      console.error('Failed to parse Gemini response as JSON:', responseText)
-      return new Response(JSON.stringify({ error: 'Invalid analysis result format' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      })
+
+      let result: any;
+      try {
+        result = typeof content === "string" ? JSON.parse(content) : content;
+      } catch (e) {
+        console.error("Failed to parse OpenAI JSON:", content);
+        return new Response(JSON.stringify({ error: "Invalid analysis result format" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+
+      if (typeof result.carbon_footprint_kg === "string") {
+        result.carbon_footprint_kg = parseFloat(result.carbon_footprint_kg);
+      }
+
+      if (
+        !result ||
+        typeof result.carbon_footprint_kg !== "number" ||
+        Number.isNaN(result.carbon_footprint_kg) ||
+        !result.explanation ||
+        !result.activity ||
+        !result.emoji
+      ) {
+        return new Response(JSON.stringify({ error: "Incomplete analysis result" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    // Convert carbon_footprint_kg to number if it's a string
-    if (typeof analysisResult.carbon_footprint_kg === 'string') {
-      analysisResult.carbon_footprint_kg = parseFloat(analysisResult.carbon_footprint_kg)
+    // Fallback to Gemini if OpenAI key not set but Google key is
+    if (GOOGLE_API_KEY) {
+      console.log("analyze-activity: Falling back to Gemini");
+      // We can pass image URL directly with Gemini 1.5 using a URI part, but we'll keep the previous working approach (fetch + inline data)
+      const imageResp = await fetch(imageUrl);
+      if (!imageResp.ok) {
+        return new Response(JSON.stringify({ error: "Failed to fetch image" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+      const buf = await imageResp.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunk = 8192;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.slice(i, i + chunk));
+      }
+      const b64 = btoa(binary);
+      const mime = imageResp.headers.get("content-type") || "image/jpeg";
+
+      const geminiBody = {
+        contents: [
+          {
+            parts: [
+              { text: `${SYSTEM_PROMPT}\n\nAnalyze the activity in the image. Caption: "${caption || "No caption"}"` },
+              { inline_data: { mime_type: mime, data: b64 } },
+            ],
+          },
+        ],
+        generation_config: { response_mime_type: "application/json" },
+      };
+
+      const gemResp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GOOGLE_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(geminiBody),
+        }
+      );
+
+      if (!gemResp.ok) {
+        const err = await gemResp.text();
+        console.error("Gemini error:", err);
+        return new Response(JSON.stringify({ error: "Analysis service unavailable" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+
+      const gemData = await gemResp.json();
+      const text = gemData?.candidates?.[0]?.content?.parts?.[0]?.text;
+      let result: any;
+      try {
+        result = typeof text === "string" ? JSON.parse(text) : text;
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "Invalid analysis result format" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+
+      if (typeof result.carbon_footprint_kg === "string") {
+        result.carbon_footprint_kg = parseFloat(result.carbon_footprint_kg);
+      }
+
+      if (
+        !result ||
+        typeof result.carbon_footprint_kg !== "number" ||
+        Number.isNaN(result.carbon_footprint_kg) ||
+        !result.explanation ||
+        !result.activity ||
+        !result.emoji
+      ) {
+        return new Response(JSON.stringify({ error: "Incomplete analysis result" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    // Validate the response structure
-    if (!analysisResult || 
-        typeof analysisResult.carbon_footprint_kg !== 'number' ||
-        isNaN(analysisResult.carbon_footprint_kg) ||
-        !analysisResult.explanation ||
-        !analysisResult.activity ||
-        !analysisResult.emoji) {
-      console.error('Invalid analysis result structure:', analysisResult)
-      return new Response(JSON.stringify({ error: 'Incomplete analysis result' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      })
-    }
-
-    console.log('Analysis completed successfully')
-    return new Response(JSON.stringify(analysisResult), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
-
-  } catch (error) {
-    console.error('Error in analyze-activity function:', error.message)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // No model available
+    return new Response(
+      JSON.stringify({ error: "No AI provider configured. Set OPENAI_API_KEY or GOOGLE_API_KEY in Supabase secrets." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
+  } catch (err: any) {
+    console.error("analyze-activity error:", err?.message || err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
-    })
+    });
   }
-})
+});
