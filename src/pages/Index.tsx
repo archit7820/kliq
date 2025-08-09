@@ -9,7 +9,7 @@ const Index = () => {
   const { user, loading } = useAuthStatus();
   const navigate = useNavigate();
 
-  const { data: profile, isLoading: profileLoading } = useQuery({
+  const { data: profile, isLoading: profileLoading, isFetching: profileFetching } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -17,7 +17,7 @@ const Index = () => {
         .from('profiles')
         .select('lifestyle_tags')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching profile:', error);
@@ -26,13 +26,15 @@ const Index = () => {
       return data;
     },
     enabled: !!user?.id,
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 
   useEffect(() => {
-    console.log('Index useEffect - user:', user, 'profile:', profile, 'loading states:', { loading, profileLoading });
+    console.log('Index useEffect - user:', user, 'profile:', profile, 'loading states:', { loading, profileLoading, profileFetching });
     
-    if (loading || profileLoading) {
-      return; // Still loading, don't navigate yet
+    if (loading || profileLoading || profileFetching) {
+      return; // Still loading or fetching fresh data, don't navigate yet
     }
 
     if (!user) {
@@ -43,7 +45,7 @@ const Index = () => {
     // User is authenticated, check onboarding status
     if (!profile) {
       // Profile doesn't exist or failed to load, go to onboarding
-      navigate('/onboarding');
+      navigate('/onboarding', { replace: true });
       return;
     }
 
@@ -53,11 +55,11 @@ const Index = () => {
                                    profile.lifestyle_tags.length > 0;
 
     if (hasCompletedOnboarding) {
-      navigate('/home');
+      navigate('/home', { replace: true });
     } else {
-      navigate('/onboarding');
+      navigate('/onboarding', { replace: true });
     }
-  }, [user, loading, profile, profileLoading, navigate]);
+  }, [user, loading, profile, profileLoading, profileFetching, navigate]);
 
   if (loading || profileLoading) {
     return (

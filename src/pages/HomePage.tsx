@@ -16,7 +16,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   // Fetch full profile + stats + eco insights in ONE place
-  const { data: profile, isLoading: profileLoading } = useQuery({
+  const { data: profile, isLoading: profileLoading, isFetching: profileFetching } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -31,6 +31,8 @@ const HomePage = () => {
     enabled: !!user,
     refetchOnWindowFocus: true,
     refetchInterval: 10000,
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -40,10 +42,12 @@ const HomePage = () => {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (profile && (!profile.lifestyle_tags || profile.lifestyle_tags.length === 0)) {
-        navigate('/onboarding');
+    if (authLoading) return;
+    if (profileLoading || profileFetching) return; // wait for fresh data
+    if (profile && Array.isArray(profile.lifestyle_tags) && profile.lifestyle_tags.length === 0) {
+      navigate('/onboarding', { replace: true });
     }
-  }, [profile, navigate]);
+  }, [authLoading, profile, profileLoading, profileFetching, navigate]);
 
   if (!subscribed) {
     return <SubscriptionPaywall onSkip={skipOrCompleteSubscription} />;
