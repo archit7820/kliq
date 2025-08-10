@@ -76,7 +76,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
         <div>
           <Label className="text-base font-semibold">Add Photo</Label>
           <p className="text-sm text-muted-foreground">
-            Take or upload a photo of your green activity
+            Snap or upload a photo of your IRL adventure
           </p>
         </div>
 
@@ -142,7 +142,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
           <Label htmlFor="caption">Caption (Optional)</Label>
           <Textarea
             id="caption"
-            placeholder="Describe your green activity..."
+            placeholder="Give your IRL adventure a vibe—what did you do?"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             disabled={disabled}
@@ -156,7 +156,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
             className="w-full"
             disabled={disabled}
           >
-            Analyze Activity
+            Get Impact Score
           </Button>
         )}
       </CardContent>

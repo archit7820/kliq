@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import BottomNav from '@/components/BottomNav';
@@ -16,6 +16,16 @@ export interface ActivityAnalysis {
   explanation: string;
   activity: string;
   emoji: string;
+  impact_score?: number; // 0-100
+  authenticity_score?: number; // 0-1
+  social_proof_weight?: number; // default 1.0 from server
+  dimensions?: {
+    adventure_intensity: number;
+    social_connection: number;
+    environmental_impact: number;
+    economic_impact: number;
+    learning_growth: number;
+  };
 }
 
 const LogActivityPage = () => {
@@ -26,6 +36,15 @@ const LogActivityPage = () => {
   const [analysis, setAnalysis] = useState<ActivityAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // SEO: dynamic title and description
+  useEffect(() => {
+    document.title = "Log IRL Adventure | Kelp Impact";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) {
+      meta.setAttribute('content', 'Capture your IRL adventures, get a Kelp Impact Score, and turn effort into social currency.');
+    }
+  }, []);
 
   const analyzeActivity = async () => {
     if (!imageUrl) return;
@@ -70,7 +89,7 @@ const LogActivityPage = () => {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-xl font-bold text-foreground">Log Green Activity</h1>
+        <h1 className="text-xl font-bold text-foreground">Log IRL Adventure</h1>
       </header>
 
       <main className="flex-grow p-4 space-y-6 mb-16">

@@ -9,18 +9,44 @@ const corsHeaders = {
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
 
-const SYSTEM_PROMPT = `You are an expert in carbon footprint analysis. Your task is to analyze an activity and estimate its carbon footprint in kg of CO2 equivalent.
-Analyze the user's activity based on the provided image and caption.
-- PRIORITIZE the image content; use caption as secondary context
-- If unclear, state that the image was unclear and rely on caption
-Return ONLY a valid JSON object with exactly these fields:
+const SYSTEM_PROMPT = `You are the Kelp Impact Scoring engine. Analyze an IRL adventure from an image (primary) and caption (secondary) and output a multi-dimensional impact assessment.
+
+Mission: "Every real-life adventure deserves a meaningful impact score that encourages authentic living while naturally promoting positive change."
+
+Scoring principles:
+1) Real-Life First: digital-only actions score 0.
+2) Effort Amplification: higher effort/challenge => higher scores.
+3) Positive Impact Bonus: planet/community-positive activities get multipliers.
+4) Social Proof Weight: leave as 1.0; clients will update post engagement.
+5) Authenticity Filter: detect staged/fake content and reduce scores accordingly.
+6) Progressive Difficulty: harder activities can unlock higher scores.
+
+Return ONLY valid JSON with fields:
 {
-  "carbon_footprint_kg": number,
-  "explanation": string,
-  "activity": string,
-  "emoji": string
+  "carbon_footprint_kg": number,                 // negative = savings, 0 = neutral, positive = emissions
+  "explanation": string,                         // concise, youth-friendly summary
+  "activity": string,                            // short title of the adventure
+  "emoji": string,                               // matching emoji
+  "dimensions": {
+    "adventure_intensity": number,               // 0-100
+    "social_connection": number,                 // 0-100
+    "environmental_impact": number,              // 0-100 (higher is better overall impact; account for negatives/positives)
+    "economic_impact": number,                   // 0-100
+    "learning_growth": number                    // 0-100
+  },
+  "authenticity_score": number,                  // 0-1
+  "social_proof_weight": number,                 // default 1.0 now
+  "impact_score": number                         // 0-100 final weighted score using weights: A 25%, B 20%, C 20%, D 15%, E 10%; apply authenticity_score multiplier
 }
-If the activity represents a carbon reduction (e.g. biking instead of driving), use a NEGATIVE number. Neutral = 0.`;
+
+Computation notes:
+- If the image shows screens/indoor desk-only setup, set all scores to low and impact_score ≈ 0.
+- Adventure Intensity scales with physical effort, time commitment, and risk/courage.
+- Social Connection looks for interaction with people/community, inclusivity.
+- Environmental Impact rewards low-carbon, reuse/repair, nature-positive actions. Penalize high-carbon unless mitigated.
+- Economic Impact favors support of local/ethical choices and skill/resource sharing.
+- Learning & Growth for new skills and cultural knowledge.
+- Ensure numbers are valid and within ranges.`;
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -48,7 +74,7 @@ serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: `Analyze this activity. Caption: ${caption || "(none)"}. Return JSON only.` },
+              { type: "text", text: `Analyze this IRL adventure. Caption: ${caption || "(none)"}. Return JSON only.` },
               { type: "image_url", image_url: { url: imageUrl } },
             ],
           },
@@ -99,6 +125,7 @@ serve(async (req) => {
         result.carbon_footprint_kg = parseFloat(result.carbon_footprint_kg);
       }
 
+      // Basic validation for essential fields; allow extra fields for new scoring
       if (
         !result ||
         typeof result.carbon_footprint_kg !== "number" ||
@@ -144,7 +171,7 @@ serve(async (req) => {
         contents: [
           {
             parts: [
-              { text: `${SYSTEM_PROMPT}\n\nAnalyze the activity in the image. Caption: "${caption || "No caption"}"` },
+              { text: `${SYSTEM_PROMPT}\n\nAnalyze the IRL adventure in the image. Caption: "${caption || "No caption"}"` },
               { inline_data: { mime_type: mime, data: b64 } },
             ],
           },

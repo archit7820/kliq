@@ -2,6 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoaderCircle, Leaf } from 'lucide-react';
+import ImpactScoreBreakdown from '@/components/ImpactScoreBreakdown';
+import ImpactScoreChip from '@/components/ImpactScoreChip';
 import { ActivityAnalysis } from '@/pages/LogActivityPage';
 
 interface ActivityAnalysisSectionProps {
@@ -20,7 +22,7 @@ const ActivityAnalysisSection: React.FC<ActivityAnalysisSectionProps> = ({
         <CardContent className="p-6">
           <div className="flex items-center justify-center space-x-3">
             <LoaderCircle className="w-6 h-6 animate-spin text-primary" />
-            <span className="text-base">Analyzing your activity...</span>
+            <span className="text-base">Scoring your adventure...</span>
           </div>
         </CardContent>
       </Card>
@@ -36,11 +38,12 @@ const ActivityAnalysisSection: React.FC<ActivityAnalysisSectionProps> = ({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <span className="text-2xl">{analysis.emoji}</span>
-          Analysis Results
+          Adventure Analysis
         </CardTitle>
+        <ImpactScoreChip scoreLabel="Impact" scoreValue={`${Math.round(analysis.impact_score ?? 0)}`} />
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -63,6 +66,10 @@ const ActivityAnalysisSection: React.FC<ActivityAnalysisSectionProps> = ({
             </div>
           </div>
         </div>
+
+        {analysis.dimensions && (
+          <ImpactScoreBreakdown dimensions={analysis.dimensions} impactScore={analysis.impact_score} />
+        )}
       </CardContent>
     </Card>
   );
