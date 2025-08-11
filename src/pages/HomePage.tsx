@@ -49,14 +49,18 @@ const HomePage = () => {
     }
   }, [authLoading, profile, profileLoading, profileFetching, navigate]);
 
+  useEffect(() => {
+    document.title = 'Kelp • IRL Adventures Home';
+  }, []);
+
   if (!subscribed) {
     return <SubscriptionPaywall onSkip={skipOrCompleteSubscription} />;
   }
 
   if (authLoading || profileLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-xl font-semibold text-gray-700">Loading Kelp...</div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-xl font-semibold text-foreground/80">Loading Kelp...</div>
       </div>
     );
   }
@@ -66,7 +70,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <HomeHeader />
       {/* Pass profile as prop everywhere! */}
       <div className="max-w-xl w-full mx-auto">
