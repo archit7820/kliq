@@ -16,16 +16,16 @@ const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-sm border-t z-50">
+    <nav className="fixed inset-x-0 bottom-3 z-50">
       {/* Removed md:hidden to show BottomNav on all devices */}
-      <div className="max-w-screen-md mx-auto flex justify-around items-center h-16 px-2">
+      <div className="max-w-screen-md mx-auto flex justify-around items-center h-16 px-3 rounded-full border bg-card/80 backdrop-blur-xl shadow-lg">
         {navItems.map((item) => {
           const isActive = location.pathname.startsWith(item.path);
           return (
             <Link
               key={item.path}
               to={item.path}
-              className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors duration-200 ease-in-out w-16"
+              className="flex flex-col items-center justify-center p-2 rounded-full transition-colors duration-200 ease-in-out w-16 hover:bg-muted/60"
             >
               <item.icon className={`w-6 h-6 mb-1 transition-all ${isActive ? 'text-primary' : 'text-muted-foreground'}`} strokeWidth={isActive ? 2.5 : 2} />
               <span className={`text-xs font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
