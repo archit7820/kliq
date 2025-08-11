@@ -27,11 +27,11 @@ const HomeHeader = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm p-4 flex justify-between items-center">
-      <h1 className="text-2xl font-bold text-green-700">Kelp Home</h1>
+    <header className="sticky top-0 z-40 backdrop-blur bg-background/80 border-b px-4 py-3 flex justify-between items-center">
+      <h1 className="text-lg font-semibold">Kelp</h1>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-gray-600 flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="text-muted-foreground flex items-center gap-2">
             Menu <ChevronDown className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>

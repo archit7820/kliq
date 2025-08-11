@@ -16,22 +16,21 @@ const HomeStoriesBar: React.FC<HomeStoriesBarProps> = ({ profile }) => {
 
   return (
     <div className="w-full overflow-x-auto animate-fade-in">
-      <div className="flex gap-3 px-1 py-2">
+      <div className="flex gap-3 px-2 py-2">
         {items.map((it) => (
-          <div key={it.id} className="flex flex-col items-center shrink-0">
-            <div
-              className={`relative p-0.5 rounded-full ring-2 ${it.isNow ? "ring-primary" : "ring-border"} hover-scale`}
-            >
-              <Avatar className="h-14 w-14">
+          <div
+            key={it.id}
+            className="flex flex-col items-center shrink-0"
+          >
+            <div className={`relative p-0.5 rounded-full ring-2 ${it.isNow ? "ring-primary" : "ring-muted"}`}>
+              <Avatar className="h-12 w-12">
                 <AvatarImage src={it.avatar} alt={`${it.label} story`} />
                 <AvatarFallback className="bg-muted text-muted-foreground">
                   {it.label.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {it.isNow && (
-                <span className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs grid place-items-center shadow">
-                  +
-                </span>
+                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary text-primary-foreground text-[10px] grid place-items-center shadow">+</span>
               )}
             </div>
             <span className="mt-1 text-[10px] text-muted-foreground">{it.label}</span>

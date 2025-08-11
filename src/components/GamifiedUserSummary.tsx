@@ -1,12 +1,6 @@
 import React from "react";
-import { Trophy, Medal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-// You can adjust these as needed:
-const COLOR_PALETTE = [
-  "from-green-200 via-green-100 to-green-50",
-  "from-yellow-200 via-yellow-100 to-yellow-50",
-  "from-cyan-200 via-cyan-100 to-cyan-50"
-];
+import { Trophy, Medal, Flame } from "lucide-react";
+
 
 interface GamifiedUserSummaryProps {
   kelpPoints?: number;
@@ -36,56 +30,46 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
   const xp = pointsToLevel(kelpPoints);
 
   return (
-    <section className="relative w-full animate-fade-in p-2 sm:p-3 rounded-3xl min-h-[130px] flex flex-col items-center justify-between bg-gradient-to-tr from-green-100 via-yellow-50 to-cyan-50 shadow-md">
-      <div className="w-full flex justify-between items-center gap-2">
-        {/* Big level/avatar medallion */}
-        <div className="flex flex-col items-center justify-center min-w-[60px] sm:min-w-[80px]">
-          <div className="relative flex items-center justify-center">
-            <span className="absolute -top-2 left-1/2 -translate-x-1/2">
-              <Medal size={20} strokeWidth={2} className="text-yellow-500 animate-bounce" />
-            </span>
-            <div className="bg-gradient-to-br from-yellow-200 to-yellow-50 border-2 border-yellow-400 rounded-full w-11 h-11 sm:w-14 sm:h-14 flex flex-col items-center justify-center text-yellow-900 shadow-lg font-extrabold text-xl sm:text-2xl animate-scale-in">
-              {xp.level}
-              <span className="text-[10px] sm:text-xs font-semibold text-yellow-700 tracking-tight -mt-1">Lvl</span>
-            </div>
+    <section className="w-full p-3 rounded-2xl border bg-card shadow-sm animate-fade-in">
+      <div className="w-full flex items-center justify-between gap-3">
+        {/* Level medallion */}
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full border grid place-items-center text-sm font-semibold">
+            L{xp.level}
           </div>
-          <span className="mt-1 text-[11px] sm:text-xs font-semibold text-yellow-700 bg-yellow-50 rounded-full px-2 py-0.5 shadow">{bestBadge}</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{bestBadge}</span>
         </div>
-        {/* Stats cards row */}
-        <div className="flex-1 flex flex-row gap-1 sm:gap-2 justify-end">
-          <div className="rounded-xl bg-white/90 px-2 py-1 flex flex-col items-center min-w-[48px] sm:min-w-[66px] shadow-sm">
-            <Trophy size={18} className="text-yellow-500 mb-0.5" />
-            <span className="font-bold text-green-900 text-sm sm:text-base">{kelpPoints}</span>
-            <span className="text-[11px] sm:text-xs text-green-700 font-medium">Points</span>
+
+        {/* Stats row */}
+        <div className="flex-1 flex justify-end gap-2">
+          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
+            <Trophy size={18} className="text-muted-foreground" />
+            <span className="font-semibold text-sm">{kelpPoints}</span>
+            <span className="text-[11px] text-muted-foreground">Points</span>
           </div>
-          <div className="rounded-xl bg-white/90 px-2 py-1 flex flex-col items-center min-w-[48px] sm:min-w-[66px] shadow-sm">
-            <span className="text-orange-400" style={{ fontSize: 18, marginBottom: 2 }}>🔥</span>
-            <span className="font-bold text-orange-900 text-sm sm:text-base">{streakCount}</span>
-            <span className="text-[11px] sm:text-xs text-orange-700 font-medium">Streak</span>
+          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
+            <Flame size={18} className="text-muted-foreground" />
+            <span className="font-semibold text-sm">{streakCount}</span>
+            <span className="text-[11px] text-muted-foreground">Streak</span>
           </div>
-          <div className="rounded-xl bg-white/90 px-2 py-1 flex flex-col items-center min-w-[48px] sm:min-w-[66px] shadow-sm">
-            <span className="text-cyan-600" style={{ fontSize: 18, marginBottom: 2 }}>🍃</span>
-            <span className="font-bold text-cyan-900 text-sm sm:text-base">{weeklyImpact}</span>
-            <span className="text-[11px] sm:text-xs text-cyan-700 font-medium">CO₂e kg</span>
+          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
+            <span className="font-semibold text-sm">{weeklyImpact}</span>
+            <span className="text-[11px] text-muted-foreground">Weekly Impact</span>
           </div>
-          <div className="rounded-xl bg-blue-50 px-2 py-1 flex flex-col items-center min-w-[48px] sm:min-w-[66px] shadow-sm">
-            <Medal size={18} className="text-blue-500 mb-0.5" />
-            <span className="font-bold text-blue-900 text-sm sm:text-base">{globalRank}</span>
-            <span className="text-[11px] sm:text-xs text-blue-700 font-medium">Rank</span>
+          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
+            <Medal size={18} className="text-muted-foreground" />
+            <span className="font-semibold text-sm">{globalRank}</span>
+            <span className="text-[11px] text-muted-foreground">Rank</span>
           </div>
         </div>
       </div>
-      {/* Playful XP bar at bottom */}
-      <div className="absolute left-0 right-0 bottom-[-16px] flex flex-col items-center w-full pointer-events-none">
-        <div className="w-4/5 bg-gray-200 h-2 rounded-full relative overflow-hidden shadow animate-scale-in">
-          <div
-            className="bg-gradient-to-r from-yellow-300 to-green-400 h-full rounded-full transition-all"
-            style={{ width: `${xp.curr}%` }}
-          />
+
+      {/* Progress */}
+      <div className="mt-3">
+        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+          <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${xp.curr}%` }} />
         </div>
-        <span className="text-[10px] text-gray-500 mt-1 font-medium">
-          {xp.nextLevel} points to next level!
-        </span>
+        <span className="text-[11px] text-muted-foreground mt-1 block">{xp.nextLevel} points to next level</span>
       </div>
     </section>
   );
