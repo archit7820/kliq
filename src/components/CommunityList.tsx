@@ -78,8 +78,8 @@ const CommunityList = ({ user }: { user: any }) => {
   return (
     <div className="space-y-9">
       <section>
-        <h2 className="font-semibold text-lg mb-3 flex gap-2 items-center text-green-700">
-          <Users className="w-5 h-5 text-green-400" />
+        <h2 className="font-medium text-sm mb-2 text-muted-foreground flex items-center gap-2">
+          <Users className="w-4 h-4 text-muted-foreground" />
           Your Communities
         </h2>
         {loadingMy ? (
@@ -88,34 +88,30 @@ const CommunityList = ({ user }: { user: any }) => {
           <div className="flex flex-col gap-3">
             {myCommunities && myCommunities.length > 0 ? (
               myCommunities.map((c) => (
-                <div
-                  key={c.id}
-                  className="bg-white rounded-xl border p-4 flex flex-col"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    {c.is_official && (
-                      <Star className="w-4 h-4 text-yellow-400" />
-                    )}
-                    <span className="font-bold text-green-800 text-lg">
-                      {c.name}
+                  <div className="rounded-xl border bg-card p-4 flex flex-col">
+                    <div className="flex items-center gap-2 mb-1">
+                      {c.is_official && (
+                        <Star className="w-4 h-4 text-primary" />
+                      )}
+                      <span className="font-medium text-foreground">
+                        {c.name}
+                      </span>
+                      {pendingCounts && pendingCounts[c.id] > 0 && (
+                        <Badge variant="destructive" className="ml-2">{pendingCounts[c.id]} pending</Badge>
+                      )}
+                    </div>
+                    <span className="block text-sm text-muted-foreground mb-2">
+                      {c.description}
                     </span>
-                    {/* Show pending badge if admin and there are pending requests */}
-                    {pendingCounts && pendingCounts[c.id] > 0 && (
-                      <Badge variant="destructive" className="ml-2">{pendingCounts[c.id]} pending</Badge>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="self-end"
+                      onClick={() => navigate(`/communities/${c.id}`)}
+                    >
+                      Open
+                    </Button>
                   </div>
-                  <span className="block text-gray-500 text-sm mb-2">
-                    {c.description}
-                  </span>
-                  <Button
-                    className="rounded-lg text-xs bg-green-600 hover:bg-green-700 mt-auto self-end flex gap-1 items-center"
-                    size="sm"
-                    onClick={() => navigate(`/communities/${c.id}`)}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-1" />
-                    Open Chat
-                  </Button>
-                </div>
               ))
             ) : (
               <span className="text-gray-400 text-base">
@@ -127,8 +123,8 @@ const CommunityList = ({ user }: { user: any }) => {
       </section>
 
       <section>
-        <h2 className="font-semibold text-lg mb-3 flex gap-2 items-center text-blue-700">
-          <UserPlus className="w-5 h-5 text-blue-400" />
+        <h2 className="font-medium text-sm mb-2 text-muted-foreground flex items-center gap-2">
+          <UserPlus className="w-4 h-4 text-muted-foreground" />
           Discover Communities
         </h2>
         {loadingAll ? (
@@ -139,28 +135,24 @@ const CommunityList = ({ user }: { user: any }) => {
               allCommunities
                 .filter((c) => !isJoined(c.id))
                 .map((c) => (
-                  <div
-                    key={c.id}
-                    className="bg-gradient-to-tr from-green-50 to-blue-50 rounded-xl border p-4 flex flex-col"
-                  >
+                  <div className="rounded-xl border bg-card p-4 flex flex-col">
                     <div className="flex items-center gap-2 mb-1">
                       {c.is_official && (
-                        <Star className="w-4 h-4 text-yellow-400" />
+                        <Star className="w-4 h-4 text-primary" />
                       )}
-                      <span className="font-bold text-green-800 text-lg">
+                      <span className="font-medium text-foreground">
                         {c.name}
                       </span>
                     </div>
-                    <span className="block text-gray-500 text-sm mb-2">
+                    <span className="block text-sm text-muted-foreground mb-2">
                       {c.description}
                     </span>
                     <Button
-                      variant="secondary"
-                      className="rounded-lg text-xs bg-blue-600 hover:bg-blue-700 text-white mt-auto self-end"
                       size="sm"
                       onClick={() => handleJoin(c.id)}
+                      className="self-end"
                     >
-                      Join Community
+                      Join
                     </Button>
                   </div>
                 ))}
