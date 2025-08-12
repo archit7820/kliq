@@ -3,9 +3,9 @@ import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import BottomNav from '@/components/BottomNav';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, LoaderCircle, Award, Leaf, Users, MapPin, Tag } from 'lucide-react';
+import { LogOut, Settings, LoaderCircle, Award, Leaf, Users, MapPin, Tag, X, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import ActivityCard from '@/components/ActivityCard';
 import { Database } from '@/integrations/supabase/types';
 import { Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import ProfileHeader from "@/components/ProfileHeader";
+import ProfileHeaderSimple from "@/components/ProfileHeaderSimple";
 import { useUserBadges } from "@/hooks/useUserBadges";
 import UserBadges from "@/components/UserBadges";
 import EditProfileModal from "@/components/EditProfileModal";
@@ -89,6 +89,7 @@ const ProfilePage = () => {
     });
     const [avatarUploading, setAvatarUploading] = React.useState(false);
     const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+    const [showStartCard, setShowStartCard] = React.useState(true);
 
     React.useEffect(() => {
         if (profile) {
@@ -201,18 +202,16 @@ const ProfilePage = () => {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <header className="bg-card/80 backdrop-blur-sm p-4 sticky top-0 z-40 flex justify-between items-center border-b">
-                <h1 className="text-2xl font-bold text-primary">Profile</h1>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                        <Settings className="w-5 h-5 text-muted-foreground" />
-                    </Button>
-                    <Button onClick={handleLogout} variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                        <LogOut className="w-5 h-5" />
-                    </Button>
-                </div>
+            <header className="bg-card/80 backdrop-blur-sm px-4 py-3 sticky top-0 z-40 flex items-center justify-between border-b">
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Close">
+                    <X className="w-5 h-5 text-muted-foreground" />
+                </Button>
+                <h1 className="text-base font-semibold text-foreground">Profile</h1>
+                <Button variant="ghost" size="icon" onClick={() => navigate('/communities/create')} aria-label="Start a club">
+                    <Crown className="w-5 h-5 text-muted-foreground" />
+                </Button>
             </header>
-            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 mb-16">
+            <main className="flex-grow max-w-md w-full mx-auto px-4 py-6 space-y-6 mb-16">
                 {/* EDIT MODE MODAL: moved to component */}
                 <EditProfileModal
                     open={editing}
@@ -225,23 +224,49 @@ const ProfilePage = () => {
                     errorMsg={errorMsg}
                     onSave={() => { updateProfile(); }}
                 />
-                {/* Refactored header section! */}
-                <ProfileHeader
-                    profile={profile}
-                    badges={badges}
-                    badgesLoading={badgesLoading}
-                    activitiesCount={activities?.length || 0}
-                    kelpPoints={profile.kelp_points || 0}
-                    editing={editing}
-                    editForm={editForm}
-                    avatarUploading={avatarUploading}
-                    errorMsg={errorMsg}
-                    setEditing={setEditing}
-                    updateProfile={() => { console.log("[Profile Edit] Save button clicked."); updateProfile(); }}
-                    setEditForm={setEditForm}
-                    handleTagToggle={handleTagToggle}
-                    handleAvatarUpload={handleAvatarUpload}
-                />
+                {/* Start your own club banner */}
+                {showStartCard && (
+                  <div className="rounded-xl border bg-muted/40 p-3 flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Start your own club</p>
+                      <p className="text-xs text-muted-foreground">Lead a community around your passion</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" onClick={() => navigate('/communities/create')}>Start</Button>
+                      <Button variant="ghost" size="icon" onClick={() => setShowStartCard(false)} aria-label="Dismiss">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Profile header simple */}
+                <ProfileHeaderSimple profile={profile} onEdit={() => setEditing(true)} />
+
+                {/* Invite a friend card */}
+                <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
+                  <div className="flex-1">
+                    <p className="font-medium">Invite a friend, earn Kelp</p>
+                    <p className="text-sm text-muted-foreground">Invite a friend to Kelp and both of you get points.</p>
+                  </div>
+                  <Button size="sm" onClick={() => navigate('/friends')}>Invite</Button>
+                </div>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl border bg-card p-3 text-center">
+                    <div className="text-lg font-semibold">{activities?.length || 0}</div>
+                    <div className="text-xs text-muted-foreground">Activities</div>
+                  </div>
+                  <div className="rounded-xl border bg-card p-3 text-center">
+                    <div className="text-lg font-semibold">0</div>
+                    <div className="text-xs text-muted-foreground">Friends</div>
+                  </div>
+                  <div className="rounded-xl border bg-card p-3 text-center">
+                    <div className="text-lg font-semibold">0</div>
+                    <div className="text-xs text-muted-foreground">Communities</div>
+                  </div>
+                </div>
 
                 <Card>
                     <CardHeader>

@@ -37,14 +37,25 @@ const DashboardSummary = () => {
       {/* Impact Snapshot */}
       <ImpactSnapshot impact={impact} />
 
-      {/* Log New Action */}
-      <Button className="w-full h-11 font-medium" onClick={() => navigate("/log-activity")}>Log Activity</Button>
-
-      {/* NEW: Current team-wide challenge */}
-      <CurrentChallengeCard />
-
-      {/* Offset Prompt */}
-      <OffsetPrompt />
+      {/* Quick actions (minimal) */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          className="rounded-xl border bg-background py-3 px-3 text-left hover:bg-muted/50 transition-colors"
+          onClick={() => navigate('/challenges')}
+          aria-label="View current challenge"
+        >
+          <div className="text-xs text-muted-foreground mb-1">Challenge</div>
+          <div className="text-sm font-medium">Current challenge</div>
+        </button>
+        <button
+          className="rounded-xl border bg-background py-3 px-3 text-left hover:bg-muted/50 transition-colors"
+          onClick={() => navigate('/impact-dashboard')}
+          aria-label="Open impact dashboard"
+        >
+          <div className="text-xs text-muted-foreground mb-1">Impact</div>
+          <div className="text-sm font-medium">Offset & insights</div>
+        </button>
+      </div>
     </section>
   );
 };
