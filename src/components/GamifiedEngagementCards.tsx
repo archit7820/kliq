@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Target, Users, Gift, Calendar, Zap } from "lucide-react";
+import { Flame, Target, Users, Gift, Zap } from "lucide-react";
 
 interface GamifiedEngagementCardsProps {
   profile?: any;
@@ -25,7 +25,7 @@ const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profi
       id: 2,
       title: `Keep Your ${streakCount}-Day Impact Streak!`,
       description: "Log one eco-action before midnight",
-      icon: <Flame className="w-5 h-5 text-orange-500" />,
+      icon: <Flame className="w-5 h-5 text-red-600" />,
       impact: "Maintain momentum & inspire others",
       reward: "25 points",
       action: "Log Action",
@@ -46,7 +46,7 @@ const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profi
   return (
     <section className="space-y-3" aria-label="Impact opportunities">
       <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-        <Zap className="w-5 h-5 text-yellow-500" />
+        <Zap className="w-5 h-5 text-blue-600" />
         Real World Actions
       </h2>
       
@@ -55,7 +55,7 @@ const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profi
           <div 
             key={card.id} 
             className={`bg-card rounded-xl p-4 shadow-sm border transition-all hover:shadow-md ${
-              card.urgent ? 'ring-1 ring-orange-200 bg-gradient-to-r from-orange-50/30 to-card' : ''
+              card.urgent ? 'border-red-200 bg-red-50/30' : 'border-border'
             }`}
           >
             <div className="flex items-start justify-between gap-3">
@@ -69,7 +69,7 @@ const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profi
                       {card.title}
                     </h3>
                     {card.urgent && (
-                      <Badge className="bg-orange-100 text-orange-800 text-xs">
+                      <Badge className="bg-red-100 text-red-800 text-xs">
                         Urgent
                       </Badge>
                     )}
@@ -80,7 +80,7 @@ const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profi
                   
                   {/* Impact Preview */}
                   {card.impact && (
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-2 mb-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-2 mb-3">
                       <div className="text-xs font-medium text-green-800 flex items-center gap-1">
                         🌍 <span>{card.impact}</span>
                       </div>
@@ -94,7 +94,7 @@ const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profi
                     </Badge>
                     <Button 
                       size="sm" 
-                      className={card.urgent ? 'btn-orange' : 'btn-primary'}
+                      className={card.urgent ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500' : 'btn-primary'}
                       aria-label={`${card.action} for ${card.title}`}
                     >
                       {card.action}

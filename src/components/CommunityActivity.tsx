@@ -54,7 +54,7 @@ const CommunityActivity: React.FC = () => {
         {mockActivities.map((activity) => (
           <div 
             key={activity.id} 
-            className="bg-gradient-to-r from-muted/20 to-primary/5 rounded-xl p-3 border hover:from-muted/30 hover:to-primary/10 transition-all cursor-pointer group"
+            className="bg-muted/20 rounded-xl p-3 border hover:bg-muted/30 transition-all cursor-pointer group"
             role="button"
             tabIndex={0}
             aria-label={`${activity.user.name} ${activity.action} - ${activity.impact}`}

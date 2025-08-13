@@ -29,7 +29,7 @@ const HomeContent = ({ profile }: { profile: any }) => {
   
 
   return (
-    <main className="flex-grow px-3 py-4 bg-gradient-to-br from-mint-50/50 to-sky-50/50 min-h-screen">
+    <main className="flex-grow px-3 py-4 bg-background min-h-screen">
       <div className="max-w-md mx-auto space-y-4 pb-20">{/* Reduced bottom padding for mobile nav */}
         
         {/* Stories & Highlights Carousel */}

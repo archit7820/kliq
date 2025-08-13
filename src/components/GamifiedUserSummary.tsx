@@ -41,10 +41,10 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
           {kelpPoints.toLocaleString()} Kelp Points
         </div>
         <div className="flex items-center justify-center gap-2">
-          <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+          <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm border border-primary/20">
             L{xp.level}
           </div>
-          <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20">
             {bestBadge}
           </span>
         </div>
@@ -52,7 +52,7 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
 
       {/* Impact Grid - Mobile First */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-card rounded-xl p-3 text-center border">
+        <div className="bg-card rounded-xl p-3 text-center border border-green-200">
           <Leaf className="w-5 h-5 text-green-600 mx-auto mb-1" />
           <div className="font-semibold text-sm text-foreground">
             {weeklyImpact.co2Saved.toFixed(1)}kg
@@ -60,7 +60,7 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
           <div className="text-xs text-muted-foreground">CO₂ Saved</div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 text-center border">
+        <div className="bg-card rounded-xl p-3 text-center border border-blue-200">
           <Droplet className="w-5 h-5 text-blue-600 mx-auto mb-1" />
           <div className="font-semibold text-sm text-foreground">
             {weeklyImpact.waterSaved.toFixed(0)}L
@@ -68,7 +68,7 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
           <div className="text-xs text-muted-foreground">Water Saved</div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 text-center border">
+        <div className="bg-card rounded-xl p-3 text-center border border-purple-200">
           <Recycle className="w-5 h-5 text-purple-600 mx-auto mb-1" />
           <div className="font-semibold text-sm text-foreground">
             {weeklyImpact.wasteReduced.toFixed(1)}kg
@@ -76,8 +76,8 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
           <div className="text-xs text-muted-foreground">Waste Reduced</div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 text-center border">
-          <Zap className="w-5 h-5 text-yellow-600 mx-auto mb-1" />
+        <div className="bg-card rounded-xl p-3 text-center border border-blue-200">
+          <Zap className="w-5 h-5 text-blue-600 mx-auto mb-1" />
           <div className="font-semibold text-sm text-foreground">
             {weeklyImpact.energySaved.toFixed(0)}kWh
           </div>
@@ -87,19 +87,19 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
 
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-2 mb-3">
-        <div className="bg-card rounded-xl p-2 text-center border">
-          <Flame className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+        <div className="bg-card rounded-xl p-2 text-center border border-red-200">
+          <Flame className="w-4 h-4 text-red-600 mx-auto mb-1" />
           <div className="font-semibold text-sm">{streakCount}</div>
           <div className="text-xs text-muted-foreground">Day Streak</div>
         </div>
         
-        <div className="bg-card rounded-xl p-2 text-center border">
-          <Medal className="w-4 h-4 text-yellow-600 mx-auto mb-1" />
+        <div className="bg-card rounded-xl p-2 text-center border border-blue-200">
+          <Medal className="w-4 h-4 text-blue-600 mx-auto mb-1" />
           <div className="font-semibold text-sm">{globalRank}</div>
           <div className="text-xs text-muted-foreground">Global Rank</div>
         </div>
 
-        <div className="bg-card rounded-xl p-2 text-center border">
+        <div className="bg-card rounded-xl p-2 text-center border border-primary/20">
           <Trophy className="w-4 h-4 text-primary mx-auto mb-1" />
           <div className="font-semibold text-sm">L{xp.level}</div>
           <div className="text-xs text-muted-foreground">Impact Level</div>
@@ -107,7 +107,7 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
       </div>
 
       {/* Level Progress */}
-      <div className="bg-card rounded-xl p-3 border">
+      <div className="bg-card rounded-xl p-3 border border-border">
         <div className="flex justify-between items-center mb-2">
           <span className="text-xs font-medium text-muted-foreground">
             Level {xp.level} Progress
@@ -116,9 +116,9 @@ const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
             {xp.nextLevel} points to next level
           </span>
         </div>
-        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+        <div className="w-full bg-muted h-2 rounded-full overflow-hidden border border-muted">
           <div 
-            className="bg-gradient-to-r from-primary to-green-500 h-full rounded-full transition-all duration-500" 
+            className="bg-primary h-full rounded-full transition-all duration-500" 
             style={{ width: `${xp.curr}%` }} 
           />
         </div>
