@@ -142,85 +142,49 @@ const ExplorePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Header */}
-      <div className="sticky top-0 z-10 bg-background border-b-2 border-primary/20">
-        <div className="p-4">
-          {/* Top Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-xl">
-                <Zap className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Impact Hub</h1>
-                <p className="text-sm text-muted-foreground">Real actions, real change</p>
-              </div>
+      {/* Clean Header */}
+      <header className="sticky top-0 z-10 bg-card/90 backdrop-blur-lg border-b">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary rounded-lg">
+              <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full border-2 hover:bg-primary hover:text-primary-foreground transition-all"
-                onClick={() => setShowLeaderboard(!showLeaderboard)}
-              >
-                <Crown className="w-5 h-5" />
-              </Button>
-              <Button variant="outline" size="icon" className="rounded-full border-2">
-                <Search className="w-5 h-5" />
-              </Button>
-              <Button variant="outline" size="icon" className="rounded-full border-2">
-                <Filter className="w-5 h-5" />
-              </Button>
+            <div>
+              <h1 className="text-lg font-bold text-foreground">Impact Hub</h1>
+              <p className="text-xs text-muted-foreground">Real actions, real change</p>
             </div>
           </div>
-
-          {/* Stats Bar - Simplified for Mobile */}
-          <div className="flex items-center justify-between mb-4 p-3 bg-muted/20 rounded-xl">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-xs font-medium">{filteredPosts.length} Active</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Flame className="w-3 h-3 text-orange-500" />
-              <span className="text-xs font-medium">47 days</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <TrendingUp className="w-3 h-3 text-blue-500" />
-              <span className="text-xs font-medium">+2.1K Impact</span>
-            </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full"
+              onClick={() => setShowLeaderboard(!showLeaderboard)}
+            >
+              <Crown className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Search className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Filter className="w-4 h-4" />
+            </Button>
           </div>
+        </div>
 
-          {/* Enhanced Tabs - Icon Only */}
+        {/* Tabs */}
+        <div className="px-4 pb-3">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4 bg-muted/30 p-1">
-              <TabsTrigger 
-                value="trending" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                🔥
-              </TabsTrigger>
-              <TabsTrigger 
-                value="all"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                🌍
-              </TabsTrigger>
-              <TabsTrigger 
-                value="friends"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                👥
-              </TabsTrigger>
-              <TabsTrigger 
-                value="achievements"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                🏆
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="trending">🔥 Trending</TabsTrigger>
+              <TabsTrigger value="all">🌍 All</TabsTrigger>
+              <TabsTrigger value="friends">👥 Friends</TabsTrigger>
+              <TabsTrigger value="achievements">🏆 Top</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
-      </div>
+      </header>
 
       {/* Leaderboard */}
       {showLeaderboard && (

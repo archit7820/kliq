@@ -65,46 +65,44 @@ const LeaderboardPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Clean Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Stats & Challenges</h1>
-              <p className="text-muted-foreground">Track your progress and compete with others</p>
+      <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-lg border-b">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <div className="bg-green-500 text-white text-sm font-bold px-2 py-1 rounded">70</div>
+              <div className="bg-blue-500 text-white text-sm font-bold px-2 py-1 rounded">98</div>
+              <div className="bg-purple-500 text-white text-sm font-bold px-2 py-1 rounded">71</div>
+              <div className="bg-orange-500 text-white text-sm font-bold px-2 py-1 rounded">99</div>
+              <div className="bg-indigo-500 text-white text-sm font-bold px-2 py-1 rounded">74</div>
             </div>
-            {user && (
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Your Rank</p>
-                <p className="text-lg font-semibold text-foreground">{getUserRank(user.id)}</p>
-              </div>
-            )}
           </div>
+          
+          {user && (
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Rank</p>
+              <p className="text-sm font-semibold text-foreground">{getUserRank(user.id)}</p>
+            </div>
+          )}
+        </div>
 
+        <div className="px-4 pb-3">
           <Tabs defaultValue="leaderboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-              <TabsTrigger 
-                value="leaderboard" 
-                className="flex items-center gap-2"
-                aria-label="View leaderboard rankings"
-              >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="leaderboard" className="flex items-center gap-2">
                 <Trophy className="w-4 h-4" />
                 Leaderboard
               </TabsTrigger>
-              <TabsTrigger 
-                value="challenges" 
-                className="flex items-center gap-2"
-                aria-label="View and manage challenges"
-              >
+              <TabsTrigger value="challenges" className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
                 Challenges
               </TabsTrigger>
             </TabsList>
 
-            <div className="mt-6">
-              <TabsContent value="leaderboard" className="space-y-6">
+            <div className="mt-4">
+              <TabsContent value="leaderboard" className="space-y-4 px-4">
                 {/* Leaderboard Filters */}
                 <Card>
-                  <CardContent className="pt-6">
+                  <CardContent className="pt-4">
                     <LeaderboardFilters
                       scope={scope}
                       onScopeChange={setScope}
@@ -154,13 +152,15 @@ const LeaderboardPage = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="challenges" className="space-y-6">
+              <TabsContent value="challenges" className="space-y-4 px-4">
                 <ChallengesSection />
               </TabsContent>
             </div>
           </Tabs>
         </div>
       </header>
+      
+      <div className="pb-20"></div>
 
       <BottomNav />
     </div>

@@ -99,83 +99,44 @@ const FeedHeader: React.FC<FeedHeaderProps> = ({ userProfile, onRefresh, isRefet
   };
 
   return (
-    <header className="bg-card/80 backdrop-blur-sm p-4 sticky top-0 z-40 flex justify-between items-center border-b">
-      {/* Left side - Logo with dynamic icon */}
-      <div className="flex items-center gap-3">
-        <Link to="/home" className="flex items-center gap-2 group">
-          <div className="relative">
-            <h1 className="text-2xl font-bold text-primary transition-all duration-300 group-hover:scale-105">
-              kelp
-            </h1>
-            <CurrentDynamicIcon 
-              className={`absolute -top-1 -right-1 w-4 h-4 text-green-500 transition-all duration-500 ${
-                sparkleAnimation ? 'animate-bounce scale-125' : ''
-              }`} 
-            />
+    <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-lg border-b">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary rounded-lg">
+            <Zap className="w-5 h-5 text-primary-foreground" />
           </div>
-        </Link>
-        
-        {/* Fun mood indicator */}
-        <div className="hidden sm:flex items-center gap-1">
-          {currentIcons.map((Icon, index) => (
-            <Icon
-              key={index}
-              className={`w-3 h-3 transition-all duration-300 ${
-                index === iconIndex 
-                  ? 'text-primary scale-110' 
-                  : 'text-muted-foreground/50'
-              }`}
-            />
-          ))}
+          <div>
+            <h1 className="text-lg font-bold text-foreground">Impact Hub</h1>
+            <p className="text-xs text-muted-foreground">Real actions, real change</p>
+          </div>
         </div>
-      </div>
-
-      {/* Right side - Interactive buttons */}
-      <div className="flex items-center gap-3">
-        {/* Super interactive refresh button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleRefresh} 
-          disabled={isRefetching}
-          className="relative group hover:bg-green-50 transition-all duration-300"
-        >
-          <RefreshCw 
-            className={`w-5 h-5 text-muted-foreground group-hover:text-green-600 transition-all duration-300 ${
-              isRefetching ? 'animate-spin' : 'group-hover:rotate-180'
-            }`} 
-          />
-          {sparkleAnimation && (
-            <Sparkles className="absolute -top-1 -right-1 w-3 h-3 text-yellow-400 animate-pulse" />
-          )}
-          <span className="sr-only">Refresh feed</span>
-        </Button>
-
-        {/* Animated messages button */}
-        <Link to="/messages">
+        
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
-            size="icon"
-            className="relative group hover:bg-blue-50 transition-all duration-300"
+            size="icon" 
+            onClick={handleRefresh} 
+            disabled={isRefetching}
+            className="rounded-full"
           >
-            <MessageSquare className="w-5 h-5 text-muted-foreground group-hover:text-blue-600 group-hover:scale-110 transition-all duration-300" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <span className="sr-only">Messages</span>
+            <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
           </Button>
-        </Link>
-
-        {/* Enhanced profile avatar with glow effect */}
-        <Link to="/profile" className="group">
-          <div className="relative">
-            <Avatar className="w-9 h-9 ring-2 ring-transparent group-hover:ring-primary/20 transition-all duration-300 group-hover:scale-105">
+          
+          <Link to="/messages">
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+          </Link>
+          
+          <Link to="/profile">
+            <Avatar className="w-8 h-8">
               <AvatarImage src={userProfile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-green-400 to-blue-500 text-white font-medium">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                 {userProfile?.full_name?.charAt(0).toUpperCase() || userProfile?.username?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-card animate-pulse" />
-          </div>
-        </Link>
+          </Link>
+        </div>
       </div>
     </header>
   );
