@@ -89,21 +89,68 @@ const ChallengesHub: React.FC = () => {
   );
 
   return (
-    <div className="w-full space-y-5">
-      <section>
-        <h3 className="text-lg font-bold flex items-center gap-2 mb-3"><Trophy className="w-5 h-5 text-yellow-500" /> Challenges of the Week by Kelp</h3>
-        {loadingKelp ? <div className="text-muted-foreground">Loading...</div> : renderList(kelpChallenges)}
+    <div className="w-full space-y-6">
+      {/* Kelp Challenges */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-yellow-100 rounded-lg">
+            <Trophy className="w-5 h-5 text-yellow-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">Challenges of the Week by Kelp</h3>
+            <p className="text-sm text-gray-600">Official eco-challenges curated for impact</p>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          {loadingKelp ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
+            </div>
+          ) : kelpChallenges.length > 0 ? (
+            renderList(kelpChallenges)
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+              <p>New challenges coming soon!</p>
+            </div>
+          )}
+        </div>
       </section>
-      <section>
-        <h3 className="text-lg font-bold flex items-center gap-2 mb-3"><Users className="w-5 h-5 text-primary" /> Community Challenges</h3>
-        {loadingCommunity ? <div className="text-muted-foreground">Loading...</div> : renderList(communityChallenges)}
+
+      {/* Community Challenges */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Users className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">Community Challenges</h3>
+            <p className="text-sm text-gray-600">Created by users like you</p>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          {loadingCommunity ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
+            </div>
+          ) : communityChallenges.length > 0 ? (
+            renderList(communityChallenges)
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+              <p>Be the first to create a community challenge!</p>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Floating Action Button */}
       <Dialog>
         <DialogTrigger asChild>
           <button
-            className="fixed bottom-24 right-5 z-30 rounded-full shadow-lg border bg-primary text-primary-foreground w-14 h-14 flex items-center justify-center hover:opacity-90"
+            className="fixed bottom-24 right-6 z-40 btn-green btn-bounce btn-glow w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold shadow-xl"
             aria-label="Create New Challenge"
           >
             +

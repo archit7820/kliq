@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import ImpactDashboard from "@/components/ImpactDashboard";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProfileStats from "@/components/ProfileStats";
-import EcoInsightsList from "@/components/EcoInsightsList";
-import LeaderboardList from "@/components/LeaderboardList";
 import { Button } from "@/components/ui/button";
 import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import LeaderboardFilters from "@/components/LeaderboardFilters";
+import LeaderboardList from "@/components/LeaderboardList";
 import ChallengesHub from "@/components/ChallengesHub";
 import DeeperAnalytics from "@/components/DeeperAnalytics";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import { Trophy, Target, Crown } from "lucide-react";
 
 const useRealtimeSync = (userId: string | undefined) => {
   const queryClient = useQueryClient();
@@ -53,157 +51,148 @@ const useRealtimeSync = (userId: string | undefined) => {
 const FALLBACK_LOGO_EMOJI = "🌱";
 
 const LeaderboardPage = () => {
-  const { profile, isProfileLoading, insights, user } = useProfileWithStats();
+  const { profile, user } = useProfileWithStats();
   const { leaderboard, isLoading, friendsLeaderboard } = useLeaderboard();
+  const { subscribed: isPremium } = useSubscriptionStatus();
   const navigate = useNavigate();
   useRealtimeSync(user?.id);
 
-  const [logoBroken, setLogoBroken] = React.useState(false);
+  const [scope, setScope] = useState<"global" | "national" | "local" | "friends">("global");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const getUserRank = (userId: string) => {
-    const index = leaderboard.findIndex((item: any) => item.id === userId);
+    const currentLeaderboard = scope === "friends" ? friendsLeaderboard : leaderboard;
+    const index = currentLeaderboard.findIndex((item: any) => item.id === userId);
     return index !== -1 ? `#${index + 1}` : "N/A";
   };
 
+  const currentLeaderboard = scope === "friends" ? friendsLeaderboard : leaderboard;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-100 flex flex-col relative">
-      {/* Header/Top + Logo fix */}
-      <div className="
-        bg-gradient-to-b from-green-700 via-green-700 to-green-500 rounded-b-3xl shadow-xl z-10
-        flex flex-col items-center w-full pb-4 pt-6 px-0 sm:p-6
-      ">
-        <div className="flex flex-row items-center justify-center gap-2 w-full mb-1 px-2">
-          {!logoBroken ? (
-            <img
-              src="/kelp-logo.svg"
-              alt="Logo"
-              className="w-8 h-8 object-contain min-w-[32px] min-h-[32px] flex-shrink-0"
-              onError={(e) => {
-                setLogoBroken(true);
-              }}
-            />
-          ) : (
-            <span className="w-8 h-8 flex items-center justify-center text-2xl select-none" aria-label="kelp logo">
-              {FALLBACK_LOGO_EMOJI}
-            </span>
-          )}
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center mb-0" style={{ lineHeight: 1.1 }}>
-            Kelp Leaderboard!
-            <span className="ml-2 animate-bounce text-2xl sm:text-3xl" role="img" aria-label="trophy">🏆</span>
-          </h1>
-        </div>
-        <p className="text-green-100 text-xs leading-5 font-medium sm:text-md text-center w-full max-w-xs px-2 mt-1">
-          Race to the top — earn points, inspire friends, and unlock new badges by making an eco difference every day!
-        </p>
-        {/* Tabs - perfectly centered and with increased margin below for mobile */}
-        <div className="w-full flex justify-center pt-3 pb-2 z-20">
-          <Tabs defaultValue="global" className="w-full max-w-md flex flex-col items-center">
-            <TabsList className="
-              w-fit rounded-full shadow bg-green-100 overflow-hidden flex items-center mx-auto px-1
-            ">
-              <TabsTrigger value="global" className="
-                text-[15px] px-4 py-1.5 rounded-full !font-bold data-[state=active]:bg-green-600 data-[state=active]:text-white
-                transition-all select-none
-              ">
-                🌍 Global
+    <div className="min-h-screen bg-gradient-to-br from-mint-50 to-sky-50 flex flex-col">
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-4 py-6 shadow-lg">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-xl">
+                <Trophy className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Stats & Challenges</h1>
+                <p className="text-emerald-100 text-sm">Track progress, compete, and grow</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-emerald-100 text-xs">Your Rank</p>
+              <div className="flex items-center gap-1">
+                <Crown className="w-4 h-4 text-yellow-300" />
+                <span className="text-white font-bold">{user ? getUserRank(user.id) : "-"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Tabs */}
+          <Tabs defaultValue="leaderboard" className="w-full">
+            <TabsList className="bg-white/20 backdrop-blur-sm border-0 p-1 rounded-xl">
+              <TabsTrigger 
+                value="leaderboard" 
+                className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all"
+              >
+                <Trophy className="w-4 h-4" />
+                Leaderboard
               </TabsTrigger>
-              <TabsTrigger value="friends" className="
-                text-[15px] px-4 py-1.5 rounded-full !font-bold data-[state=active]:bg-yellow-400 data-[state=active]:text-green-900
-                transition-all select-none
-              ">
-                🧑‍🤝‍🧑 Friends
+              <TabsTrigger 
+                value="challenges" 
+                className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-lg px-4 py-2 flex items-center gap-2 transition-all"
+              >
+                <Target className="w-4 h-4" />
+                Challenges
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="leaderboard" className="mt-0">
+              <div className="space-y-4">
+                {/* Leaderboard Filters */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                  <LeaderboardFilters
+                    scope={scope}
+                    onScopeChange={setScope}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                  />
+                </div>
+
+                {/* Premium Analytics Toggle */}
+                {isPremium && (
+                  <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 backdrop-blur-sm rounded-xl p-3 border border-yellow-300/30">
+                    <button
+                      onClick={() => setShowAnalytics(!showAnalytics)}
+                      className="w-full flex items-center justify-between text-white"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Crown className="w-4 h-4 text-yellow-300" />
+                        <span className="font-medium">Deeper Analytics</span>
+                      </div>
+                      <div className="text-xs bg-yellow-300/20 px-2 py-1 rounded-full">
+                        {showAnalytics ? "Hide" : "Show"}
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="challenges" className="mt-0">
+              <div className="text-white/80 text-sm text-center">
+                Explore weekly challenges and community competitions
+              </div>
+            </TabsContent>
           </Tabs>
-        </div>
-        {/* "Your Rank" badge */}
-        <div className="relative w-full flex justify-center z-10 mt-1 px-3">
-          <span className="
-            bg-white/15 text-green-50 px-4 py-1 rounded-full text-sm font-semibold shadow
-            sm:text-md text-center w-full max-w-xs backdrop-blur border border-white/10
-          ">
-            Your rank:{" "}
-            <span className="text-yellow-200 drop-shadow">{user ? getUserRank(user.id) : "-"}</span>
-          </span>
         </div>
       </div>
 
-      {/* MAIN - Responsive: items centered always! */}
-      <main className="flex flex-col items-center w-full max-w-screen-md mx-auto px-0 pt-1 pb-20 z-20 gap-y-2">
-        {/* ProfileStats Card */}
-        <div className="rounded-2xl shadow-lg bg-white/90 px-2 sm:px-4 py-2 sm:py-4 mb-2 w-full animate-fade-in animate-scale-in mt-[-14px] sm:mt-0">
-          <ProfileStats profile={profile} user={user} getUserRank={getUserRank} />
-        </div>
-        {/* Podium/Leaderboard aligned and centered */}
-        <div className="flex flex-col items-center w-full px-0 sm:px-2">
-          <Tabs defaultValue="global" className="w-full max-w-md flex flex-col items-center">
-            <TabsContent value="global" className="p-0 w-full flex flex-col items-center">
+      {/* Main Content */}
+      <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 space-y-6">
+        <Tabs defaultValue="leaderboard" className="w-full">
+          <TabsContent value="leaderboard" className="space-y-6">
+            {/* Premium Analytics */}
+            {isPremium && showAnalytics && (
+              <div className="bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
+                <DeeperAnalytics 
+                  streakDays={profile?.streak_count || 0}
+                  tip="Keep up your eco-streak! Try biking short distances this week to save CO₂ and boost your impact."
+                />
+              </div>
+            )}
+
+            {/* Leaderboard */}
+            <div className="bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
               {isLoading ? (
-                <div className="p-8 text-center text-gray-500 animate-pulse">Loading...</div>
-              ) : (
-                <div className="flex flex-col items-center w-full">
-                  <LeaderboardList leaderboard={leaderboard} userId={user?.id} />
-                </div>
-              )}
-            </TabsContent>
-            <TabsContent value="friends" className="p-0 w-full flex flex-col items-center">
-              {friendsLeaderboard.length ? (
-                <div className="flex flex-col items-center w-full">
-                  <LeaderboardList leaderboard={friendsLeaderboard} userId={user?.id} />
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
                 </div>
               ) : (
-                <div className="p-8 text-center text-gray-500">
-                  <p className="mb-4">No friends yet!</p>
-                  <Button
-                    size="default"
-                    onClick={() => navigate('/friends')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 animate-fade-in border-2 border-emerald-500 hover:border-emerald-600 px-6 py-2"
-                    aria-label="Navigate to friends page to find and add friends"
-                  >
-                    Find Friends
-                  </Button>
-                </div>
+                <LeaderboardList 
+                  leaderboard={currentLeaderboard} 
+                  userId={user?.id}
+                  selectedCategory={selectedCategory}
+                  onProfileClick={(userId) => navigate(`/profile/${userId}`)}
+                />
               )}
-            </TabsContent>
-          </Tabs>
-        </div>
-        {/* Insights */}
-        <EcoInsightsList insights={insights} />
-        {/* Impact Dashboard */}
-        <section className="max-w-screen-md mx-auto w-full mt-5 rounded-2xl shadow bg-white/60 animate-fade-in">
-          <div className="flex flex-row items-center justify-between mb-1 pt-4 px-4">
-            <h2 className="font-bold text-lg text-green-900">Your Kelp Points Impact</h2>
-            <Link to="/impact-dashboard" className="text-green-700 hover:underline text-sm">View Full Dashboard</Link>
-          </div>
-          <ImpactDashboard />
-        </section>
-        {/* Challenges */}
-        <div className="w-full text-center my-3">
-          <Link
-            to="/challenges"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full font-semibold transition-all duration-200 shadow-lg hover:shadow-xl animate-fade-in hover:scale-105 active:scale-95 border-2 border-blue-400 hover:border-blue-500"
-            aria-label="Navigate to challenges page to view this week's challenges"
-          >
-            🎯 Check Out This Week's Challenges!
-          </Link>
-        </div>
-        <div className="my-3 text-center w-full">
-          <Link
-            to="/create-challenge"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-full font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-2 border-emerald-400 hover:border-emerald-500"
-            aria-label="Navigate to create challenge page to create a new challenge"
-          >
-            ➕ Create a New Challenge
-          </Link>
-        </div>
-      </main>
-      {/* BottomNav + motivational badge */}
-      <BottomNav />
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-30 w-full flex justify-center pointer-events-none">
-        <div className="bg-white/90 rounded-full px-5 py-2 shadow-lg border-2 border-green-400 text-green-700 font-bold animate-fade-in max-w-xs w-full text-center pointer-events-auto text-sm sm:text-base">
-          🚀 Level up your eco journey with Kelp!
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="challenges" className="space-y-6">
+            <div className="bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
+              <ChallengesHub />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
+
+      <BottomNav />
     </div>
   );
 };
