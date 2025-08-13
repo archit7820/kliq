@@ -190,32 +190,32 @@ const ExplorePage = () => {
             </div>
           </div>
 
-          {/* Enhanced Tabs */}
+          {/* Enhanced Tabs - Icon Only */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-4 bg-muted/30 p-1">
               <TabsTrigger 
                 value="trending" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                🔥 Trending
+                🔥
               </TabsTrigger>
               <TabsTrigger 
                 value="all"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                🌍 All
+                🌍
               </TabsTrigger>
               <TabsTrigger 
                 value="friends"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                👥 Friends
+                👥
               </TabsTrigger>
               <TabsTrigger 
                 value="achievements"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                🏆 Elite
+                🏆
               </TabsTrigger>
             </TabsList>
           </Tabs>

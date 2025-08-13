@@ -13,6 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import ImpactScoreModal from "@/components/ImpactScoreModal";
+import PostInteractionModal from "@/components/PostInteractionModal";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface GamePostCardProps {
@@ -58,9 +60,11 @@ const categoryConfig: Record<string, { color: string; bg: string; icon: string; 
 
 const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
   const [showImpactModal, setShowImpactModal] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 150) + 25);
   const [showReaction, setShowReaction] = useState(false);
+  const { toast } = useToast();
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -81,12 +85,18 @@ const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
         text: post.caption,
         url: window.location.href
       });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied!",
+        description: "Post link copied to clipboard.",
+      });
     }
   };
 
   const handleComment = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onClick();
+    setShowCommentsModal(true);
   };
 
   const handleImpactClick = (e: React.MouseEvent) => {
@@ -137,40 +147,40 @@ const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
                 </div>
               </div>
 
-              {/* Impact Score - Clean & Prominent */}
+              {/* Impact Score - Compact */}
               <Button
                 variant="outline"
                 size="sm"
-                className="h-auto px-3 py-2 bg-primary/5 border-primary/30 hover:bg-primary/10 transition-all"
+                className="h-auto px-2 py-1.5 bg-primary/5 border-primary/30 hover:bg-primary/10"
                 onClick={handleImpactClick}
               >
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3 h-3 text-primary" />
                   <div className="text-center">
-                    <div className="text-lg font-bold text-primary">{totalScore}</div>
-                    <div className="text-[10px] text-muted-foreground leading-none">Impact</div>
+                    <div className="text-sm font-bold text-primary">{totalScore}</div>
+                    <div className="text-[9px] text-muted-foreground leading-none">Impact</div>
                   </div>
                 </div>
               </Button>
             </div>
           </div>
 
-          {/* Category & Title - Cleaner */}
-          <div className="px-4 pb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className={cn("text-xs font-medium px-2 py-1", categoryInfo.color, categoryInfo.bg)}>
+          {/* Category & Title - Compact */}
+          <div className="px-4 pb-2">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Badge className={cn("text-xs px-1.5 py-0.5", categoryInfo.color, categoryInfo.bg)}>
                 <span className="mr-1">{categoryInfo.icon}</span>
                 {categoryInfo.label}
               </Badge>
               {(post.badges || 0) > 3 && (
                 <div className="flex items-center gap-1 text-xs text-amber-600">
                   <Award className="w-3 h-3" />
-                  <span className="font-medium">{post.badges}</span>
+                  <span className="text-xs">{post.badges}</span>
                 </div>
               )}
             </div>
             
-            <h3 className="font-bold text-base text-foreground leading-tight">
+            <h3 className="font-semibold text-sm text-foreground leading-tight">
               {post.activity} {post.emoji}
             </h3>
           </div>
@@ -187,79 +197,79 @@ const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
           )}
 
           {/* Content */}
-          <div className="p-4">
+          <div className="p-4 pt-2">
             <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
               {post.caption}
             </p>
 
-            {/* Impact Breakdown - Clean Mobile Grid */}
-            <div className="bg-muted/30 rounded-xl p-3 mb-4">
-              <div className="grid grid-cols-5 gap-2 text-center">
+            {/* Impact Breakdown - Compact Icons */}
+            <div className="bg-muted/20 rounded-lg p-2.5 mb-3">
+              <div className="grid grid-cols-5 gap-1 text-center">
                 <div>
-                  <div className="text-lg font-bold text-green-600">{Math.round(analysis?.environmental_impact || 0)}</div>
-                  <div className="text-[10px] text-muted-foreground">🌱 Env</div>
+                  <div className="text-sm font-bold text-green-600">{Math.round(analysis?.environmental_impact || 0)}</div>
+                  <div className="text-[9px] text-muted-foreground">🌱</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-blue-600">{Math.round(analysis?.social_connection || 0)}</div>
-                  <div className="text-[10px] text-muted-foreground">🤝 Social</div>
+                  <div className="text-sm font-bold text-blue-600">{Math.round(analysis?.social_connection || 0)}</div>
+                  <div className="text-[9px] text-muted-foreground">🤝</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-purple-600">{Math.round(analysis?.adventure_intensity || 0)}</div>
-                  <div className="text-[10px] text-muted-foreground">⚡ Adventure</div>
+                  <div className="text-sm font-bold text-purple-600">{Math.round(analysis?.adventure_intensity || 0)}</div>
+                  <div className="text-[9px] text-muted-foreground">⚡</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-amber-600">{Math.round(analysis?.economic_impact || 0)}</div>
-                  <div className="text-[10px] text-muted-foreground">💰 Economic</div>
+                  <div className="text-sm font-bold text-amber-600">{Math.round(analysis?.economic_impact || 0)}</div>
+                  <div className="text-[9px] text-muted-foreground">💰</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-indigo-600">{Math.round(analysis?.learning_growth || 0)}</div>
-                  <div className="text-[10px] text-muted-foreground">📚 Learning</div>
+                  <div className="text-sm font-bold text-indigo-600">{Math.round(analysis?.learning_growth || 0)}</div>
+                  <div className="text-[9px] text-muted-foreground">📚</div>
                 </div>
               </div>
             </div>
 
-            {/* Action Bar - Simplified */}
+            {/* Action Bar - Compact & Functional */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "rounded-full px-3 py-2",
+                    "rounded-full px-2.5 py-1.5 h-auto",
                     isLiked && "text-red-500 bg-red-50"
                   )}
                   onClick={handleLike}
                 >
-                  <Heart className={cn("w-4 h-4 mr-1", isLiked && "fill-current")} />
-                  <span className="text-sm font-medium">{likeCount}</span>
+                  <Heart className={cn("w-3.5 h-3.5 mr-1", isLiked && "fill-current")} />
+                  <span className="text-xs font-medium">{likeCount}</span>
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="rounded-full px-3 py-2"
+                  className="rounded-full px-2.5 py-1.5 h-auto"
                   onClick={handleComment}
                 >
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  <span className="text-sm font-medium">{Math.floor(Math.random() * 30) + 5}</span>
+                  <MessageCircle className="w-3.5 h-3.5 mr-1" />
+                  <span className="text-xs font-medium">{Math.floor(Math.random() * 30) + 5}</span>
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="rounded-full p-2"
+                  className="rounded-full p-1.5 h-auto"
                   onClick={handleShare}
                 >
-                  <Share className="w-4 h-4" />
+                  <Share className="w-3.5 h-3.5" />
                 </Button>
               </div>
 
               <Button
                 variant="ghost"
                 size="sm"
-                className="rounded-full p-2 text-muted-foreground hover:text-amber-500"
+                className="rounded-full p-1.5 h-auto text-muted-foreground hover:text-amber-500"
               >
-                <Star className="w-4 h-4" />
+                <Star className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
@@ -277,6 +287,13 @@ const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
       <ImpactScoreModal
         isOpen={showImpactModal}
         onClose={() => setShowImpactModal(false)}
+        post={post}
+      />
+
+      {/* Comments Modal */}
+      <PostInteractionModal
+        isOpen={showCommentsModal}
+        onClose={() => setShowCommentsModal(false)}
         post={post}
       />
     </>
