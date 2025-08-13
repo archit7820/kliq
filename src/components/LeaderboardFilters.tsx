@@ -17,55 +17,66 @@ const LeaderboardFilters: React.FC<LeaderboardFiltersProps> = ({
   onCategoryChange,
 }) => {
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-4">
       {/* Scope filter */}
-      <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 flex items-center gap-1 shadow-sm border border-white/20">
-        {(["global", "national", "local", "friends"] as const).map((s) => (
-          <Button
-            key={s}
-            size="sm"
-            variant={scope === s ? "default" : "ghost"}
-            className={`rounded-lg px-4 py-2 h-9 text-sm font-medium transition-all ${
-              scope === s 
-                ? "bg-primary text-primary-foreground shadow-md" 
-                : "text-gray-600 hover:bg-white/60 hover:text-gray-800"
-            }`}
-            onClick={() => onScopeChange(s)}
-          >
-            {s === "global" && "🌍 Global"}
-            {s === "national" && "🏛️ National"}
-            {s === "local" && "📍 Local"}
-            {s === "friends" && "👥 Friends"}
-          </Button>
-        ))}
+      <div>
+        <label className="block text-sm font-medium mb-2" id="scope-filter-label">
+          Filter by Scope
+        </label>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="scope-filter-label">
+          {(["global", "national", "local", "friends"] as const).map((s) => (
+            <Button
+              key={s}
+              size="sm"
+              variant={scope === s ? "default" : "outline"}
+              className={`transition-all ${scope === s ? "shadow-md" : ""}`}
+              onClick={() => onScopeChange(s)}
+              role="radio"
+              aria-checked={scope === s}
+              aria-label={`Filter by ${s} leaderboard`}
+            >
+              {s === "global" && "🌍 Global"}
+              {s === "national" && "🏛️ National"}
+              {s === "local" && "📍 Local"}
+              {s === "friends" && "👥 Friends"}
+            </Button>
+          ))}
+        </div>
       </div>
 
-      {/* Category chips */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-        {CATEGORIES.map((cat) => {
-          const active = selectedCategory === cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => onCategoryChange(cat)}
-              className={`px-3 py-1.5 rounded-full text-sm border whitespace-nowrap transition-all btn-bounce ${
-                active
-                  ? "bg-emerald-500 text-white shadow-md border-emerald-400"
-                  : "bg-white/70 text-gray-700 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-sm"
-              }`}
-              aria-pressed={active}
-            >
-              {cat === "All" && "🌟"}
-              {cat === "Cycling" && "🚴"}
-              {cat === "Thrift" && "♻️"}
-              {cat === "Food" && "🥗"}
-              {cat === "Travel" && "✈️"}
-              {cat === "Energy" && "⚡"}
-              {cat === "Transit" && "🚇"}
-              <span className="ml-1">{cat}</span>
-            </button>
-          );
-        })}
+      {/* Category filter */}
+      <div>
+        <label className="block text-sm font-medium mb-2" id="category-filter-label">
+          Filter by Category
+        </label>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="category-filter-label">
+          {CATEGORIES.map((cat) => {
+            const active = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => onCategoryChange(cat)}
+                className={`px-3 py-1.5 rounded-md text-sm border transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                  active
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-background border-border text-foreground hover:bg-muted hover:border-muted-foreground"
+                }`}
+                role="radio"
+                aria-checked={active}
+                aria-label={`Filter by ${cat} category`}
+              >
+                {cat === "All" && "🌟 "}
+                {cat === "Cycling" && "🚴 "}
+                {cat === "Thrift" && "♻️ "}
+                {cat === "Food" && "🥗 "}
+                {cat === "Travel" && "✈️ "}
+                {cat === "Energy" && "⚡ "}
+                {cat === "Transit" && "🚇 "}
+                {cat}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

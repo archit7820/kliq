@@ -2,8 +2,8 @@
 import React from "react";
 import TopPodium from "./TopPodium";
 import LeaderboardRowGamified from "./LeaderboardRowGamified";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Trophy } from "lucide-react";
 
 type LeaderboardListProps = {
   leaderboard: any[];
@@ -32,58 +32,35 @@ const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId, 
   console.log("LeaderboardList - isMobile:", isMobile, "rest.length:", rest.length);
 
   return (
-    <div className="py-2 w-full">
-      <TopPodium podium={podium} userId={userId} />
-      <div className="w-full text-center mb-2 font-semibold text-gray-500 text-sm tracking-widest">
-        <span className="inline-block bg-green-200 rounded-full px-3 py-0.5 shadow animate-in animate-fade-in">Leaderboard</span>
+    <div className="space-y-6" role="region" aria-label="Leaderboard rankings">
+      {/* Top 3 Podium */}
+      <div className="mb-8">
+        <TopPodium podium={podium} userId={userId} />
       </div>
-      
+
+      {/* Rest of leaderboard */}
       {rest.length === 0 ? (
-        <div className="py-6 text-center text-gray-400">No more players... join in!</div>
-      ) : isMobile ? (
-        // Mobile: Horizontal Carousel layout
-        <div className="w-full px-4">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: false,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-2">
-              {rest.map((profile, i) => (
-                <CarouselItem key={profile.id} className="pl-2 basis-[280px] sm:basis-1/2">
-                  <LeaderboardRowGamified
-                    profile={profile}
-                    rank={i + 3}
-                    userId={userId}
-                    categoryTag={selectedCategory}
-                    onClick={onProfileClick ? () => onProfileClick(profile.id) : undefined}
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {rest.length > 1 && (
-              <>
-                <CarouselPrevious className="left-2 h-8 w-8 bg-white/90 shadow-lg" />
-                <CarouselNext className="right-2 h-8 w-8 bg-white/90 shadow-lg" />
-              </>
-            )}
-          </Carousel>
+        <div className="text-center py-8 text-muted-foreground">
+          <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+          <p>No more players in this category</p>
         </div>
       ) : (
-        // Desktop: Traditional list layout
-        <div className="space-y-1">
-          {rest.map((profile, i) => (
-            <LeaderboardRowGamified
-              key={profile.id}
-              profile={profile}
-              rank={i + 3}
-              userId={userId}
-              categoryTag={selectedCategory}
-              onClick={onProfileClick ? () => onProfileClick(profile.id) : undefined}
-            />
-          ))}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+            Other Rankings
+          </h3>
+          <div className={isMobile ? "space-y-3" : "space-y-2"}>
+            {rest.map((profile, i) => (
+              <LeaderboardRowGamified
+                key={profile.id}
+                profile={profile}
+                rank={i + 4}
+                userId={userId}
+                categoryTag={selectedCategory}
+                onClick={onProfileClick ? () => onProfileClick(profile.id) : undefined}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
