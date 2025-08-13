@@ -26,12 +26,12 @@ interface PostDetailProps {
       avatar_url?: string;
     } | null;
     activity_analysis?: {
-      environmental_impact: number;
-      social_connection: number;
-      adventure_intensity: number;
-      economic_impact: number;
-      learning_growth: number;
-    };
+      environmental_impact?: number;
+      social_connection?: number;
+      adventure_intensity?: number;
+      economic_impact?: number;
+      learning_growth?: number;
+    } | null;
   };
   onClose: () => void;
   onUpdate: (post: any) => void;

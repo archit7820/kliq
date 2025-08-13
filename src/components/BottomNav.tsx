@@ -5,7 +5,7 @@ import { Home, PlusSquare, BarChart2, UserCircle, Compass, Users } from 'lucide-
 
 const navItems = [
   { path: '/home', icon: Home, label: 'Home' },
-  { path: '/feed', icon: Compass, label: 'Explore' },
+  { path: '/explore', icon: Compass, label: 'Explore' },
   { path: '/log-activity', icon: PlusSquare, label: 'Log' },
   { path: '/leaderboard', icon: BarChart2, label: 'Stats' },
   { path: '/communities', icon: Users, label: 'Communities' },
