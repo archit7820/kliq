@@ -19,6 +19,7 @@ const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[
 const CommunityPage = () => {
   const { user } = useAuthStatus();
   const { communityId } = useParams();
+  const isMobile = useIsMobile(); // Move hook to top before any returns
 
   // If we're on /communities/create or the id is invalid, show "Not found"
   if (!communityId || communityId === "create" || !isValidUUID(communityId)) {
@@ -105,7 +106,6 @@ const CommunityPage = () => {
   // Only owner of community can see the membership requests
   const amOwner = user && user.id === community.created_by;
 
-  const isMobile = useIsMobile();
   const isApprovedMember = myMembership?.status === "approved";
   const canViewContent = user && (amOwner || isApprovedMember);
 
