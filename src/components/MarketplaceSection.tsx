@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Button } from "@/components/ui/button";
 import BrandCard from "./BrandCard";
 
 const marketplaceBrands = [
@@ -34,25 +35,32 @@ const marketplaceBrands = [
 ];
 
 const MarketplaceSection = () => (
-  <section className="bg-white p-4 rounded-2xl shadow animate-fade-in relative overflow-hidden">
-    <div className="absolute left-3 top-2 text-2xl animate-spin-slow">💸</div>
-    <h3 className="font-semibold text-lg mb-3 text-green-800 flex items-center gap-2">
-      Offset Marketplace <span className="text-2xl -ml-1">🌍</span>
-    </h3>
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {marketplaceBrands.map((brand) => (
+  <div className="p-4">
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="font-semibold text-lg text-foreground flex items-center gap-2">
+        <span className="text-2xl">💸</span>
+        Marketplace
+      </h2>
+      <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+        View All
+      </Button>
+    </div>
+    
+    <div className="space-y-3">
+      {marketplaceBrands.slice(0, 2).map((brand) => (
         <div
           key={brand.brandName}
-          className="hover:scale-105 transition-transform duration-200 animate-fade-in"
+          className="hover:scale-[1.02] transition-transform duration-200 animate-fade-in"
         >
           <BrandCard {...brand} />
         </div>
       ))}
     </div>
-    <div className="text-xs text-gray-400 mt-4">
+    
+    <div className="text-xs text-muted-foreground mt-4 text-center">
       Some links may be affiliate and support green efforts 🌱
     </div>
-  </section>
+  </div>
 );
 
 export default MarketplaceSection;

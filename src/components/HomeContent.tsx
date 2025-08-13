@@ -1,41 +1,14 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DashboardSummary from "@/components/DashboardSummary";
-import UserChallengesList from "@/components/UserChallengesList";
 import GamifiedUserSummary from "./GamifiedUserSummary";
 import PersonalizedSuggestionsSection from "./PersonalizedSuggestionsSection";
 import MarketplaceSection from "./MarketplaceSection";
-import LearnSection from "./LearnSection";
 import HomeStoriesBar from "./HomeStoriesBar";
-
-// Define TABS array for the tab headers
-const TABS = [
-  {
-    key: "personalized",
-    label: (
-      <span className="hidden sm:inline">For You</span>
-    ),
-    short: "You",
-  },
-  {
-    key: "marketplace",
-    label: (
-      <span className="hidden sm:inline">Marketplace</span>
-    ),
-    short: "💸",
-  },
-  {
-    key: "learn",
-    label: (
-      <span className="hidden sm:inline">Learn</span>
-    ),
-    short: "📖",
-  },
-];
+import CurrentChallenges from "./CurrentChallenges";
+import CommunityActivity from "./CommunityActivity";
+import GamifiedEngagementCards from "./GamifiedEngagementCards";
 
 const HomeContent = ({ profile }: { profile: any }) => {
-  const [tabValue, setTabValue] = React.useState("personalized");
-
   // All calculations below now always use the *props* profile.
   const globalRank =
     typeof profile?.global_rank !== "undefined"
@@ -49,11 +22,18 @@ const HomeContent = ({ profile }: { profile: any }) => {
   const weeklyImpact = profile?.co2e_weekly_progress ?? 0;
 
   return (
-    <main className="flex-grow px-1 sm:px-2 md:px-0 py-0 bg-background min-h-screen max-w-full w-full">
-      <section className="mx-auto max-w-md w-full flex flex-col gap-3 mt-2 pb-24">
-        <HomeStoriesBar profile={profile} />
-        {/* Gamified summary — light card */}
-        <div className="rounded-2xl border border-border bg-card shadow-sm p-0 mt-1">
+    <main className="flex-grow px-4 py-6 bg-gradient-to-br from-mint-50 to-sky-50 min-h-screen">
+      <div className="max-w-lg mx-auto space-y-6 pb-24">
+        
+        {/* Stories & Highlights Carousel */}
+        <section className="bg-card rounded-2xl p-4 shadow-sm border" aria-label="Stories and highlights">
+          <h2 className="sr-only">Stories & Highlights</h2>
+          <HomeStoriesBar profile={profile} />
+        </section>
+
+        {/* Overall Status & Rankings */}
+        <section className="bg-card rounded-2xl shadow-sm border" aria-label="Your status and rankings">
+          <h2 className="sr-only">Your Status & Rankings</h2>
           <GamifiedUserSummary
             kelpPoints={profile?.kelp_points ?? 0}
             streakCount={profile?.streak_count ?? 0}
@@ -61,41 +41,33 @@ const HomeContent = ({ profile }: { profile: any }) => {
             globalRank={globalRank}
             bestBadge={bestBadge}
           />
-        </div>
-        {/* Dashboard—card style */}
-        <section className="rounded-2xl border border-border bg-card shadow-sm px-0 py-0">
-          <DashboardSummary /* optionally pass profile if DashboardSummary needs it */ />
         </section>
-        {/* Animated Tabs, raised from bg */}
-        <Tabs
-          value={tabValue}
-          onValueChange={setTabValue}
-          className="w-full mt-2 drop-shadow-sm"
-        >
-          <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted/60 backdrop-blur overflow-hidden shadow-sm h-10 sm:h-12 mb-3">
-            {TABS.map((tab) => (
-              <TabsTrigger
-                key={tab.key}
-                value={tab.key}
-                className="font-medium text-sm sm:text-base px-1 py-0 data-[state=active]:bg-background data-[state=active]:text-foreground transition-all duration-150 focus-visible:ring-2 focus-visible:ring-primary/40 hover-scale"
-              >
-                <span className="sm:hidden">{tab.short}</span>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="personalized">
-            <PersonalizedSuggestionsSection profile={profile} />
-            <UserChallengesList highlightCurrent />
-          </TabsContent>
-          <TabsContent value="marketplace">
-            <MarketplaceSection />
-          </TabsContent>
-          <TabsContent value="learn">
-            <LearnSection />
-          </TabsContent>
-        </Tabs>
-      </section>
+
+        {/* For You Suggestions */}
+        <PersonalizedSuggestionsSection profile={profile} />
+
+        {/* My Challenges */}
+        <section className="bg-card rounded-2xl p-4 shadow-sm border" aria-label="Your current challenges">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <span className="text-2xl">🎯</span>
+            My Current Challenges
+          </h2>
+          <CurrentChallenges />
+        </section>
+
+        {/* Community Activity */}
+        <CommunityActivity />
+
+        {/* Gamified Engagement Cards */}
+        <GamifiedEngagementCards profile={profile} />
+
+        {/* Marketplace Section */}
+        <section className="bg-card rounded-2xl shadow-sm border" aria-label="Marketplace">
+          <h2 className="sr-only">Marketplace</h2>
+          <MarketplaceSection />
+        </section>
+
+      </div>
     </main>
   );
 };
