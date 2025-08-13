@@ -5,9 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import BottomNav from '@/components/BottomNav';
 
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, LoaderCircle, Award, Leaf, Users, MapPin, Tag, X, Crown } from 'lucide-react';
+import { LogOut, Settings, LoaderCircle, Award, Leaf, Users, MapPin, Tag, X, Crown, Plus, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ActivityCard from '@/components/ActivityCard';
 import { Database } from '@/integrations/supabase/types';
@@ -225,16 +225,29 @@ const ProfilePage = () => {
                     errorMsg={errorMsg}
                     onSave={() => { updateProfile(); }}
                 />
-                {/* Start your own club banner */}
+                {/* Enhanced Start Your Own Club Banner */}
                 {showStartCard && (
-                  <div className="rounded-xl border bg-muted/40 p-3 flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-medium">Start your own club</p>
-                      <p className="text-xs text-muted-foreground">Lead a community around your passion</p>
+                  <div className="rounded-xl border-2 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 flex items-start justify-between shadow-sm">
+                    <div className="flex-1">
+                      <p className="text-base font-semibold text-foreground">Start your own club</p>
+                      <p className="text-sm text-muted-foreground mt-1">Lead a community around your passion</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" onClick={() => navigate('/communities/create')}>Start</Button>
-                      <Button variant="ghost" size="icon" onClick={() => setShowStartCard(false)} aria-label="Dismiss">
+                    <div className="flex items-center gap-3">
+                      <Button 
+                        size="default" 
+                        onClick={() => navigate('/communities/create')}
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 py-2 shadow-sm hover:shadow-md transition-all duration-200"
+                        aria-label="Navigate to create community page"
+                      >
+                        Start
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => setShowStartCard(false)} 
+                        aria-label="Dismiss start club banner"
+                        className="hover:bg-white/80"
+                      >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
@@ -244,13 +257,20 @@ const ProfilePage = () => {
                 {/* Profile header simple */}
                 <ProfileHeaderSimple profile={profile} onEdit={() => setEditing(true)} />
 
-                {/* Invite a friend card */}
-                <div className="rounded-2xl border bg-card p-4 flex items-center gap-3">
+                {/* Enhanced Invite a Friend Card */}
+                <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex-1">
-                    <p className="font-medium">Invite a friend, earn Kelp</p>
-                    <p className="text-sm text-muted-foreground">Invite a friend to Kelp and both of you get points.</p>
+                    <p className="font-semibold text-base text-foreground">Invite a friend, earn Kelp</p>
+                    <p className="text-sm text-muted-foreground mt-1">Invite a friend to Kelp and both of you get points.</p>
                   </div>
-                  <Button size="sm" onClick={() => navigate('/friends')}>Invite</Button>
+                  <Button 
+                    size="default" 
+                    onClick={() => navigate('/friends')}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-2 shadow-sm hover:shadow-md transition-all duration-200"
+                    aria-label="Navigate to friends page to invite friends"
+                  >
+                    Invite
+                  </Button>
                 </div>
 
                 {/* Stats Grid */}
@@ -273,24 +293,24 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
-                {/* Weekly Progress Card */}
-                <div className="rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-green-800">Weekly CO₂e Progress</h3>
-                    <span className="text-sm text-green-600 font-medium">
+                {/* Enhanced Weekly Progress Card */}
+                <div className="rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-green-800 text-base">Weekly CO₂e Progress</h3>
+                    <span className="text-sm text-green-700 font-semibold bg-green-100 px-3 py-1 rounded-full">
                       {profile?.co2e_weekly_progress ?? 0} / {profile?.co2e_weekly_goal ?? 0} kg
                     </span>
                   </div>
-                  <div className="w-full bg-green-200 rounded-full h-2">
+                  <div className="w-full bg-green-200 rounded-full h-3 mb-3">
                     <div 
-                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                      className="bg-green-500 h-3 rounded-full transition-all duration-500 shadow-sm"
                       style={{
                         width: `${Math.min(100, ((profile?.co2e_weekly_progress ?? 0) / (profile?.co2e_weekly_goal ?? 1)) * 100)}%`
                       }}
                     ></div>
                   </div>
-                  <div className="text-xs text-green-700 mt-2">
-                    {((profile?.co2e_weekly_progress ?? 0) / (profile?.co2e_weekly_goal ?? 1) * 100).toFixed(0)}% of weekly goal
+                  <div className="text-sm text-green-700 font-medium">
+                    {((profile?.co2e_weekly_progress ?? 0) / (profile?.co2e_weekly_goal ?? 1) * 100).toFixed(0)}% of weekly goal achieved
                   </div>
                 </div>
 
@@ -317,12 +337,15 @@ const ProfilePage = () => {
                                 </div>
                             </div>
                         ) : <p className="text-sm text-muted-foreground">No lifestyle tags added yet.</p>}
-                        {/* Updated: Add onClick to show edit mode */}
+                        {/* Enhanced Edit Profile Button */}
                         <Button
-                          variant="outline"
-                          className="w-full mt-2"
+                          variant="default"
+                          size="default"
+                          className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 shadow-sm hover:shadow-md transition-all duration-200"
                           onClick={() => setEditing(true)}
+                          aria-label="Edit your profile information"
                         >
+                          <Settings className="w-4 h-4 mr-2" />
                           Edit Profile
                         </Button>
                     </CardContent>
@@ -341,41 +364,49 @@ const ProfilePage = () => {
                   />
                 </div>
 
-                {/* Analytics Section */}
-                <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-foreground">Your Impact Analytics</h3>
+                {/* Enhanced Analytics Section with Better Accessibility */}
+                <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-primary/20 p-6 shadow-lg">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                      Your Impact Analytics
+                    </h3>
                     <Button 
                       variant="outline" 
-                      size="sm"
+                      size="default"
                       onClick={() => navigate('/impact-dashboard')}
-                      className="text-xs"
+                      className="bg-white/80 hover:bg-white border-2 border-primary/30 hover:border-primary text-primary hover:text-primary font-semibold px-4 py-2 shadow-sm hover:shadow-md transition-all duration-200"
+                      aria-label="Navigate to full impact dashboard"
                     >
                       View Full Dashboard
                     </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="rounded-xl bg-white/70 backdrop-blur-sm border p-3">
-                      <div className="text-xs text-muted-foreground mb-1">Weekly Impact</div>
-                      <div className="text-lg font-bold text-green-600">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="rounded-xl bg-white/90 backdrop-blur-sm border-2 border-green-200 p-4 hover:shadow-md transition-shadow">
+                      <div className="text-sm font-medium text-muted-foreground mb-2">Weekly Impact</div>
+                      <div className="text-2xl font-bold text-green-600 mb-1">
                         {profile?.co2e_weekly_progress ?? 0} kg
                       </div>
-                      <div className="text-xs text-muted-foreground">CO₂e saved</div>
+                      <div className="text-sm text-muted-foreground">CO₂e saved</div>
                     </div>
-                    <div className="rounded-xl bg-white/70 backdrop-blur-sm border p-3">
-                      <div className="text-xs text-muted-foreground mb-1">Current Streak</div>
-                      <div className="text-lg font-bold text-orange-600 flex items-center gap-1">
-                        <Leaf className="w-4 h-4" />
+                    <div className="rounded-xl bg-white/90 backdrop-blur-sm border-2 border-orange-200 p-4 hover:shadow-md transition-shadow">
+                      <div className="text-sm font-medium text-muted-foreground mb-2">Current Streak</div>
+                      <div className="text-2xl font-bold text-orange-600 flex items-center gap-1 mb-1">
+                        <Leaf className="w-5 h-5" />
                         {profile?.streak_count ?? 0}
                       </div>
-                      <div className="text-xs text-muted-foreground">days active</div>
+                      <div className="text-sm text-muted-foreground">days active</div>
                     </div>
                   </div>
+                  {/* Enhanced Primary CTA Button */}
                   <Button 
-                    variant="secondary" 
-                    className="w-full" 
+                    variant="default"
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" 
                     onClick={() => navigate('/log-activity')}
+                    aria-label="Log a new environmental activity"
                   >
+                    <Plus className="w-5 h-5 mr-2" />
                     Log New Activity
                   </Button>
                 </div>
