@@ -156,8 +156,12 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
         {isOwner && (
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-1" />
+              <Button 
+                size="default" 
+                className="btn-green btn-pulse btn-glow font-semibold px-4 py-2"
+                aria-label="Create a new challenge for this community"
+              >
+                <Plus className="w-4 h-4 mr-2" />
                 Create
               </Button>
             </DialogTrigger>
@@ -219,8 +223,9 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
                 </div>
                 <Button 
                   onClick={handleCreateChallenge} 
-                  className="w-full"
+                  className="w-full btn-green btn-pulse btn-glow font-semibold py-3"
                   disabled={createChallengeMutation.isPending}
+                  aria-label="Submit and create the new challenge"
                 >
                   {createChallengeMutation.isPending ? "Creating..." : "Create Challenge"}
                 </Button>
@@ -279,13 +284,15 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
 
                 <div className="flex items-center justify-end pt-2">
                   {isParticipant(challenge) ? (
-                    <Badge variant="secondary">Joined</Badge>
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-300">Joined</Badge>
                   ) : (
                     <Button 
-                      size="sm" 
+                      size="default" 
                       variant="outline"
                       onClick={() => joinChallengeMutation.mutate(challenge.id)}
                       disabled={joinChallengeMutation.isPending}
+                      className="btn-blue-outline btn-pulse btn-glow font-semibold px-4 py-2"
+                      aria-label={`Join challenge: ${challenge.title}`}
                     >
                       {joinChallengeMutation.isPending ? "Joining..." : "Join Challenge"}
                     </Button>

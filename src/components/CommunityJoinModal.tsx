@@ -165,12 +165,22 @@ export default function CommunityJoinModal({
             </div>
           )}
 
-          {/* Action Buttons */}
+          {/* Enhanced Action Buttons with Green/Blue Theme */}
           <div className="flex gap-3 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              className="flex-1 btn-blue-outline btn-pulse btn-glow font-semibold"
+              aria-label="Cancel joining community"
+            >
               Cancel
             </Button>
-            <Button onClick={handleJoin} disabled={loading} className="flex-1">
+            <Button 
+              onClick={handleJoin} 
+              disabled={loading} 
+              className="flex-1 btn-green btn-pulse btn-glow font-semibold"
+              aria-label={community.privacy_type === 'private' ? "Request to join community" : "Join community"}
+            >
               {loading ? "Joining..." : 
                community.privacy_type === 'private' ? "Request to Join" : "Join"}
             </Button>

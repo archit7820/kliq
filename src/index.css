@@ -111,4 +111,15 @@
   .hover-scale { @apply transition-transform duration-200 hover:scale-105; }
   .glass-card { @apply bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60; }
   .gradient-primary { background-image: var(--gradient-primary); }
+  
+  /* Button Animation Utilities */
+  .btn-bounce { @apply transition-all duration-200 hover:scale-105 active:scale-95; }
+  .btn-pulse { @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]; }
+  .btn-glow { @apply shadow-md hover:shadow-lg transition-shadow duration-200; }
+  
+  /* Color Theme Utilities */
+  .btn-green { @apply bg-emerald-600 hover:bg-emerald-700 text-white border-2 border-emerald-500 hover:border-emerald-600; }
+  .btn-blue { @apply bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600; }
+  .btn-green-outline { @apply border-2 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 hover:border-emerald-400; }
+  .btn-blue-outline { @apply border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 hover:border-blue-400; }
 }

@@ -30,8 +30,8 @@ const BrandCard: React.FC<BrandCardProps> = ({ brandName, description, imageUrl,
         <p className="text-sm text-muted-foreground">{description}</p>
       </CardContent>
       <CardFooter>
-        <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-          <a href={purchaseLink} target="_blank" rel="noopener noreferrer">
+        <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-2 border-emerald-500 hover:border-emerald-600">
+          <a href={purchaseLink} target="_blank" rel="noopener noreferrer" aria-label={`Shop ${brandName} products`}>
             Shop Now <ArrowRight className="ml-2 w-4 h-4" />
           </a>
         </Button>

@@ -200,9 +200,10 @@ const CommunityList = ({ user }: { user: any }) => {
                   </div>
                   
                   <Button
-                    size="sm"
+                    size="default"
                     onClick={() => handleJoinClick(community)}
-                    className="w-full"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] animate-fade-in border-2 border-blue-500 hover:border-blue-600"
+                    aria-label={`Join ${community.name} community`}
                   >
                     {community.privacy_type === 'invite_only' ? 'Join with Code' :
                      community.privacy_type === 'private' ? 'Request to Join' : 'Join'}

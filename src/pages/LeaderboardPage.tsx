@@ -55,6 +55,7 @@ const FALLBACK_LOGO_EMOJI = "🌱";
 const LeaderboardPage = () => {
   const { profile, isProfileLoading, insights, user } = useProfileWithStats();
   const { leaderboard, isLoading, friendsLeaderboard } = useLeaderboard();
+  const navigate = useNavigate();
   useRealtimeSync(user?.id);
 
   const [logoBroken, setLogoBroken] = React.useState(false);
@@ -154,8 +155,10 @@ const LeaderboardPage = () => {
                 <div className="p-8 text-center text-gray-500">
                   <p className="mb-4">No friends yet!</p>
                   <Button
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold rounded shadow"
+                    size="default"
+                    onClick={() => navigate('/friends')}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 animate-fade-in border-2 border-emerald-500 hover:border-emerald-600 px-6 py-2"
+                    aria-label="Navigate to friends page to find and add friends"
                   >
                     Find Friends
                   </Button>
@@ -178,7 +181,8 @@ const LeaderboardPage = () => {
         <div className="w-full text-center my-3">
           <Link
             to="/challenges"
-            className="inline-flex items-center gap-1 px-5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full font-semibold transition border shadow animate-fade-in"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full font-semibold transition-all duration-200 shadow-lg hover:shadow-xl animate-fade-in hover:scale-105 active:scale-95 border-2 border-blue-400 hover:border-blue-500"
+            aria-label="Navigate to challenges page to view this week's challenges"
           >
             🎯 Check Out This Week's Challenges!
           </Link>
@@ -186,7 +190,8 @@ const LeaderboardPage = () => {
         <div className="my-3 text-center w-full">
           <Link
             to="/create-challenge"
-            className="inline-flex items-center gap-1 px-5 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-full font-semibold transition border shadow"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-full font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-2 border-emerald-400 hover:border-emerald-500"
+            aria-label="Navigate to create challenge page to create a new challenge"
           >
             ➕ Create a New Challenge
           </Link>

@@ -40,20 +40,20 @@ const DashboardSummary = () => {
       {/* Quick actions (minimal) */}
       <div className="grid grid-cols-2 gap-2">
         <button
-          className="rounded-xl border bg-background py-3 px-3 text-left hover:bg-muted/50 transition-colors"
+          className="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 py-4 px-4 text-left hover:from-blue-100 hover:to-blue-200 hover:border-blue-300 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-md animate-fade-in"
           onClick={() => navigate('/challenges')}
           aria-label="View current challenge"
         >
-          <div className="text-xs text-muted-foreground mb-1">Challenge</div>
-          <div className="text-sm font-medium">Current challenge</div>
+          <div className="text-xs text-blue-600 mb-1 font-medium">Challenge</div>
+          <div className="text-sm font-semibold text-blue-800">Current challenge</div>
         </button>
         <button
-          className="rounded-xl border bg-background py-3 px-3 text-left hover:bg-muted/50 transition-colors"
+          className="rounded-xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 py-4 px-4 text-left hover:from-emerald-100 hover:to-emerald-200 hover:border-emerald-300 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-md animate-fade-in"
           onClick={() => navigate('/impact-dashboard')}
           aria-label="Open impact dashboard"
         >
-          <div className="text-xs text-muted-foreground mb-1">Impact</div>
-          <div className="text-sm font-medium">Offset & insights</div>
+          <div className="text-xs text-emerald-600 mb-1 font-medium">Impact</div>
+          <div className="text-sm font-semibold text-emerald-800">Offset & insights</div>
         </button>
       </div>
     </section>

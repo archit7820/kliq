@@ -21,11 +21,13 @@ const CommunitiesPage = () => {
           <h1 className="font-semibold text-lg text-foreground">Communities</h1>
         </div>
         <Button
-          variant="outline"
-          size="sm"
+          variant="default"
+          size="default"
           onClick={() => navigate("/communities/create")}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 animate-fade-in border-2 border-emerald-500 hover:border-emerald-600"
+          aria-label="Create a new community"
         >
-          <Plus className="inline-block w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4 mr-2" />
           Create
         </Button>
       </header>
