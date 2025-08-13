@@ -174,19 +174,19 @@ const ExplorePage = () => {
             </div>
           </div>
 
-          {/* Stats Bar */}
-          <div className="flex items-center gap-4 mb-4 p-3 bg-muted/50 rounded-2xl">
-            <div className="flex items-center gap-2">
+          {/* Stats Bar - Simplified for Mobile */}
+          <div className="flex items-center justify-between mb-4 p-3 bg-muted/20 rounded-xl">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-sm font-medium">{filteredPosts.length} Active Makers</span>
+              <span className="text-xs font-medium">{filteredPosts.length} Active</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Flame className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-medium">Hot Streak: 47 days</span>
+            <div className="flex items-center gap-1">
+              <Flame className="w-3 h-3 text-orange-500" />
+              <span className="text-xs font-medium">47 days</span>
             </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium">+2.1K Impact Today</span>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="w-3 h-3 text-blue-500" />
+              <span className="text-xs font-medium">+2.1K Impact</span>
             </div>
           </div>
 
@@ -249,7 +249,7 @@ const ExplorePage = () => {
             ))}
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {filteredPosts.map(post => (
               <GamePostCard 
                 key={post.id} 
@@ -262,13 +262,11 @@ const ExplorePage = () => {
             ))}
 
             {filteredPosts.length === 0 && !loading && (
-              <div className="text-center py-12 bg-muted/20 rounded-3xl">
-                <div className="text-6xl mb-4">🌱</div>
-                <h3 className="text-xl font-bold mb-2">No Impact Posts Yet</h3>
-                <p className="text-muted-foreground mb-4">Be the first to share your real-world action!</p>
-                <Button className="rounded-full px-8">
-                  Log Your Impact
-                </Button>
+              <div className="text-center py-8 bg-muted/10 rounded-2xl">
+                <div className="text-4xl mb-3">🌱</div>
+                <h3 className="text-lg font-bold mb-2">No Impact Posts Yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">Be the first to share your real-world action!</p>
+                <Button className="rounded-full px-6">Log Your Impact</Button>
               </div>
             )}
           </div>

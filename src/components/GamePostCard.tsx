@@ -3,18 +3,14 @@ import {
   Heart, 
   MessageCircle, 
   Share, 
-  Zap, 
   TrendingUp, 
   Award, 
   Flame,
-  Star,
-  Target,
-  Trophy
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import ImpactScoreModal from "@/components/ImpactScoreModal";
 import { cn } from "@/lib/utils";
@@ -64,7 +60,6 @@ const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
   const [showImpactModal, setShowImpactModal] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 150) + 25);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [showReaction, setShowReaction] = useState(false);
 
   const handleLike = (e: React.MouseEvent) => {
@@ -74,13 +69,8 @@ const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
     
     if (!isLiked) {
       setShowReaction(true);
-      setTimeout(() => setShowReaction(false), 1000);
+      setTimeout(() => setShowReaction(false), 800);
     }
-  };
-
-  const handleBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsBookmarked(!isBookmarked);
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -111,189 +101,174 @@ const GamePostCard = ({ post, onClick, onUpdate }: GamePostCardProps) => {
   return (
     <>
       <Card 
-        className="border-2 border-border hover:border-primary/50 rounded-3xl overflow-hidden hover-scale cursor-pointer transition-all duration-300 bg-card shadow-lg hover:shadow-xl"
+        className="border border-border rounded-2xl overflow-hidden hover-scale cursor-pointer transition-all duration-200 bg-card shadow-sm hover:shadow-md"
         onClick={onClick}
       >
         <CardContent className="p-0">
-          {/* User Header with Gamification */}
+          {/* User Header - Simplified */}
           <div className="p-4 pb-3">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <Avatar className="w-12 h-12 border-2 border-primary/20">
+                  <Avatar className="w-10 h-10">
                     <AvatarImage src={post.profiles?.avatar_url} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                       {post.profiles?.display_name?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  {/* Level Badge */}
-                  <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-background">
+                  <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px]">
                     {post.level || 1}
                   </div>
                 </div>
                 
-                <div className="flex-1">
+                <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-foreground">
+                    <p className="font-semibold text-sm text-foreground">
                       {post.profiles?.display_name || "Anonymous"}
                     </p>
                     {(post.streak || 0) > 5 && (
-                      <div className="flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-medium">
+                      <div className="flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
                         <Flame className="w-3 h-3" />
-                        {post.streak}
+                        <span className="text-xs font-medium">{post.streak}</span>
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-muted-foreground">2h ago</p>
-                    {(post.badges || 0) > 3 && (
-                      <div className="flex items-center gap-1 text-xs text-amber-600">
-                        <Award className="w-3 h-3" />
-                        <span className="font-medium">{post.badges} badges</span>
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-xs text-muted-foreground">2h ago</p>
                 </div>
               </div>
 
-              {/* Impact Score - More Prominent */}
-              <div className="text-center">
-                <Button
-                  variant="outline"
-                  className="h-auto p-3 bg-primary/5 border-2 border-primary/20 hover:bg-primary/10 hover:border-primary/40 transition-all"
-                  onClick={handleImpactClick}
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    <span className="text-lg font-bold text-primary">{totalScore}</span>
-                    <span className="text-xs text-muted-foreground">Impact</span>
+              {/* Impact Score - Clean & Prominent */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-auto px-3 py-2 bg-primary/5 border-primary/30 hover:bg-primary/10 transition-all"
+                onClick={handleImpactClick}
+              >
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-primary">{totalScore}</div>
+                    <div className="text-[10px] text-muted-foreground leading-none">Impact</div>
                   </div>
-                </Button>
-              </div>
-            </div>
-
-            {/* Category & Title */}
-            <div className="space-y-2 mb-3">
-              <Badge className={cn("text-xs font-semibold border", categoryInfo.color, categoryInfo.bg)}>
-                <span className="mr-1">{categoryInfo.icon}</span>
-                {categoryInfo.label}
-              </Badge>
-              
-              <h3 className="font-bold text-lg text-foreground leading-tight">
-                {post.activity} {post.emoji}
-              </h3>
+                </div>
+              </Button>
             </div>
           </div>
 
-          {/* Media */}
+          {/* Category & Title - Cleaner */}
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge className={cn("text-xs font-medium px-2 py-1", categoryInfo.color, categoryInfo.bg)}>
+                <span className="mr-1">{categoryInfo.icon}</span>
+                {categoryInfo.label}
+              </Badge>
+              {(post.badges || 0) > 3 && (
+                <div className="flex items-center gap-1 text-xs text-amber-600">
+                  <Award className="w-3 h-3" />
+                  <span className="font-medium">{post.badges}</span>
+                </div>
+              )}
+            </div>
+            
+            <h3 className="font-bold text-base text-foreground leading-tight">
+              {post.activity} {post.emoji}
+            </h3>
+          </div>
+
+          {/* Media - Properly Sized for Mobile */}
           {post.image_url && (
             <div className="relative">
               <img 
                 src={post.image_url} 
                 alt={post.activity}
-                className="w-full aspect-video object-cover"
+                className="w-full h-48 sm:h-56 object-cover"
               />
-              
-              {/* Impact Dimensions Preview */}
-              <div className="absolute bottom-3 left-3 right-3">
-                <div className="bg-background/90 backdrop-blur rounded-2xl p-3 border">
-                  <div className="grid grid-cols-5 gap-2">
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-green-600">🌱</div>
-                      <div className="text-xs font-bold">{Math.round(analysis?.environmental_impact || 0)}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-blue-600">🤝</div>
-                      <div className="text-xs font-bold">{Math.round(analysis?.social_connection || 0)}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-purple-600">⚡</div>
-                      <div className="text-xs font-bold">{Math.round(analysis?.adventure_intensity || 0)}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-amber-600">💰</div>
-                      <div className="text-xs font-bold">{Math.round(analysis?.economic_impact || 0)}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-indigo-600">📚</div>
-                      <div className="text-xs font-bold">{Math.round(analysis?.learning_growth || 0)}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
-          {/* Content & Actions */}
-          <div className="p-4 pt-3">
-            <p className="text-muted-foreground mb-4 leading-relaxed line-clamp-2">
+          {/* Content */}
+          <div className="p-4">
+            <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
               {post.caption}
             </p>
 
-            {/* Progress Bar for Overall Impact */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground">Total Impact Progress</span>
-                <span className="text-xs font-bold text-primary">{totalScore}/100</span>
+            {/* Impact Breakdown - Clean Mobile Grid */}
+            <div className="bg-muted/30 rounded-xl p-3 mb-4">
+              <div className="grid grid-cols-5 gap-2 text-center">
+                <div>
+                  <div className="text-lg font-bold text-green-600">{Math.round(analysis?.environmental_impact || 0)}</div>
+                  <div className="text-[10px] text-muted-foreground">🌱 Env</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-blue-600">{Math.round(analysis?.social_connection || 0)}</div>
+                  <div className="text-[10px] text-muted-foreground">🤝 Social</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-purple-600">{Math.round(analysis?.adventure_intensity || 0)}</div>
+                  <div className="text-[10px] text-muted-foreground">⚡ Adventure</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-amber-600">{Math.round(analysis?.economic_impact || 0)}</div>
+                  <div className="text-[10px] text-muted-foreground">💰 Economic</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-indigo-600">{Math.round(analysis?.learning_growth || 0)}</div>
+                  <div className="text-[10px] text-muted-foreground">📚 Learning</div>
+                </div>
               </div>
-              <Progress value={totalScore} className="h-2 bg-muted" />
             </div>
 
-            {/* Enhanced Action Bar */}
+            {/* Action Bar - Simplified */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "rounded-full px-4 py-2 transition-all duration-200",
+                    "rounded-full px-3 py-2",
                     isLiked && "text-red-500 bg-red-50"
                   )}
                   onClick={handleLike}
                 >
-                  <Heart className={cn("w-5 h-5 mr-2", isLiked && "fill-current")} />
-                  <span className="font-semibold">{likeCount}</span>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full px-4 py-2"
-                  onClick={handleComment}
-                >
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  <span className="font-semibold">{Math.floor(Math.random() * 30) + 5}</span>
+                  <Heart className={cn("w-4 h-4 mr-1", isLiked && "fill-current")} />
+                  <span className="text-sm font-medium">{likeCount}</span>
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="sm"
                   className="rounded-full px-3 py-2"
+                  onClick={handleComment}
+                >
+                  <MessageCircle className="w-4 h-4 mr-1" />
+                  <span className="text-sm font-medium">{Math.floor(Math.random() * 30) + 5}</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full p-2"
                   onClick={handleShare}
                 >
-                  <Share className="w-5 h-5" />
+                  <Share className="w-4 h-4" />
                 </Button>
               </div>
 
               <Button
                 variant="ghost"
                 size="sm"
-                className={cn(
-                  "rounded-full px-3 py-2 transition-colors",
-                  isBookmarked && "text-amber-500 bg-amber-50"
-                )}
-                onClick={handleBookmark}
+                className="rounded-full p-2 text-muted-foreground hover:text-amber-500"
               >
-                <Star className={cn("w-5 h-5", isBookmarked && "fill-current")} />
+                <Star className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </CardContent>
 
-        {/* Reaction Animation */}
+        {/* Reaction Animation - Subtle */}
         {showReaction && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-6xl animate-ping opacity-80">❤️</div>
+            <div className="text-4xl animate-bounce opacity-90">❤️</div>
           </div>
         )}
       </Card>
