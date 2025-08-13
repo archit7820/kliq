@@ -236,7 +236,7 @@ const ProfilePage = () => {
                       <Button 
                         size="default" 
                         onClick={() => navigate('/communities/create')}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 py-2 shadow-sm hover:shadow-md transition-all duration-200"
+                        className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-slate-700 hover:border-slate-800"
                         aria-label="Navigate to create community page"
                       >
                         Start
@@ -266,7 +266,7 @@ const ProfilePage = () => {
                   <Button 
                     size="default" 
                     onClick={() => navigate('/friends')}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-2 shadow-sm hover:shadow-md transition-all duration-200"
+                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-slate-700 hover:border-slate-800"
                     aria-label="Navigate to friends page to invite friends"
                   >
                     Invite
@@ -341,7 +341,7 @@ const ProfilePage = () => {
                         <Button
                           variant="default"
                           size="default"
-                          className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 shadow-sm hover:shadow-md transition-all duration-200"
+                          className="w-full mt-4 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-slate-700 hover:border-slate-800"
                           onClick={() => setEditing(true)}
                           aria-label="Edit your profile information"
                         >
@@ -375,7 +375,7 @@ const ProfilePage = () => {
                       variant="outline" 
                       size="default"
                       onClick={() => navigate('/impact-dashboard')}
-                      className="bg-white/80 hover:bg-white border-2 border-primary/30 hover:border-primary text-primary hover:text-primary font-semibold px-4 py-2 shadow-sm hover:shadow-md transition-all duration-200"
+                      className="bg-slate-700 hover:bg-slate-800 border-2 border-slate-600 hover:border-slate-700 text-white hover:text-white font-semibold px-4 py-2 shadow-md hover:shadow-lg transition-all duration-200"
                       aria-label="Navigate to full impact dashboard"
                     >
                       View Full Dashboard
@@ -398,11 +398,11 @@ const ProfilePage = () => {
                       <div className="text-sm text-muted-foreground">days active</div>
                     </div>
                   </div>
-                  {/* Enhanced Primary CTA Button */}
+                  {/* Enhanced Primary CTA Button with Darker Colors */}
                   <Button 
                     variant="default"
                     size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" 
+                    className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-2 border-slate-700 hover:border-slate-800" 
                     onClick={() => navigate('/log-activity')}
                     aria-label="Log a new environmental activity"
                   >
