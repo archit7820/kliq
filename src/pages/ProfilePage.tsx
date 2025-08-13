@@ -17,6 +17,7 @@ import ProfileHeaderSimple from "@/components/ProfileHeaderSimple";
 import { useUserBadges } from "@/hooks/useUserBadges";
 import UserBadges from "@/components/UserBadges";
 import EditProfileModal from "@/components/EditProfileModal";
+import DynamicAchievements from "@/components/DynamicAchievements";
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -327,31 +328,17 @@ const ProfilePage = () => {
                     </CardContent>
                 </Card>
 
-                {/* Achievements Section - styled like reference */}
+                {/* Enhanced Achievements Section */}
                 <div className="rounded-2xl bg-card border p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <Award className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold">Achievements</h3>
+                    <h3 className="font-semibold">Achievements & Progress</h3>
                   </div>
-                  <div className="space-y-3">
-                    {achievements.map((ach) => (
-                      <div key={ach.title} className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-muted/40 to-muted/20 border border-muted">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <ach.icon className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{ach.title}</p>
-                          <p className="text-xs text-muted-foreground">{ach.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {!badgesLoading && badges.length > 0 && (
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Earned Badges</p>
-                      <UserBadges badges={badges} />
-                    </div>
-                  )}
+                  <DynamicAchievements 
+                    profile={profile} 
+                    activities={activities || []} 
+                    badges={badges} 
+                  />
                 </div>
 
                 {/* Analytics Section */}

@@ -1,16 +1,23 @@
 
 import React from "react";
-import ImpactDashboard from "@/components/ImpactDashboard";
+import EnhancedImpactDashboard from "@/components/EnhancedImpactDashboard";
 import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const ImpactDashboardPage = () => (
-  <div className="min-h-screen bg-gray-100 py-8 px-3">
-    <div className="max-w-screen-md mx-auto w-full">
-      <div className="flex items-center gap-3 mb-2">
-        <Link to="/leaderboard" className="text-green-700 hover:underline">&larr; Back to Stats</Link>
+  <div className="min-h-screen bg-background py-8 px-4">
+    <div className="max-w-4xl mx-auto w-full">
+      <div className="flex items-center gap-3 mb-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/profile" className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Profile
+          </Link>
+        </Button>
         <h1 className="text-2xl font-bold flex-1 text-center">Your Full Impact Dashboard</h1>
       </div>
-      <ImpactDashboard />
+      <EnhancedImpactDashboard />
     </div>
   </div>
 );
