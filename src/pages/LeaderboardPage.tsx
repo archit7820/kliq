@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import ImpactDashboard from "@/components/ImpactDashboard";
 import BottomNav from "@/components/BottomNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +11,10 @@ import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import LeaderboardFilters from "@/components/LeaderboardFilters";
+import ChallengesHub from "@/components/ChallengesHub";
+import DeeperAnalytics from "@/components/DeeperAnalytics";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 const useRealtimeSync = (userId: string | undefined) => {
   const queryClient = useQueryClient();

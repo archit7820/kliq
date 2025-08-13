@@ -8,9 +8,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 type LeaderboardListProps = {
   leaderboard: any[];
   userId?: string;
+  selectedCategory?: string;
+  onProfileClick?: (userId: string) => void;
 };
 
-const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId }) => {
+const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId, selectedCategory, onProfileClick }) => {
   const isMobile = useIsMobile();
   const podium = leaderboard.slice(0, 3);
   let rest = leaderboard.slice(3);
@@ -55,6 +57,8 @@ const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId }
                     profile={profile}
                     rank={i + 3}
                     userId={userId}
+                    categoryTag={selectedCategory}
+                    onClick={onProfileClick ? () => onProfileClick(profile.id) : undefined}
                   />
                 </CarouselItem>
               ))}
@@ -76,6 +80,8 @@ const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId }
               profile={profile}
               rank={i + 3}
               userId={userId}
+              categoryTag={selectedCategory}
+              onClick={onProfileClick ? () => onProfileClick(profile.id) : undefined}
             />
           ))}
         </div>

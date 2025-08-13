@@ -7,6 +7,8 @@ type RowProps = {
   profile: any;
   rank: number;
   userId?: string;
+  categoryTag?: string;
+  onClick?: () => void;
 };
 
 const badgeColors = [
@@ -15,7 +17,7 @@ const badgeColors = [
   "bg-orange-100 text-orange-800"
 ];
 
-const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) => {
+const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId, categoryTag, onClick }) => {
   const isMobile = useIsMobile();
   const isCurrentUser = profile.id === userId;
   const mainColor = badgeColors[rank] || "bg-green-50 text-green-700";
@@ -26,10 +28,12 @@ const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) =
     // Mobile: Compact horizontal card layout
     return (
       <div
+        onClick={onClick}
         className={`
           flex flex-col items-center gap-2 p-3 rounded-xl shadow-lg
           border-2 border-white/50 min-h-[140px] w-[260px] ${mainColor}
           ${isCurrentUser ? "ring-2 ring-green-500 bg-green-200 animate-pulse-fast" : ""}
+          ${onClick ? "cursor-pointer" : ""}
         `}
       >
         {/* Rank */}
@@ -68,11 +72,17 @@ const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) =
           )}
         </div>
         
-        {/* Points */}
+        {/* Ripple Score */}
         <div className="text-[11px] text-gray-600 font-semibold flex items-center gap-1">
           <Award className="w-3 h-3 text-orange-400" />
-          {profile.kelp_points ?? 0} pts
+          Ripple Score: {profile.kelp_points ?? 0}
         </div>
+        {/* Category tag */}
+        {categoryTag && categoryTag !== 'All' && (
+          <Badge className="mt-1 bg-secondary text-secondary-foreground border px-2 py-0 text-[10px]">
+            {categoryTag}
+          </Badge>
+        )}
         
         {/* Trophy for top ranks */}
         {rank <= 2 && (
@@ -85,11 +95,13 @@ const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) =
   // Desktop: Original row layout
   return (
     <div
+      onClick={onClick}
       className={`
         flex items-center gap-3 py-2 px-2 my-1
         rounded-xl shadow-md transition-all duration-200 relative ${mainColor}
         ${isCurrentUser ? "scale-105 ring-2 ring-green-500 bg-green-200 animate-pulse-fast" : "hover:bg-green-100"}
         min-h-[44px]
+        ${onClick ? "cursor-pointer" : ""}
       `}
     >
       <div className="text-xl font-extrabold shrink-0 w-8 text-center select-none">
@@ -123,8 +135,13 @@ const LeaderboardRowGamified: React.FC<RowProps> = ({ profile, rank, userId }) =
         </div>
         <span className="text-xs text-gray-600 mt-0.5 font-semibold flex gap-1 items-center">
           <Award className="w-4 h-4 text-orange-400" />
-          {profile.kelp_points ?? 0} pts
+          Ripple Score: {profile.kelp_points ?? 0}
         </span>
+        {categoryTag && categoryTag !== 'All' && (
+          <Badge className="mt-1 w-fit bg-secondary text-secondary-foreground border px-2 py-0 text-[10px]">
+            {categoryTag}
+          </Badge>
+        )}
       </div>
       <div className="flex flex-col items-center pr-2">
         {rank <= 2 ? (
