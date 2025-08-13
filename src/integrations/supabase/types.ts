@@ -640,6 +640,186 @@ export type Database = {
           },
         ]
       }
+      kelp_achievements: {
+        Row: {
+          category: string
+          created_at: string
+          criteria: Json
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          points_reward: number
+          rarity: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          criteria: Json
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          points_reward?: number
+          rarity?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          criteria?: Json
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          points_reward?: number
+          rarity?: string
+        }
+        Relationships: []
+      }
+      kelp_daily_bonuses: {
+        Row: {
+          claimed_at: string
+          date: string
+          id: string
+          points_earned: number
+          streak_day: number
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          date?: string
+          id?: string
+          points_earned: number
+          streak_day?: number
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          date?: string
+          id?: string
+          points_earned?: number
+          streak_day?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kelp_purchases: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          points_spent: number
+          redeemed_at: string | null
+          redemption_code: string | null
+          reward_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          points_spent: number
+          redeemed_at?: string | null
+          redemption_code?: string | null
+          reward_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          points_spent?: number
+          redeemed_at?: string | null
+          redemption_code?: string | null
+          reward_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kelp_rewards: {
+        Row: {
+          category: string
+          cost_points: number
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          stock_limit: number | null
+          stock_remaining: number | null
+        }
+        Insert: {
+          category?: string
+          cost_points: number
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          stock_limit?: number | null
+          stock_remaining?: number | null
+        }
+        Update: {
+          category?: string
+          cost_points?: number
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          stock_limit?: number | null
+          stock_remaining?: number | null
+        }
+        Relationships: []
+      }
+      kelp_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          source?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       milestones: {
         Row: {
           created_at: string | null
@@ -777,6 +957,27 @@ export type Database = {
           },
         ]
       }
+      user_kelp_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_milestones: {
         Row: {
           achieved_at: string | null
@@ -818,6 +1019,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_kelp_points: {
+        Args: {
+          p_user_id: string
+          p_amount: number
+          p_transaction_type: string
+          p_source: string
+          p_description: string
+          p_metadata?: Json
+        }
+        Returns: undefined
+      }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -836,6 +1048,16 @@ export type Database = {
       }
       is_valid_invite_code: {
         Args: { code: string }
+        Returns: boolean
+      }
+      spend_kelp_points: {
+        Args: {
+          p_user_id: string
+          p_amount: number
+          p_source: string
+          p_description: string
+          p_metadata?: Json
+        }
         Returns: boolean
       }
     }
