@@ -252,19 +252,44 @@ const ProfilePage = () => {
                   <Button size="sm" onClick={() => navigate('/friends')}>Invite</Button>
                 </div>
 
-                {/* Stats row */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-xl border bg-card p-3 text-center">
-                    <div className="text-lg font-semibold">{activities?.length || 0}</div>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-3 text-center">
+                    <div className="text-lg font-bold text-primary">{profile?.kelp_points ?? 0}</div>
+                    <div className="text-xs text-muted-foreground">Kelp Points</div>
+                  </div>
+                  <div className="rounded-xl bg-gradient-to-br from-orange-100 to-orange-50 border border-orange-200 p-3 text-center">
+                    <div className="text-lg font-bold text-orange-600">{profile?.streak_count ?? 0}</div>
+                    <div className="text-xs text-muted-foreground">Day Streak</div>
+                  </div>
+                  <div className="rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 p-3 text-center">
+                    <div className="text-lg font-bold text-blue-600">{activities?.length || 0}</div>
                     <div className="text-xs text-muted-foreground">Activities</div>
                   </div>
-                  <div className="rounded-xl border bg-card p-3 text-center">
-                    <div className="text-lg font-semibold">0</div>
+                  <div className="rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 p-3 text-center">
+                    <div className="text-lg font-bold text-purple-600">0</div>
                     <div className="text-xs text-muted-foreground">Friends</div>
                   </div>
-                  <div className="rounded-xl border bg-card p-3 text-center">
-                    <div className="text-lg font-semibold">0</div>
-                    <div className="text-xs text-muted-foreground">Communities</div>
+                </div>
+
+                {/* Weekly Progress Card */}
+                <div className="rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-green-800">Weekly CO₂e Progress</h3>
+                    <span className="text-sm text-green-600 font-medium">
+                      {profile?.co2e_weekly_progress ?? 0} / {profile?.co2e_weekly_goal ?? 0} kg
+                    </span>
+                  </div>
+                  <div className="w-full bg-green-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.min(100, ((profile?.co2e_weekly_progress ?? 0) / (profile?.co2e_weekly_goal ?? 1)) * 100)}%`
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-green-700 mt-2">
+                    {((profile?.co2e_weekly_progress ?? 0) / (profile?.co2e_weekly_goal ?? 1) * 100).toFixed(0)}% of weekly goal
                   </div>
                 </div>
 
@@ -302,40 +327,136 @@ const ProfilePage = () => {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Award className="w-5 h-5 text-primary" /> Achievements</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {achievements.map((ach) => (
-                            <div key={ach.title} className="flex items-center gap-4 p-3 bg-secondary rounded-lg">
-                                <ach.icon className="w-8 h-8 text-primary" />
-                                <div>
-                                    <p className="font-semibold">{ach.title}</p>
-                                    <p className="text-sm text-muted-foreground">{ach.description}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
+                {/* Achievements Section - styled like reference */}
+                <div className="rounded-2xl bg-card border p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Award className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">Achievements</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {achievements.map((ach) => (
+                      <div key={ach.title} className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-muted/40 to-muted/20 border border-muted">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <ach.icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{ach.title}</p>
+                          <p className="text-xs text-muted-foreground">{ach.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {!badgesLoading && badges.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Earned Badges</p>
+                      <UserBadges badges={badges} />
+                    </div>
+                  )}
+                </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Activity</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {activitiesLoading && <div className="flex justify-center"><LoaderCircle className="w-6 h-6 animate-spin text-primary" /></div>}
-                        {activities && activities.length > 0 ? (
-                            <div className="space-y-4">
-                                {activities.map(item => (
-                                    <ActivityCard key={item.id} activity={item} profile={item.profile} />
-                                ))}
+                {/* Analytics Section */}
+                <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-foreground">Your Impact Analytics</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/impact-dashboard')}
+                      className="text-xs"
+                    >
+                      View Full Dashboard
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="rounded-xl bg-white/70 backdrop-blur-sm border p-3">
+                      <div className="text-xs text-muted-foreground mb-1">Weekly Impact</div>
+                      <div className="text-lg font-bold text-green-600">
+                        {profile?.co2e_weekly_progress ?? 0} kg
+                      </div>
+                      <div className="text-xs text-muted-foreground">CO₂e saved</div>
+                    </div>
+                    <div className="rounded-xl bg-white/70 backdrop-blur-sm border p-3">
+                      <div className="text-xs text-muted-foreground mb-1">Current Streak</div>
+                      <div className="text-lg font-bold text-orange-600 flex items-center gap-1">
+                        <Leaf className="w-4 h-4" />
+                        {profile?.streak_count ?? 0}
+                      </div>
+                      <div className="text-xs text-muted-foreground">days active</div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="secondary" 
+                    className="w-full" 
+                    onClick={() => navigate('/log-activity')}
+                  >
+                    Log New Activity
+                  </Button>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="rounded-2xl bg-card border p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold">Recent Activity</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate('/log-activity')}
+                      className="text-xs"
+                    >
+                      Add Activity
+                    </Button>
+                  </div>
+                  {activitiesLoading && (
+                    <div className="flex justify-center py-8">
+                      <LoaderCircle className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  )}
+                  {activities && activities.length > 0 ? (
+                    <div className="space-y-3">
+                      {activities.slice(0, 3).map(item => (
+                        <div key={item.id} className="p-3 rounded-xl bg-gradient-to-r from-muted/30 to-muted/10 border border-muted/50">
+                          <div className="flex items-center gap-3">
+                            {item.emoji && (
+                              <span className="text-lg">{item.emoji}</span>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{item.activity}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {item.carbon_footprint_kg} kg CO₂e • {new Date(item.created_at).toLocaleDateString()}
+                              </p>
                             </div>
-                        ) : (
-                            !activitiesLoading && <p className="text-muted-foreground text-center py-8">No recent activities to show.</p>
-                        )}
-                    </CardContent>
-                </Card>
+                            <div className="text-right">
+                              <div className="text-xs font-medium text-primary">
+                                {item.carbon_footprint_kg > 0 ? '+' : ''}{item.carbon_footprint_kg} kg
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {activities.length > 3 && (
+                        <Button 
+                          variant="ghost" 
+                          className="w-full mt-2" 
+                          onClick={() => navigate('/feed')}
+                        >
+                          View All Activities ({activities.length})
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    !activitiesLoading && (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
+                          <Leaf className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground mb-4">No activities yet</p>
+                        <Button onClick={() => navigate('/log-activity')}>
+                          Log Your First Activity
+                        </Button>
+                      </div>
+                    )
+                  )}
+                </div>
             </main>
             {renderBottomNav && <BottomNav />}
         </div>
