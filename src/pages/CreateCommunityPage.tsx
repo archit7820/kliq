@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Users, Lock, Globe, Shield, Settings } from "lucide-react";
 
 const CreateCommunityPage = () => {

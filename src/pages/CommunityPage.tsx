@@ -6,7 +6,7 @@ import { LoaderCircle, Users, Star, ArrowLeft, MessageCircle, Target, TrendingUp
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import CommunityChat from "@/components/CommunityChat";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import CommunityMembersManager from "@/components/CommunityMembersManager";
 import CommunityChallengeManager from "@/components/CommunityChallengeManager";
 import CommunityProgressTracker from "@/components/CommunityProgressTracker";
@@ -109,8 +109,24 @@ const CommunityPage = () => {
   const isApprovedMember = myMembership?.status === "approved";
   const canViewContent = user && (amOwner || isApprovedMember);
 
+  // Debug logging
+  console.log('🚀 NEW COMMUNITY PAGE LOADING! 🚀');
+  console.log('CommunityPage Debug:', {
+    user: user?.id,
+    community: community?.name,
+    myMembership: myMembership?.status,
+    amOwner,
+    canViewContent,
+    isMobile,
+    currentUrl: window.location.href
+  });
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Debug Banner - Remove this later */}
+      <div className="bg-primary text-primary-foreground text-center py-2 text-sm font-medium">
+        ✨ New Enhanced Community Interface ✨ - Check console for debug info
+      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95 border-b">
         <div className="flex items-center gap-3 p-4">
