@@ -23,6 +23,7 @@ import ImpactDashboardPage from "./pages/ImpactDashboardPage";
 import ChallengesPage from "./pages/ChallengesPage";
 import CreateChallengePage from "./pages/CreateChallengePage";
 import CreateCommunityPage from "./pages/CreateCommunityPage";
+import ExplorePage from "./pages/ExplorePage";
 import MainLayout from "@/components/MainLayout";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const MainAppRoutes = () => (
       <Route path="/friends" element={<FriendsPage />} />
       <Route path="/log-activity" element={<LogActivityPage />} />
       <Route path="/feed" element={<FeedPage />} />
+      <Route path="/explore" element={<ExplorePage />} />
       <Route path="/leaderboard" element={<LeaderboardPage />} />
       <Route path="/impact-dashboard" element={<ImpactDashboardPage />} />
       <Route path="/challenges" element={<ChallengesPage />} />
