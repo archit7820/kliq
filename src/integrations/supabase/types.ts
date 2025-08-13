@@ -223,6 +223,7 @@ export type Database = {
       }
       communities: {
         Row: {
+          admin_permissions: Json | null
           category: string | null
           country_code: string | null
           cover_image_url: string | null
@@ -230,11 +231,16 @@ export type Database = {
           created_by: string
           description: string | null
           id: string
+          invite_code: string | null
           is_official: boolean | null
+          max_members: number | null
+          member_permissions: Json | null
           name: string
+          privacy_type: string
           scope: Database["public"]["Enums"]["community_scope"]
         }
         Insert: {
+          admin_permissions?: Json | null
           category?: string | null
           country_code?: string | null
           cover_image_url?: string | null
@@ -242,11 +248,16 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
+          invite_code?: string | null
           is_official?: boolean | null
+          max_members?: number | null
+          member_permissions?: Json | null
           name: string
+          privacy_type?: string
           scope?: Database["public"]["Enums"]["community_scope"]
         }
         Update: {
+          admin_permissions?: Json | null
           category?: string | null
           country_code?: string | null
           cover_image_url?: string | null
@@ -254,8 +265,12 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+          invite_code?: string | null
           is_official?: boolean | null
+          max_members?: number | null
+          member_permissions?: Json | null
           name?: string
+          privacy_type?: string
           scope?: Database["public"]["Enums"]["community_scope"]
         }
         Relationships: [
@@ -297,6 +312,100 @@ export type Database = {
           },
           {
             foreignKeyName: "community_activities_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_challenge_participants: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          id: string
+          is_completed: boolean | null
+          joined_at: string | null
+          progress: Json | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          joined_at?: string | null
+          progress?: Json | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          joined_at?: string | null
+          progress?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "community_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_challenges: {
+        Row: {
+          challenge_type: string | null
+          community_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          reward_points: number | null
+          start_date: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          challenge_type?: string | null
+          community_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          reward_points?: number | null
+          start_date?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          challenge_type?: string | null
+          community_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          reward_points?: number | null
+          start_date?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_challenges_community_id_fkey"
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "communities"
@@ -709,6 +818,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_conversations: {
         Args: Record<PropertyKey, never>
         Returns: {
