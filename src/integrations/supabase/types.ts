@@ -1030,6 +1030,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      claim_daily_bonus: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
