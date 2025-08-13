@@ -41,6 +41,29 @@
 
     --radius: 0.5rem;
 
+    /* Additional color palette for mint and sky themes */
+    --mint-50: 240 253 250;
+    --mint-100: 204 251 241;
+    --mint-200: 153 246 228;
+    --mint-300: 94 234 212;
+    --mint-400: 45 212 191;
+    --mint-500: 20 184 166;
+    --mint-600: 13 148 136;
+    --mint-700: 15 118 110;
+    --mint-800: 17 94 89;
+    --mint-900: 19 78 74;
+
+    --sky-50: 240 249 255;
+    --sky-100: 224 242 254;
+    --sky-200: 186 230 253;
+    --sky-300: 125 211 252;
+    --sky-400: 56 189 248;
+    --sky-500: 14 165 233;
+    --sky-600: 2 132 199;
+    --sky-700: 3 105 161;
+    --sky-800: 7 89 133;
+    --sky-900: 12 74 110;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -140,9 +163,11 @@
   .btn-pulse { @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]; }
   .btn-glow { @apply shadow-md hover:shadow-lg transition-shadow duration-200; }
   
-  /* Color Theme Utilities */
-  .btn-green { @apply bg-emerald-600 hover:bg-emerald-700 text-white border-2 border-emerald-500 hover:border-emerald-600; }
-  .btn-blue { @apply bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-500 hover:border-blue-600; }
+  /* Enhanced Button Utilities */
+  .btn-primary { @apply bg-gradient-to-r from-primary to-green-500 text-primary-foreground hover:from-primary/90 hover:to-green-500/90 transition-all duration-200 shadow-sm hover:shadow-md; }
+  .btn-green { @apply bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-sm hover:shadow-md; }
+  .btn-blue { @apply bg-gradient-to-r from-blue-500 to-sky-500 text-white hover:from-blue-600 hover:to-sky-600 transition-all duration-200 shadow-sm hover:shadow-md; }
+  .btn-orange { @apply bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-sm hover:shadow-md; }
   .btn-green-outline { @apply border-2 border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 hover:border-emerald-400; }
   .btn-blue-outline { @apply border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 hover:border-blue-400; }
 }

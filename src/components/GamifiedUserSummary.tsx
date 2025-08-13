@@ -1,17 +1,21 @@
 import React from "react";
-import { Trophy, Medal, Flame } from "lucide-react";
-
+import { Trophy, Medal, Flame, Droplet, Leaf, Zap, Recycle } from "lucide-react";
 
 interface GamifiedUserSummaryProps {
   kelpPoints?: number;
   streakCount?: number;
-  weeklyImpact?: number;
+  weeklyImpact?: {
+    co2Saved: number;
+    waterSaved: number; // liters
+    wasteReduced: number; // kg
+    energySaved: number; // kWh
+  };
   level?: number;
   globalRank?: string | number;
   bestBadge?: string;
 }
 
-// Very simple XP/level algorithm for demo
+// Simple XP/level algorithm for demo
 function pointsToLevel(points: number) {
   if (!points) return { level: 1, nextLevel: 100, curr: 0 };
   const level = Math.floor(points / 100) + 1;
@@ -23,53 +27,101 @@ function pointsToLevel(points: number) {
 const GamifiedUserSummary: React.FC<GamifiedUserSummaryProps> = ({
   kelpPoints = 0,
   streakCount = 0,
-  weeklyImpact = 0,
+  weeklyImpact = { co2Saved: 0, waterSaved: 0, wasteReduced: 0, energySaved: 0 },
   globalRank = "—",
   bestBadge = "Kelp Sprout"
 }) => {
   const xp = pointsToLevel(kelpPoints);
 
   return (
-    <section className="w-full p-3 rounded-2xl border bg-card shadow-sm animate-fade-in">
-      <div className="w-full flex items-center justify-between gap-3">
-        {/* Level medallion */}
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full border grid place-items-center text-sm font-semibold">
+    <section className="w-full p-4 bg-gradient-to-r from-primary/5 to-mint-100 rounded-2xl border animate-fade-in">
+      {/* Top Section - Points & Level */}
+      <div className="bg-primary/10 rounded-xl p-3 mb-4 text-center">
+        <div className="text-2xl font-bold text-primary mb-1">
+          {kelpPoints.toLocaleString()} Kelp Points
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
             L{xp.level}
           </div>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{bestBadge}</span>
-        </div>
-
-        {/* Stats row */}
-        <div className="flex-1 flex justify-end gap-2">
-          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
-            <Trophy size={18} className="text-muted-foreground" />
-            <span className="font-semibold text-sm">{kelpPoints}</span>
-            <span className="text-[11px] text-muted-foreground">Points</span>
-          </div>
-          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
-            <Flame size={18} className="text-muted-foreground" />
-            <span className="font-semibold text-sm">{streakCount}</span>
-            <span className="text-[11px] text-muted-foreground">Streak</span>
-          </div>
-          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
-            <span className="font-semibold text-sm">{weeklyImpact}</span>
-            <span className="text-[11px] text-muted-foreground">Weekly Impact</span>
-          </div>
-          <div className="rounded-xl border bg-background px-2 py-1.5 flex flex-col items-center min-w-[64px]">
-            <Medal size={18} className="text-muted-foreground" />
-            <span className="font-semibold text-sm">{globalRank}</span>
-            <span className="text-[11px] text-muted-foreground">Rank</span>
-          </div>
+          <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+            {bestBadge}
+          </span>
         </div>
       </div>
 
-      {/* Progress */}
-      <div className="mt-3">
-        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
-          <div className="bg-primary h-full rounded-full transition-all" style={{ width: `${xp.curr}%` }} />
+      {/* Impact Grid - Mobile First */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-card rounded-xl p-3 text-center border">
+          <Leaf className="w-5 h-5 text-green-600 mx-auto mb-1" />
+          <div className="font-semibold text-sm text-foreground">
+            {weeklyImpact.co2Saved.toFixed(1)}kg
+          </div>
+          <div className="text-xs text-muted-foreground">CO₂ Saved</div>
         </div>
-        <span className="text-[11px] text-muted-foreground mt-1 block">{xp.nextLevel} points to next level</span>
+
+        <div className="bg-card rounded-xl p-3 text-center border">
+          <Droplet className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+          <div className="font-semibold text-sm text-foreground">
+            {weeklyImpact.waterSaved.toFixed(0)}L
+          </div>
+          <div className="text-xs text-muted-foreground">Water Saved</div>
+        </div>
+
+        <div className="bg-card rounded-xl p-3 text-center border">
+          <Recycle className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+          <div className="font-semibold text-sm text-foreground">
+            {weeklyImpact.wasteReduced.toFixed(1)}kg
+          </div>
+          <div className="text-xs text-muted-foreground">Waste Reduced</div>
+        </div>
+
+        <div className="bg-card rounded-xl p-3 text-center border">
+          <Zap className="w-5 h-5 text-yellow-600 mx-auto mb-1" />
+          <div className="font-semibold text-sm text-foreground">
+            {weeklyImpact.energySaved.toFixed(0)}kWh
+          </div>
+          <div className="text-xs text-muted-foreground">Energy Saved</div>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="bg-card rounded-xl p-2 text-center border">
+          <Flame className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+          <div className="font-semibold text-sm">{streakCount}</div>
+          <div className="text-xs text-muted-foreground">Day Streak</div>
+        </div>
+        
+        <div className="bg-card rounded-xl p-2 text-center border">
+          <Medal className="w-4 h-4 text-yellow-600 mx-auto mb-1" />
+          <div className="font-semibold text-sm">{globalRank}</div>
+          <div className="text-xs text-muted-foreground">Global Rank</div>
+        </div>
+
+        <div className="bg-card rounded-xl p-2 text-center border">
+          <Trophy className="w-4 h-4 text-primary mx-auto mb-1" />
+          <div className="font-semibold text-sm">L{xp.level}</div>
+          <div className="text-xs text-muted-foreground">Impact Level</div>
+        </div>
+      </div>
+
+      {/* Level Progress */}
+      <div className="bg-card rounded-xl p-3 border">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xs font-medium text-muted-foreground">
+            Level {xp.level} Progress
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {xp.nextLevel} points to next level
+          </span>
+        </div>
+        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+          <div 
+            className="bg-gradient-to-r from-primary to-green-500 h-full rounded-full transition-all duration-500" 
+            style={{ width: `${xp.curr}%` }} 
+          />
+        </div>
       </div>
     </section>
   );

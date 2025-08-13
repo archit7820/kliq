@@ -9,7 +9,14 @@ import CommunityActivity from "./CommunityActivity";
 import GamifiedEngagementCards from "./GamifiedEngagementCards";
 
 const HomeContent = ({ profile }: { profile: any }) => {
-  // All calculations below now always use the *props* profile.
+  // Enhanced impact calculations
+  const weeklyImpact = {
+    co2Saved: profile?.co2e_weekly_progress ?? 2.3,
+    waterSaved: (profile?.kelp_points ?? 30) * 0.8, // Estimate based on activities
+    wasteReduced: (profile?.kelp_points ?? 30) * 0.05,
+    energySaved: (profile?.kelp_points ?? 30) * 0.3
+  };
+  
   const globalRank =
     typeof profile?.global_rank !== "undefined"
       ? profile.global_rank
@@ -19,24 +26,24 @@ const HomeContent = ({ profile }: { profile: any }) => {
   const bestBadge =
     (profile?.badges && profile.badges.length > 0 && profile.badges[0].name) ||
     "Kelp Sprout";
-  const weeklyImpact = profile?.co2e_weekly_progress ?? 0;
+  
 
   return (
-    <main className="flex-grow px-4 py-6 bg-gradient-to-br from-mint-50 to-sky-50 min-h-screen">
-      <div className="max-w-lg mx-auto space-y-6 pb-24">
+    <main className="flex-grow px-3 py-4 bg-gradient-to-br from-mint-50/50 to-sky-50/50 min-h-screen">
+      <div className="max-w-md mx-auto space-y-4 pb-20">{/* Reduced bottom padding for mobile nav */}
         
         {/* Stories & Highlights Carousel */}
-        <section className="bg-card rounded-2xl p-4 shadow-sm border" aria-label="Stories and highlights">
-          <h2 className="sr-only">Stories & Highlights</h2>
+        <section className="bg-card rounded-xl p-3 shadow-sm border" aria-label="Activities">
+          <h2 className="sr-only">Activities & Stories</h2>
           <HomeStoriesBar profile={profile} />
         </section>
 
         {/* Overall Status & Rankings */}
-        <section className="bg-card rounded-2xl shadow-sm border" aria-label="Your status and rankings">
-          <h2 className="sr-only">Your Status & Rankings</h2>
+        <section className="bg-card rounded-xl shadow-sm border" aria-label="Your impact summary">
+          <h2 className="sr-only">Your Impact & Rankings</h2>
           <GamifiedUserSummary
-            kelpPoints={profile?.kelp_points ?? 0}
-            streakCount={profile?.streak_count ?? 0}
+            kelpPoints={profile?.kelp_points ?? 30}
+            streakCount={profile?.streak_count ?? 3}
             weeklyImpact={weeklyImpact}
             globalRank={globalRank}
             bestBadge={bestBadge}
@@ -47,7 +54,7 @@ const HomeContent = ({ profile }: { profile: any }) => {
         <PersonalizedSuggestionsSection profile={profile} />
 
         {/* My Challenges */}
-        <section className="bg-card rounded-2xl p-4 shadow-sm border" aria-label="Your current challenges">
+        <section className="bg-card rounded-xl p-4 shadow-sm border" aria-label="Your current challenges">
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <span className="text-2xl">🎯</span>
             My Current Challenges
@@ -62,7 +69,7 @@ const HomeContent = ({ profile }: { profile: any }) => {
         <GamifiedEngagementCards profile={profile} />
 
         {/* Marketplace Section */}
-        <section className="bg-card rounded-2xl shadow-sm border" aria-label="Marketplace">
+        <section className="bg-card rounded-xl shadow-sm border" aria-label="Marketplace">
           <h2 className="sr-only">Marketplace</h2>
           <MarketplaceSection />
         </section>
