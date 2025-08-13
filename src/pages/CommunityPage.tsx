@@ -2,12 +2,17 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { LoaderCircle, Users, Star } from "lucide-react";
+import { LoaderCircle, Users, Star, ArrowLeft, MessageCircle, Target, TrendingUp, Clock } from "lucide-react";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import CommunityChat from "@/components/CommunityChat";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import CommunityMembersManager from "@/components/CommunityMembersManager";
+import CommunityChallengeManager from "@/components/CommunityChallengeManager";
+import CommunityProgressTracker from "@/components/CommunityProgressTracker";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
@@ -100,60 +105,173 @@ const CommunityPage = () => {
   // Only owner of community can see the membership requests
   const amOwner = user && user.id === community.created_by;
 
+  const isMobile = useIsMobile();
+  const isApprovedMember = myMembership?.status === "approved";
+  const canViewContent = user && (amOwner || isApprovedMember);
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="bg-white py-4 px-4 border-b flex items-center gap-2">
-        <Link to="/communities" className="text-blue-700 hover:underline">&larr; Back</Link>
-        <Users className="w-6 h-6 text-blue-700" />
-        <span className="text-xl font-bold text-blue-900">{community.name}</span>
-        {community.is_official && (
-          <Star className="w-5 h-5 text-yellow-400 ml-2" />
-        )}
-      </div>
-      <div className="max-w-screen-md mx-auto pt-6 px-2">
-        <p className="text-lg font-semibold text-blue-700">{community.description}</p>
-        {/* Membership actions */}
-        {user && !amOwner && (
-          <div className="my-5">
-            {!myMembership ? (
-              <Button className="bg-blue-700 text-white hover:bg-blue-800" onClick={handleRequestJoin}>
-                Request to Join
-              </Button>
-            ) : myMembership.status === "pending" ? (
-              <Button variant="outline" disabled>
-                Pending Approval
-              </Button>
-            ) : myMembership.status === "approved" ? (
-              <Button variant="destructive" onClick={handleLeave}>
-                Leave Community
-              </Button>
-            ) : myMembership.status === "rejected" ? (
-              <span className="bg-red-100 text-red-600 px-3 py-1 rounded">
-                Request Rejected
-              </span>
-            ) : null}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95 border-b">
+        <div className="flex items-center gap-3 p-4">
+          <Link 
+            to="/communities" 
+            className="p-2 hover:bg-accent rounded-lg transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+          </Link>
+          
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Users className="w-6 h-6 text-primary shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-foreground truncate">
+                  {community.name}
+                </h1>
+                {community.is_official && (
+                  <Star className="w-4 h-4 text-yellow-500 shrink-0" />
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="outline" className="text-xs capitalize">
+                  {community.scope || 'local'}
+                </Badge>
+                {community.category && (
+                  <Badge variant="secondary" className="text-xs capitalize">
+                    {community.category}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Community Description */}
+        {community.description && (
+          <div className="px-4 pb-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {community.description}
+            </p>
           </div>
         )}
 
-        {amOwner && (
-          <CommunityMembersManager communityId={communityId!} />
-        )}
-
-        <div className="my-6">
-          {user && myMembership && (
-            myMembership.status === "approved" ? (
-              <CommunityChat user={user} communityId={communityId!} />
+        {/* Membership Actions */}
+        {user && !amOwner && (
+          <div className="px-4 pb-4">
+            {!myMembership ? (
+              <Button 
+                onClick={handleRequestJoin}
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                Request to Join
+              </Button>
             ) : myMembership.status === "pending" ? (
-              <div className="bg-yellow-50 border border-yellow-300 text-yellow-700 rounded p-4 text-center font-semibold">
-                Your join request is pending approval. You will get access to the group chat once approved by the admin.
-              </div>
+              <Button variant="outline" disabled className="w-full">
+                Pending Approval
+              </Button>
+            ) : myMembership.status === "approved" ? (
+              <Button variant="outline" onClick={handleLeave} className="w-full">
+                Leave Community
+              </Button>
             ) : myMembership.status === "rejected" ? (
-              <div className="bg-red-100 border border-red-300 text-red-700 rounded p-4 text-center font-semibold">
-                Your join request was rejected.
+              <div className="bg-destructive/10 text-destructive text-center px-3 py-2 rounded-lg text-sm font-medium">
+                Request Rejected
               </div>
-            ) : null
-          )}
-        </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="max-w-2xl mx-auto">
+        {!canViewContent ? (
+          <div className="p-4">
+            {!user ? (
+              <div className="bg-card border rounded-lg p-6 text-center">
+                <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+                <h3 className="font-semibold text-foreground mb-2">Sign In Required</h3>
+                <p className="text-muted-foreground text-sm">
+                  Please sign in to view community content.
+                </p>
+              </div>
+            ) : myMembership?.status === "pending" ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                <Clock className="w-12 h-12 mx-auto mb-3 text-yellow-600" />
+                <h3 className="font-semibold text-yellow-800 mb-2">Pending Approval</h3>
+                <p className="text-yellow-700 text-sm">
+                  Your join request is pending approval. You'll get access once approved by the admin.
+                </p>
+              </div>
+            ) : myMembership?.status === "rejected" ? (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-center">
+                <Users className="w-12 h-12 mx-auto mb-3 text-destructive/50" />
+                <h3 className="font-semibold text-destructive mb-2">Request Rejected</h3>
+                <p className="text-destructive/80 text-sm">
+                  Your join request was rejected by the community admin.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-card border rounded-lg p-6 text-center">
+                <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+                <h3 className="font-semibold text-foreground mb-2">Join Community</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Request to join this community to view content and participate.
+                </p>
+                <Button onClick={handleRequestJoin} className="bg-primary hover:bg-primary/90">
+                  Request to Join
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Tabs defaultValue="chat" className="w-full">
+            <TabsList className={`grid w-full ${amOwner ? 'grid-cols-4' : 'grid-cols-3'} bg-muted/50 mx-4 mt-4`}>
+              <TabsTrigger value="chat" className="flex items-center gap-1 text-xs">
+                <MessageCircle className="w-3 h-3" />
+                {!isMobile && "Chat"}
+              </TabsTrigger>
+              {amOwner && (
+                <TabsTrigger value="members" className="flex items-center gap-1 text-xs">
+                  <Users className="w-3 h-3" />
+                  {!isMobile && "Members"}
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="challenges" className="flex items-center gap-1 text-xs">
+                <Target className="w-3 h-3" />
+                {!isMobile && "Challenges"}
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="flex items-center gap-1 text-xs">
+                <TrendingUp className="w-3 h-3" />
+                {!isMobile && "Progress"}
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="p-4">
+              <TabsContent value="chat" className="mt-0">
+                <CommunityChat user={user!} communityId={communityId!} />
+              </TabsContent>
+
+              {amOwner && (
+                <TabsContent value="members" className="mt-0">
+                  <CommunityMembersManager communityId={communityId!} />
+                </TabsContent>
+              )}
+
+              <TabsContent value="challenges" className="mt-0">
+                <CommunityChallengeManager 
+                  communityId={communityId!}
+                  userId={user!.id}
+                  isOwner={amOwner}
+                />
+              </TabsContent>
+
+              <TabsContent value="progress" className="mt-0">
+                <CommunityProgressTracker communityId={communityId!} />
+              </TabsContent>
+            </div>
+          </Tabs>
+        )}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { Users } from "lucide-react";
 
 const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
   const queryClient = useQueryClient();
@@ -99,45 +100,82 @@ const CommunityMembersManager = ({ communityId }: { communityId: string }) => {
   console.log("[CommunityMembersManager] FINAL: approved:", approved);
 
   return (
-    <div className="border rounded-xl bg-white shadow mt-5 p-4">
-      <h3 className="text-blue-700 font-bold mb-2">Membership Requests</h3>
-      {pending.length === 0 && (
-        <div className="text-gray-400 text-xs mb-2">No pending requests.</div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Users className="w-5 h-5 text-primary" />
+        <h3 className="text-lg font-semibold text-foreground">Members</h3>
+      </div>
+
+      {pending.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="font-medium text-foreground">Pending Requests</h4>
+          <div className="space-y-2">
+            {pending.map((m: any) => (
+              <div key={m.id} className="flex items-center gap-3 bg-card rounded-lg border p-3">
+                <img 
+                  src={m.profiles?.avatar_url || "/placeholder.svg"} 
+                  alt="" 
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">
+                    {m.profiles?.full_name || m.profiles?.username || "Unknown User"}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    disabled={processingId === m.id && approveMutation.isPending}
+                    onClick={() => approveMutation.mutate(m.id)}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {(processingId === m.id && approveMutation.isPending) ? "Approving..." : "Approve"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={processingId === m.id && rejectMutation.isPending}
+                    onClick={() => rejectMutation.mutate(m.id)}
+                  >
+                    {(processingId === m.id && rejectMutation.isPending) ? "Rejecting..." : "Reject"}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
-      <ul className="mb-5 space-y-2">
-        {pending.map((m: any) => (
-          <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
-            <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-8 h-8 rounded-full" />
-            <span className="font-medium">{m.profiles?.full_name || m.profiles?.username || "Unknown User"}</span>
-            <Button
-              size="sm"
-              disabled={processingId === m.id && approveMutation.isPending}
-              onClick={() => approveMutation.mutate(m.id)}
-              className="ml-auto px-3 py-1 bg-green-500 hover:bg-green-600 text-white"
-            >
-              {(processingId === m.id && approveMutation.isPending) ? "Approving..." : "Approve"}
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={processingId === m.id && rejectMutation.isPending}
-              onClick={() => rejectMutation.mutate(m.id)}
-              className="ml-2 px-3 py-1"
-            >
-              {(processingId === m.id && rejectMutation.isPending) ? "Rejecting..." : "Reject"}
-            </Button>
-          </li>
-        ))}
-      </ul>
-      <h4 className="font-semibold text-blue-600 mb-2">Approved Members</h4>
-      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {approved.map((m: any) => (
-          <li key={m.id} className="flex items-center gap-2 bg-blue-50 rounded p-2">
-            <img src={m.profiles?.avatar_url || "/placeholder.svg"} alt="" className="w-7 h-7 rounded-full" />
-            <span className="font-medium text-xs">{m.profiles?.full_name || m.profiles?.username}</span>
-          </li>
-        ))}
-      </ul>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-medium text-foreground">Approved Members</h4>
+          <span className="text-sm text-muted-foreground">{approved.length} members</span>
+        </div>
+        
+        {approved.length === 0 ? (
+          <div className="text-center py-6 text-muted-foreground">
+            <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p>No approved members yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {approved.map((m: any) => (
+              <div key={m.id} className="flex items-center gap-2 bg-card rounded-lg border p-3 hover:shadow-sm transition-shadow">
+                <img 
+                  src={m.profiles?.avatar_url || "/placeholder.svg"} 
+                  alt="" 
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-foreground truncate">
+                    {m.profiles?.full_name || m.profiles?.username || "Unknown"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
