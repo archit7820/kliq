@@ -1,10 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { GoogleGenAI } from "npm:@google/genai@^0.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
@@ -50,13 +50,27 @@ Computation notes:
 - Ensure numbers are valid and within ranges.`;
 
 serve(async (req) => {
+  console.log(`Method: ${req.method}`);
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    console.log("Handling CORS preflight");
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 200 
+    });
   }
 
   try {
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 405,
+      });
+    }
+
     const { imageUrl, caption } = await req.json();
+    console.log(`Request received - imageUrl: ${imageUrl ? 'present' : 'missing'}, caption: ${caption || 'none'}`);
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "imageUrl is required" }), {
@@ -65,46 +79,36 @@ serve(async (req) => {
       });
     }
 
-    // Prefer Gemini vision; fallback to OpenAI if Gemini not available
+    // Use Gemini API directly with fetch (more reliable for edge functions)
     if (GEMINI_API_KEY) {
-      console.log("analyze-activity: Using Gemini Vision (gemini-2.5-flash)");
+      console.log("Using Gemini Vision API");
       
       try {
-        // Initialize Gemini with the new library
-        const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
         // Fetch and encode the image
         const imageResp = await fetch(imageUrl);
         if (!imageResp.ok) {
+          console.error(`Failed to fetch image: ${imageResp.status} ${imageResp.statusText}`);
           return new Response(JSON.stringify({ error: "Failed to fetch image" }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
           });
         }
         
-        const buf = await imageResp.arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        let binary = "";
-        const chunk = 8192;
-        for (let i = 0; i < bytes.length; i += chunk) {
-          binary += String.fromCharCode(...bytes.slice(i, i + chunk));
-        }
-        const b64 = btoa(binary);
-        const mime = imageResp.headers.get("content-type") || "image/jpeg";
+        const arrayBuffer = await imageResp.arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        const mimeType = imageResp.headers.get("content-type") || "image/jpeg";
 
         const prompt = `${SYSTEM_PROMPT}\n\nAnalyze this IRL adventure. Caption: ${caption || "(none)"}. Return JSON only.`;
         
-        // Use the new API format
-        const result = await genAI.models.generateContent({
-          model: "gemini-2.5-flash",
+        const requestBody = {
           contents: [
             {
               parts: [
                 { text: prompt },
                 {
                   inline_data: {
-                    mime_type: mime,
-                    data: b64
+                    mime_type: mimeType,
+                    data: base64
                   }
                 }
               ]
@@ -114,63 +118,104 @@ serve(async (req) => {
             temperature: 0.2,
             responseMimeType: "application/json"
           }
-        });
+        };
 
-        const text = result.text();
-        
-        if (!text) {
-          return new Response(JSON.stringify({ error: "Invalid Gemini response" }), {
+        console.log("Making request to Gemini API...");
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+
+        if (!geminiResponse.ok) {
+          const errorText = await geminiResponse.text();
+          console.error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
+          return new Response(JSON.stringify({ 
+            error: "Gemini analysis failed", 
+            details: errorText.substring(0, 200) 
+          }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 500,
           });
         }
 
-        let analysisResult: any;
+        const geminiData = await geminiResponse.json();
+        console.log("Gemini response received");
+        
+        const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          console.error("No text in Gemini response", JSON.stringify(geminiData));
+          return new Response(JSON.stringify({ error: "Invalid Gemini response format" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500,
+          });
+        }
+
+        let result: any;
         try {
-          analysisResult = JSON.parse(text);
+          result = JSON.parse(text);
         } catch (e) {
           console.error("Failed to parse Gemini JSON:", text);
-          return new Response(JSON.stringify({ error: "Invalid analysis result format" }), {
+          return new Response(JSON.stringify({ 
+            error: "Invalid analysis result format",
+            raw_response: text.substring(0, 200)
+          }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 500,
           });
         }
 
-        if (typeof analysisResult.carbon_footprint_kg === "string") {
-          analysisResult.carbon_footprint_kg = parseFloat(analysisResult.carbon_footprint_kg);
+        // Ensure carbon_footprint_kg is a number
+        if (typeof result.carbon_footprint_kg === "string") {
+          result.carbon_footprint_kg = parseFloat(result.carbon_footprint_kg);
         }
 
         // Basic validation for essential fields
         if (
-          !analysisResult ||
-          typeof analysisResult.carbon_footprint_kg !== "number" ||
-          Number.isNaN(analysisResult.carbon_footprint_kg) ||
-          !analysisResult.explanation ||
-          !analysisResult.activity ||
-          !analysisResult.emoji
+          !result ||
+          typeof result.carbon_footprint_kg !== "number" ||
+          Number.isNaN(result.carbon_footprint_kg) ||
+          !result.explanation ||
+          !result.activity ||
+          !result.emoji
         ) {
-          return new Response(JSON.stringify({ error: "Incomplete analysis result" }), {
+          console.error("Incomplete analysis result:", result);
+          return new Response(JSON.stringify({ 
+            error: "Incomplete analysis result",
+            result: result
+          }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 500,
           });
         }
 
-        return new Response(JSON.stringify(analysisResult), {
+        console.log("Analysis successful");
+        return new Response(JSON.stringify(result), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
+
       } catch (error) {
-        console.error("Gemini analysis error:", error);
-        return new Response(JSON.stringify({ error: "Gemini analysis failed", details: error.message }), {
+        console.error("Gemini processing error:", error);
+        return new Response(JSON.stringify({ 
+          error: "Gemini analysis failed", 
+          details: error.message 
+        }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
         });
       }
     }
 
-    // Fallback to OpenAI if Gemini key not available
+    // Fallback to OpenAI if Gemini not available
     if (OPENAI_API_KEY) {
-      console.log("analyze-activity: Falling back to OpenAI Vision (gpt-4o-mini)");
+      console.log("Falling back to OpenAI Vision");
+      
       const payload = {
         model: "gpt-4o-mini",
         messages: [
@@ -185,9 +230,9 @@ serve(async (req) => {
         ],
         temperature: 0.2,
         response_format: { type: "json_object" },
-      } as const;
+      };
 
-      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -196,16 +241,16 @@ serve(async (req) => {
         body: JSON.stringify(payload),
       });
 
-      if (!resp.ok) {
-        const err = await resp.text();
-        console.error("OpenAI error:", err);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("OpenAI error:", errorText);
         return new Response(JSON.stringify({ error: "OpenAI analysis failed" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
         });
       }
 
-      const data = await resp.json();
+      const data = await response.json();
       const content = data?.choices?.[0]?.message?.content;
       if (!content) {
         return new Response(JSON.stringify({ error: "Invalid OpenAI response" }), {
@@ -216,7 +261,7 @@ serve(async (req) => {
 
       let result: any;
       try {
-        result = typeof content === "string" ? JSON.parse(content) : content;
+        result = JSON.parse(content);
       } catch (e) {
         console.error("Failed to parse OpenAI JSON:", content);
         return new Response(JSON.stringify({ error: "Invalid analysis result format" }), {
@@ -229,7 +274,7 @@ serve(async (req) => {
         result.carbon_footprint_kg = parseFloat(result.carbon_footprint_kg);
       }
 
-      // Basic validation for essential fields; allow extra fields for new scoring
+      // Basic validation for essential fields
       if (
         !result ||
         typeof result.carbon_footprint_kg !== "number" ||
@@ -250,14 +295,22 @@ serve(async (req) => {
       });
     }
 
-    // No model available
+    // No API key available
+    console.error("No API keys configured");
     return new Response(
       JSON.stringify({ error: "No AI provider configured. Set GEMINI_API_KEY or OPENAI_API_KEY in Supabase secrets." }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+        status: 500 
+      }
     );
-  } catch (err: any) {
-    console.error("analyze-activity error:", err?.message || err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+
+  } catch (error: any) {
+    console.error("Edge function error:", error);
+    return new Response(JSON.stringify({ 
+      error: "Internal server error", 
+      details: error.message 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
