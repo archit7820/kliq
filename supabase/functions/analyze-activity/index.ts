@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { GoogleGenerativeAI } from "npm:@google/generative-ai@^0.21.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -66,104 +67,101 @@ serve(async (req) => {
 
     // Prefer Gemini vision; fallback to OpenAI if Gemini not available
     if (GEMINI_API_KEY) {
-      console.log("analyze-activity: Using Gemini Vision (gemini-1.5-flash-latest)");
+      console.log("analyze-activity: Using Gemini Vision (gemini-1.5-flash)");
       
-      // Fetch and encode the image
-      const imageResp = await fetch(imageUrl);
-      if (!imageResp.ok) {
-        return new Response(JSON.stringify({ error: "Failed to fetch image" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
-      }
-      
-      const buf = await imageResp.arrayBuffer();
-      const bytes = new Uint8Array(buf);
-      let binary = "";
-      const chunk = 8192;
-      for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode(...bytes.slice(i, i + chunk));
-      }
-      const b64 = btoa(binary);
-      const mime = imageResp.headers.get("content-type") || "image/jpeg";
-
-      const geminiBody = {
-        contents: [
-          {
-            parts: [
-              { text: `${SYSTEM_PROMPT}\n\nAnalyze this IRL adventure. Caption: ${caption || "(none)"}. Return JSON only.` },
-              { inline_data: { mime_type: mime, data: b64 } },
-            ],
-          },
-        ],
-        generation_config: { 
-          response_mime_type: "application/json",
-          temperature: 0.2
-        },
-      };
-
-      const gemResp = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(geminiBody),
-        }
-      );
-
-      if (!gemResp.ok) {
-        const err = await gemResp.text();
-        console.error("Gemini error:", err);
-        return new Response(JSON.stringify({ error: "Gemini analysis failed" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 500,
-        });
-      }
-
-      const gemData = await gemResp.json();
-      const text = gemData?.candidates?.[0]?.content?.parts?.[0]?.text;
-      
-      if (!text) {
-        return new Response(JSON.stringify({ error: "Invalid Gemini response" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 500,
-        });
-      }
-
-      let result: any;
       try {
-        result = typeof text === "string" ? JSON.parse(text) : text;
-      } catch (e) {
-        console.error("Failed to parse Gemini JSON:", text);
-        return new Response(JSON.stringify({ error: "Invalid analysis result format" }), {
+        // Initialize Gemini
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-1.5-flash",
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json"
+          }
+        });
+
+        // Fetch and encode the image
+        const imageResp = await fetch(imageUrl);
+        if (!imageResp.ok) {
+          return new Response(JSON.stringify({ error: "Failed to fetch image" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
+        
+        const buf = await imageResp.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        const chunk = 8192;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode(...bytes.slice(i, i + chunk));
+        }
+        const b64 = btoa(binary);
+        const mime = imageResp.headers.get("content-type") || "image/jpeg";
+
+        const prompt = `${SYSTEM_PROMPT}\n\nAnalyze this IRL adventure. Caption: ${caption || "(none)"}. Return JSON only.`;
+        
+        const result = await model.generateContent([
+          prompt,
+          {
+            inlineData: {
+              data: b64,
+              mimeType: mime
+            }
+          }
+        ]);
+
+        const response = await result.response;
+        const text = response.text();
+        
+        if (!text) {
+          return new Response(JSON.stringify({ error: "Invalid Gemini response" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500,
+          });
+        }
+
+        let analysisResult: any;
+        try {
+          analysisResult = JSON.parse(text);
+        } catch (e) {
+          console.error("Failed to parse Gemini JSON:", text);
+          return new Response(JSON.stringify({ error: "Invalid analysis result format" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500,
+          });
+        }
+
+        if (typeof analysisResult.carbon_footprint_kg === "string") {
+          analysisResult.carbon_footprint_kg = parseFloat(analysisResult.carbon_footprint_kg);
+        }
+
+        // Basic validation for essential fields
+        if (
+          !analysisResult ||
+          typeof analysisResult.carbon_footprint_kg !== "number" ||
+          Number.isNaN(analysisResult.carbon_footprint_kg) ||
+          !analysisResult.explanation ||
+          !analysisResult.activity ||
+          !analysisResult.emoji
+        ) {
+          return new Response(JSON.stringify({ error: "Incomplete analysis result" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500,
+          });
+        }
+
+        return new Response(JSON.stringify(analysisResult), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      } catch (error) {
+        console.error("Gemini analysis error:", error);
+        return new Response(JSON.stringify({ error: "Gemini analysis failed", details: error.message }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
         });
       }
-
-      if (typeof result.carbon_footprint_kg === "string") {
-        result.carbon_footprint_kg = parseFloat(result.carbon_footprint_kg);
-      }
-
-      // Basic validation for essential fields
-      if (
-        !result ||
-        typeof result.carbon_footprint_kg !== "number" ||
-        Number.isNaN(result.carbon_footprint_kg) ||
-        !result.explanation ||
-        !result.activity ||
-        !result.emoji
-      ) {
-        return new Response(JSON.stringify({ error: "Incomplete analysis result" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 500,
-        });
-      }
-
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
     }
 
     // Fallback to OpenAI if Gemini key not available
