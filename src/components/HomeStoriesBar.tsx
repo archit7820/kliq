@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ const IRLActivities = [
 ];
 
 const HomeStoriesBar: React.FC<HomeStoriesBarProps> = ({ profile }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="w-full">
       {/* Your Story + Quick Actions */}
@@ -44,6 +47,7 @@ const HomeStoriesBar: React.FC<HomeStoriesBarProps> = ({ profile }) => {
           size="sm" 
           className="btn-primary flex-1 h-12 rounded-xl font-medium"
           aria-label="Log new activity"
+          onClick={() => navigate('/log-activity')}
         >
           <Camera className="h-4 w-4 mr-2" />
           Log Activity
