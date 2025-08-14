@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@^0.21.0";
+import { GoogleGenAI } from "npm:@google/genai@^0.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,18 +67,11 @@ serve(async (req) => {
 
     // Prefer Gemini vision; fallback to OpenAI if Gemini not available
     if (GEMINI_API_KEY) {
-      console.log("analyze-activity: Using Gemini Vision (gemini-1.5-flash)");
+      console.log("analyze-activity: Using Gemini Vision (gemini-2.5-flash)");
       
       try {
-        // Initialize Gemini
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-flash",
-          generationConfig: {
-            temperature: 0.2,
-            responseMimeType: "application/json"
-          }
-        });
+        // Initialize Gemini with the new library
+        const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
         // Fetch and encode the image
         const imageResp = await fetch(imageUrl);
@@ -101,18 +94,29 @@ serve(async (req) => {
 
         const prompt = `${SYSTEM_PROMPT}\n\nAnalyze this IRL adventure. Caption: ${caption || "(none)"}. Return JSON only.`;
         
-        const result = await model.generateContent([
-          prompt,
-          {
-            inlineData: {
-              data: b64,
-              mimeType: mime
+        // Use the new API format
+        const result = await genAI.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              parts: [
+                { text: prompt },
+                {
+                  inline_data: {
+                    mime_type: mime,
+                    data: b64
+                  }
+                }
+              ]
             }
+          ],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json"
           }
-        ]);
+        });
 
-        const response = await result.response;
-        const text = response.text();
+        const text = result.text();
         
         if (!text) {
           return new Response(JSON.stringify({ error: "Invalid Gemini response" }), {
