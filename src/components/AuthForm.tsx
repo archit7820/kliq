@@ -12,17 +12,19 @@ interface AuthFormProps {
 const AuthForm: React.FC<AuthFormProps> = ({ mode, onSuccess }) => {
   return (
     <div className="w-full">
-      <div className="relative bg-card/90 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl animate-scale-in">
+      <div className="relative bg-card backdrop-blur-sm rounded-3xl border border-border p-8 shadow-xl animate-scale-in">
         {/* Floating decoration */}
-        <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-br from-mint-400 to-sky-400 rounded-full animate-[bounce_2s_ease-in-out_infinite]"></div>
+        <div className="absolute -top-3 -right-3 w-6 h-6 bg-primary rounded-full animate-[bounce_2s_ease-in-out_infinite]">
+          <div className="w-2 h-2 bg-primary-foreground rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
         
         <div className="flex flex-col items-center mb-8 text-center">
           <div className="relative mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-mint-500 rounded-2xl flex items-center justify-center shadow-lg animate-scale-in">
-              <Leaf className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg animate-scale-in">
+              <Leaf className="w-8 h-8 text-primary-foreground" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-sky-400 rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 bg-white rounded-full"></div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-secondary rounded-full flex items-center justify-center">
+              <div className="w-2 h-2 bg-secondary-foreground rounded-full"></div>
             </div>
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">

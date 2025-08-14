@@ -57,7 +57,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="pl-12 h-12 rounded-xl border-border/50 bg-background/50 backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+              className="pl-12 h-12 rounded-xl bg-background border-input focus:border-primary focus:ring-primary/20 transition-all duration-200"
               placeholder="you@example.com"
               disabled={isLoading}
             />
@@ -74,7 +74,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="pl-12 h-12 rounded-xl border-border/50 bg-background/50 backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
+              className="pl-12 h-12 rounded-xl bg-background border-input focus:border-primary focus:ring-primary/20 transition-all duration-200"
               placeholder="••••••••"
               disabled={isLoading}
             />
@@ -83,12 +83,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         
         <Button 
           type="submit" 
-          className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-mint-500 hover:from-primary/90 hover:to-mint-500/90 text-white font-medium shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
+          className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" 
           disabled={isLoading}
         >
           {isLoading ? (
             <div className="flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></div>
+              <div className="w-5 h-5 border-2 border-primary-foreground/20 border-t-primary-foreground rounded-full animate-spin mr-2"></div>
               Processing...
             </div>
           ) : (
