@@ -156,6 +156,10 @@
 @layer utilities {
   .hover-scale { @apply transition-transform duration-200 hover:scale-[1.02]; }
   .glass-card { @apply bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60; }
+  .animation-delay-300 { animation-delay: 300ms; }
+  .animation-delay-500 { animation-delay: 500ms; }
+  .animation-delay-700 { animation-delay: 700ms; }
+  .animation-delay-1000 { animation-delay: 1000ms; }
   
   /* Refined Button Utilities - Solid Colors Only */
   .btn-primary { 
