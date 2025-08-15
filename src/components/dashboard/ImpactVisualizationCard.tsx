@@ -11,11 +11,13 @@ const tabOptions = [
   { value: "year", label: "Year", icon: TrendingUp }
 ];
 
+type ChartType = "area" | "bar" | "line";
+
 interface ImpactVisualizationCardProps {
   tab: string;
   setTab: (tab: string) => void;
   chartData: any[];
-  chartType: string;
+  chartType: ChartType;
   xKey: string;
   yKey: string;
   handleGenerateInsights: () => void;
