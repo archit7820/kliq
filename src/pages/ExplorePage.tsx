@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Search, Filter, TrendingUp, Flame, Crown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -142,78 +143,95 @@ const ExplorePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Clean Header */}
-      <header className="sticky top-0 z-10 bg-card/90 backdrop-blur-lg border-b">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-lg">
-              <Zap className="w-5 h-5 text-primary-foreground" />
+      {/* Mobile-First Header */}
+      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-lg border-b">
+        <div className="px-3 py-2">
+          {/* Main header row */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="p-1.5 bg-primary/20 rounded-lg flex-shrink-0">
+                <Zap className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base font-bold text-foreground truncate">Impact Hub</h1>
+                <p className="text-xs text-muted-foreground hidden xs:block">Real actions, real change</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">Impact Hub</h1>
-              <p className="text-xs text-muted-foreground">Real actions, real change</p>
+            
+            {/* Action buttons */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full h-8 w-8"
+                onClick={() => setShowLeaderboard(!showLeaderboard)}
+              >
+                <Crown className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
+                <Search className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
+                <Filter className="w-4 h-4" />
+              </Button>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="rounded-full"
-              onClick={() => setShowLeaderboard(!showLeaderboard)}
-            >
-              <Crown className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Search className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Filter className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
 
-        {/* Tabs */}
-        <div className="px-4 pb-3">
+          {/* Mobile-optimized tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="trending">🔥 Trending</TabsTrigger>
-              <TabsTrigger value="all">🌍 All</TabsTrigger>
-              <TabsTrigger value="friends">👥 Friends</TabsTrigger>
-              <TabsTrigger value="achievements">🏆 Top</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 h-8 rounded-lg bg-muted/60">
+              <TabsTrigger value="trending" className="text-xs py-1 data-[state=active]:bg-background">
+                <Flame className="w-3 h-3 mr-1" />
+                <span className="hidden xs:inline">Trending</span>
+                <span className="xs:hidden">🔥</span>
+              </TabsTrigger>
+              <TabsTrigger value="all" className="text-xs py-1 data-[state=active]:bg-background">
+                <span className="hidden xs:inline">🌍 All</span>
+                <span className="xs:hidden">🌍</span>
+              </TabsTrigger>
+              <TabsTrigger value="friends" className="text-xs py-1 data-[state=active]:bg-background">
+                <span className="hidden xs:inline">👥 Friends</span>
+                <span className="xs:hidden">👥</span>
+              </TabsTrigger>
+              <TabsTrigger value="achievements" className="text-xs py-1 data-[state=active]:bg-background">
+                <span className="hidden xs:inline">🏆 Top</span>
+                <span className="xs:hidden">🏆</span>
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </header>
 
-      {/* Leaderboard */}
+      {/* Collapsible Leaderboard */}
       {showLeaderboard && (
-        <div className="p-4 border-b bg-muted/20">
-          <ImpactLeaderboard />
+        <div className="border-b bg-muted/10">
+          <div className="p-3">
+            <ImpactLeaderboard />
+          </div>
         </div>
       )}
 
-      {/* Content */}
-      <div className="p-4 pb-20">
+      {/* Mobile-optimized content */}
+      <div className="p-3 pb-20">
         {loading ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-card rounded-3xl p-6 border-2 border-muted animate-pulse">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-muted rounded-2xl" />
+              <div key={i} className="bg-card rounded-2xl p-4 border animate-pulse">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-muted rounded-xl" />
                   <div className="flex-1">
-                    <div className="h-4 bg-muted rounded mb-2" />
-                    <div className="h-3 bg-muted rounded w-1/2" />
+                    <div className="h-3 bg-muted rounded mb-1" />
+                    <div className="h-2 bg-muted rounded w-1/2" />
                   </div>
                 </div>
-                <div className="aspect-video bg-muted rounded-2xl mb-4" />
-                <div className="h-4 bg-muted rounded mb-2" />
-                <div className="h-3 bg-muted rounded w-2/3" />
+                <div className="aspect-video bg-muted rounded-xl mb-3" />
+                <div className="h-3 bg-muted rounded mb-1" />
+                <div className="h-2 bg-muted rounded w-2/3" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {filteredPosts.map(post => (
               <GamePostCard 
                 key={post.id} 
@@ -226,11 +244,15 @@ const ExplorePage = () => {
             ))}
 
             {filteredPosts.length === 0 && !loading && (
-              <div className="text-center py-8 bg-muted/10 rounded-2xl">
-                <div className="text-4xl mb-3">🌱</div>
-                <h3 className="text-lg font-bold mb-2">No Impact Posts Yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">Be the first to share your real-world action!</p>
-                <Button className="rounded-full px-6">Log Your Impact</Button>
+              <div className="text-center py-8 bg-muted/5 rounded-2xl border border-dashed">
+                <div className="text-3xl mb-2">🌱</div>
+                <h3 className="text-base font-bold mb-1">No Impact Posts Yet</h3>
+                <p className="text-sm text-muted-foreground mb-4 px-4">
+                  Be the first to share your real-world action!
+                </p>
+                <Button size="sm" className="rounded-full px-4">
+                  Log Your Impact
+                </Button>
               </div>
             )}
           </div>

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Trophy, Crown, Star, TrendingUp, Zap } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -67,13 +68,13 @@ const ImpactLeaderboard = () => {
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return <Crown className="w-6 h-6 text-yellow-500" />;
+        return <Crown className="w-5 h-5 text-yellow-500" />;
       case 2:
-        return <Trophy className="w-6 h-6 text-gray-400" />;
+        return <Trophy className="w-5 h-5 text-gray-400" />;
       case 3:
-        return <Trophy className="w-6 h-6 text-amber-600" />;
+        return <Trophy className="w-5 h-5 text-amber-600" />;
       default:
-        return <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">#{rank}</div>;
+        return <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">#{rank}</div>;
     }
   };
 
@@ -91,20 +92,20 @@ const ImpactLeaderboard = () => {
   };
 
   return (
-    <Card className="border-2 border-primary/20 rounded-3xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <TrendingUp className="w-5 h-5 text-primary" />
+    <Card className="border border-primary/20 rounded-2xl">
+      <CardHeader className="pb-3 p-3">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <TrendingUp className="w-4 h-4 text-primary" />
           Impact Leaderboard
-          <Badge variant="secondary" className="ml-auto">Weekly</Badge>
+          <Badge variant="secondary" className="ml-auto text-xs">Weekly</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 p-3 pt-0">
         {mockLeaderboardData.map((user, index) => (
           <div
             key={user.id}
-            className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${getRankBg(user.rank)} ${
-              user.name === "You" ? "ring-2 ring-primary/30" : ""
+            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${getRankBg(user.rank)} ${
+              user.name === "You" ? "ring-1 ring-primary/30" : ""
             }`}
           >
             {/* Rank */}
@@ -113,60 +114,60 @@ const ImpactLeaderboard = () => {
             </div>
 
             {/* User Info */}
-            <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               <div className="relative">
-                <Avatar className="w-10 h-10 border-2 border-primary/20">
+                <Avatar className="w-8 h-8 border border-primary/20">
                   <AvatarImage src={user.avatar} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
                     {user.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-background">
+                <div className="absolute -bottom-0.5 -right-0.5 bg-primary text-primary-foreground text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center border border-background">
                   {user.level}
                 </div>
               </div>
               
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">{user.name}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <p className="font-bold text-xs truncate">{user.name}</p>
                   {user.name === "You" && (
-                    <Badge variant="outline" className="text-xs">You</Badge>
+                    <Badge variant="outline" className="text-xs px-1 py-0">You</Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Zap className="w-3 h-3" />
-                    {user.streak} streak
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-0.5">
+                    <Zap className="w-2.5 h-2.5" />
+                    {user.streak}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Star className="w-3 h-3" />
-                    {user.badges} badges
+                  <span className="flex items-center gap-0.5">
+                    <Star className="w-2.5 h-2.5" />
+                    {user.badges}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="text-right">
-              <div className="font-bold text-primary text-lg">
+            <div className="text-right flex-shrink-0">
+              <div className="font-bold text-primary text-sm">
                 {user.totalImpact.toLocaleString()}
               </div>
               <div className="text-xs text-muted-foreground">
-                +{user.weeklyImpact} this week
+                +{user.weeklyImpact}
               </div>
             </div>
           </div>
         ))}
 
         {/* Progress to next level */}
-        <div className="mt-6 p-4 bg-muted/30 rounded-2xl">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Next Level Progress</span>
-            <span className="text-sm font-bold text-primary">234/500</span>
+        <div className="mt-4 p-3 bg-muted/20 rounded-xl">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-medium">Next Level</span>
+            <span className="text-xs font-bold text-primary">234/500</span>
           </div>
-          <Progress value={46.8} className="h-3" />
-          <p className="text-xs text-muted-foreground mt-2">
-            266 more impact points to reach Level 13
+          <Progress value={46.8} className="h-2" />
+          <p className="text-xs text-muted-foreground mt-1">
+            266 more points to Level 13
           </p>
         </div>
       </CardContent>
