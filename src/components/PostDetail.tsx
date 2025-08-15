@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { ArrowLeft, Heart, MessageCircle, Share, TrendingUp, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,7 +108,7 @@ const PostDetail = ({ post, onClose, onUpdate }: PostDetailProps) => {
     setNewComment("");
   };
 
-  const categoryColorClass = categoryColors[post.category] || categoryColors.default;
+  const categoryColorClass = categoryColors[post.category || "default"] || categoryColors.default;
 
   return (
     <div className="min-h-screen bg-background">
@@ -143,7 +144,7 @@ const PostDetail = ({ post, onClose, onUpdate }: PostDetailProps) => {
             {/* Category Tag */}
             <div className="absolute top-4 left-4">
               <Badge className={cn("text-sm font-medium border", categoryColorClass)}>
-                {post.category.replace('_', ' ')}
+                {post.category ? post.category.replace('_', ' ') : 'Eco Activity'}
               </Badge>
             </div>
           </div>
