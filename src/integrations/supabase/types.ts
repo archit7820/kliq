@@ -1038,6 +1038,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_leaderboard_profiles: {
+        Args: { limit_count?: number }
+        Returns: {
+          avatar_url: string
+          id: string
+          kelp_points: number
+          username: string
+        }[]
+      }
       get_user_conversations: {
         Args: Record<PropertyKey, never>
         Returns: {

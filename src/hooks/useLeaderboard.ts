@@ -11,10 +11,7 @@ export function useLeaderboard() {
     queryKey: ["leaderboard"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url, kelp_points")
-        .order("kelp_points", { ascending: false })
-        .limit(10);
+        .rpc("get_leaderboard_profiles", { limit_count: 10 });
       if (error) return [];
       return data;
     },
@@ -25,10 +22,7 @@ export function useLeaderboard() {
     queryKey: ["friends-leaderboard", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url, kelp_points")
-        .order("kelp_points", { ascending: false })
-        .limit(5); // TODO: Replace with only friends
+        .rpc("get_leaderboard_profiles", { limit_count: 5 });
       if (error) return [];
       return data;
     },
