@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 
@@ -17,46 +18,68 @@ const LeaderboardFilters: React.FC<LeaderboardFiltersProps> = ({
   onCategoryChange,
 }) => {
   return (
-    <div className="w-full space-y-4">
-      {/* Scope filter */}
+    <div className="w-full space-y-3">
+      {/* Mobile-First Scope Filter */}
       <div>
-        <label className="block text-sm font-medium mb-2" id="scope-filter-label">
+        <label className="block text-xs font-medium mb-2 text-muted-foreground" id="scope-filter-label">
           Filter by Scope
         </label>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="scope-filter-label">
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-labelledby="scope-filter-label">
           {(["global", "national", "local", "friends"] as const).map((s) => (
             <Button
               key={s}
               size="sm"
               variant={scope === s ? "default" : "outline"}
-              className={`transition-all ${scope === s ? "shadow-md" : ""}`}
+              className={`transition-all text-xs h-7 px-2 ${scope === s ? "shadow-sm" : ""}`}
               onClick={() => onScopeChange(s)}
               role="radio"
               aria-checked={scope === s}
               aria-label={`Filter by ${s} leaderboard`}
             >
-              {s === "global" && "🌍 Global"}
-              {s === "national" && "🏛️ National"}
-              {s === "local" && "📍 Local"}
-              {s === "friends" && "👥 Friends"}
+              <span className="flex items-center gap-1">
+                {s === "global" && (
+                  <>
+                    <span className="text-xs">🌍</span>
+                    <span className="hidden xs:inline">Global</span>
+                  </>
+                )}
+                {s === "national" && (
+                  <>
+                    <span className="text-xs">🏛️</span>
+                    <span className="hidden xs:inline">National</span>
+                  </>
+                )}
+                {s === "local" && (
+                  <>
+                    <span className="text-xs">📍</span>
+                    <span className="hidden xs:inline">Local</span>
+                  </>
+                )}
+                {s === "friends" && (
+                  <>
+                    <span className="text-xs">👥</span>
+                    <span className="hidden xs:inline">Friends</span>
+                  </>
+                )}
+              </span>
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Category filter */}
+      {/* Mobile-First Category Filter */}
       <div>
-        <label className="block text-sm font-medium mb-2" id="category-filter-label">
+        <label className="block text-xs font-medium mb-2 text-muted-foreground" id="category-filter-label">
           Filter by Category
         </label>
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby="category-filter-label">
+        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-labelledby="category-filter-label">
           {CATEGORIES.map((cat) => {
             const active = selectedCategory === cat;
             return (
               <button
                 key={cat}
                 onClick={() => onCategoryChange(cat)}
-                className={`px-3 py-1.5 rounded-md text-sm border transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                className={`px-2 py-1 rounded-md text-xs border transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 touch-manipulation ${
                   active
                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                     : "bg-background border-border text-foreground hover:bg-muted hover:border-muted-foreground"
@@ -65,14 +88,16 @@ const LeaderboardFilters: React.FC<LeaderboardFiltersProps> = ({
                 aria-checked={active}
                 aria-label={`Filter by ${cat} category`}
               >
-                {cat === "All" && "🌟 "}
-                {cat === "Cycling" && "🚴 "}
-                {cat === "Thrift" && "♻️ "}
-                {cat === "Food" && "🥗 "}
-                {cat === "Travel" && "✈️ "}
-                {cat === "Energy" && "⚡ "}
-                {cat === "Transit" && "🚇 "}
-                {cat}
+                <span className="flex items-center gap-1">
+                  {cat === "All" && "🌟"}
+                  {cat === "Cycling" && "🚴"}
+                  {cat === "Thrift" && "♻️"}
+                  {cat === "Food" && "🥗"}
+                  {cat === "Travel" && "✈️"}
+                  {cat === "Energy" && "⚡"}
+                  {cat === "Transit" && "🚇"}
+                  <span className="hidden xs:inline">{cat}</span>
+                </span>
               </button>
             );
           })}

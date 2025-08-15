@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Trophy, Award, User as UserIcon } from "lucide-react";
 
@@ -24,25 +25,14 @@ const bling = [
   "🥉"
 ];
 
-const MOBILE_AVATAR = {
-  size: 54,
-  border: "border-2",
-  winnerSize: 64,
-  winnerBorder: "border-4"
-};
-// Large podium display, always horizontal and centered
+// Mobile-first responsive podium
 const TopPodium: React.FC<TopPodiumProps> = ({ podium, userId }) => {
   // Pad to always show 3 slots
   const padded = [...podium];
   while (padded.length < 3) padded.push(null);
 
   return (
-    <div
-      className="
-        flex flex-row justify-center items-end gap-2 sm:gap-5 
-        w-full px-1 sm:px-2 mt-1 mb-4 animate-fade-in
-      "
-    >
+    <div className="flex flex-row justify-center items-end gap-2 sm:gap-4 w-full px-2 mt-1 mb-4 animate-fade-in">
       {/* 2nd place */}
       <div className="order-1 flex-1 flex flex-col items-center">
         <PodiumSpot profile={padded[1]} position={1} userId={userId} />
@@ -71,74 +61,61 @@ const PodiumSpot = ({
   winner?: boolean;
 }) => {
   const isCurrentUser = !!profile && profile.id === userId;
-  // Responsive sizes
-  // On mobile use smaller avatar, on desktop increase
-  const baseSize = winner ? 90 : 66; // desktop
-  const mobileSize = winner ? MOBILE_AVATAR.winnerSize : MOBILE_AVATAR.size;
-  const ringClass = winner ? `${MOBILE_AVATAR.winnerBorder} border-yellow-400 animate-pulse-fast` : `${MOBILE_AVATAR.border} border-gray-300`;
+  // Mobile-first responsive sizes
+  const baseSize = winner ? 64 : 48; // Mobile sizes
+  const ringClass = winner ? "border-4 border-yellow-400 animate-pulse-fast" : "border-2 border-gray-300";
 
   return (
-    <div className={`relative flex flex-col items-center ${winner ? "scale-110 sm:scale-110" : ""}`}>
+    <div className={`relative flex flex-col items-center ${winner ? "scale-110" : ""}`}>
       <div
-        className={`
-          relative z-20 rounded-full ${iconBg[position]} mb-2 drop-shadow-lg 
-          ${ringClass}
-        `}
+        className={`relative z-20 rounded-full ${iconBg[position]} mb-2 drop-shadow-lg ${ringClass}`}
         style={{
-          width: `clamp(${mobileSize}px, 15vw, ${baseSize}px)`,
-          height: `clamp(${mobileSize}px, 15vw, ${baseSize}px)`,
-          minWidth: mobileSize,
-          minHeight: mobileSize,
-          maxWidth: baseSize,
-          maxHeight: baseSize,
+          width: baseSize,
+          height: baseSize,
         }}>
         {profile?.avatar_url ? (
           <img
             src={profile.avatar_url}
             alt={profile.username}
             className="rounded-full object-cover w-full h-full border-2 border-white"
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
           />
         ) : (
-          <div className="flex items-center justify-center h-full w-full text-base sm:text-xl font-bold text-green-700">
-            <UserIcon className="h-7 w-7 sm:h-8 sm:w-8" />
+          <div className="flex items-center justify-center h-full w-full text-sm font-bold text-green-700">
+            <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
         )}
         {/* Crown for 1st */}
         {position === 0 && (
-          <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-2xl sm:text-4xl pointer-events-none select-none animate-bounce drop-shadow-glow">
+          <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xl pointer-events-none select-none animate-bounce drop-shadow-glow">
             👑
           </span>
         )}
         {/* Bling for all */}
-        <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xl sm:text-2xl select-none pointer-events-none animate-scale-in">{bling[position]}</span>
+        <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-lg select-none pointer-events-none animate-scale-in">{bling[position]}</span>
       </div>
-      {/* Name, Level, Points */}
+      {/* Mobile-optimized Name, Level, Points */}
       <div className="mt-1 flex flex-col items-center w-full min-w-0">
-        <span className={`font-extrabold text-center ${isCurrentUser ? "text-green-700" : "text-gray-700"} text-xs sm:text-base truncate w-16 sm:w-24`}>
+        <span className={`font-bold text-center ${isCurrentUser ? "text-green-700" : "text-gray-700"} text-xs truncate max-w-[60px]`}>
           {(profile && (isCurrentUser ? "You" : profile.username)) || "—"}
         </span>
-        <span className="text-[11px] sm:text-xs flex items-center gap-2 text-yellow-900">
-          <Trophy className="inline-block w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" strokeWidth={2.5} />
-          <span className="font-bold">
-            {profile?.kelp_points ?? "0"} pts
+        <span className="text-xs flex items-center gap-1 text-yellow-900">
+          <Trophy className="inline-block w-3 h-3 text-yellow-400" strokeWidth={2.5} />
+          <span className="font-semibold text-xs">
+            {profile?.kelp_points ?? "0"}
           </span>
         </span>
         {isCurrentUser && (
-          <span className="text-[11px] sm:text-xs font-semibold text-green-600 bg-green-100 rounded-full px-2 py-0.5 mt-1 animate-pulse">
-            That’s you!
+          <span className="text-xs font-semibold text-green-600 bg-green-100 rounded-full px-1.5 py-0.5 mt-1 animate-pulse">
+            You!
           </span>
         )}
       </div>
-      {/* Podium base */}
-      <div className={`mt-2 rounded-t-lg rounded-b-xl transition border-2 shadow-md py-1 w-10 sm:w-14 text-center 
-          bg-gradient-to-t ${trophyColors[position]} ${winner ? "h-3.5 sm:h-5" : "h-3 sm:h-4"}
+      {/* Mobile-optimized Podium base */}
+      <div className={`mt-2 rounded-t-lg rounded-b-xl transition border-2 shadow-md py-0.5 w-8 sm:w-10 text-center 
+          bg-gradient-to-t ${trophyColors[position]} ${winner ? "h-4" : "h-3"}
         `}
       >
-        <span className="text-[11px] sm:text-xs font-bold text-gray-700 tracking-widest">
+        <span className="text-xs font-bold text-gray-700 tracking-widest">
           #{position + 1}
         </span>
       </div>
@@ -149,10 +126,9 @@ const PodiumSpot = ({
 };
 
 function ConfettiLight() {
-  // Simple playful confetti animation
   return (
-    <span className="absolute -top-5 sm:-top-7 left-1/2 -translate-x-1/2 animate-fade-in z-30">
-      <span className="text-base sm:text-lg">🎉 🎉 🎉</span>
+    <span className="absolute -top-4 left-1/2 -translate-x-1/2 animate-fade-in z-30">
+      <span className="text-sm">🎉 🎉 🎉</span>
     </span>
   );
 }

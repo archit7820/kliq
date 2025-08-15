@@ -29,27 +29,25 @@ const LeaderboardList: React.FC<LeaderboardListProps> = ({ leaderboard, userId, 
     rest = [...rest, ...mockPlayers.slice(0, 5 - rest.length)];
   }
 
-  console.log("LeaderboardList - isMobile:", isMobile, "rest.length:", rest.length);
-
   return (
-    <div className="space-y-6" role="region" aria-label="Leaderboard rankings">
-      {/* Top 3 Podium */}
-      <div className="mb-8">
+    <div className="space-y-4" role="region" aria-label="Leaderboard rankings">
+      {/* Mobile-Optimized Top 3 Podium */}
+      <div className="mb-6">
         <TopPodium podium={podium} userId={userId} />
       </div>
 
-      {/* Rest of leaderboard */}
+      {/* Mobile-Optimized Rest of leaderboard */}
       {rest.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-          <p>No more players in this category</p>
+        <div className="text-center py-6 text-muted-foreground">
+          <Trophy className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
+          <p className="text-sm">No more players in this category</p>
         </div>
       ) : (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+          <h3 className="text-xs font-medium text-muted-foreground mb-3 text-center">
             Other Rankings
           </h3>
-          <div className={isMobile ? "space-y-3" : "space-y-2"}>
+          <div className="space-y-2">
             {rest.map((profile, i) => (
               <LeaderboardRowGamified
                 key={profile.id}

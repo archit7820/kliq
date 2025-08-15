@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
@@ -63,46 +64,48 @@ const LeaderboardPage = () => {
   const currentLeaderboard = scope === "friends" ? friendsLeaderboard : leaderboard;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Clean Header */}
-      <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-lg border-b">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-4">
-              <div className="bg-green-500 text-white text-sm font-bold px-2 py-1 rounded">70</div>
-              <div className="bg-blue-500 text-white text-sm font-bold px-2 py-1 rounded">98</div>
-              <div className="bg-purple-500 text-white text-sm font-bold px-2 py-1 rounded">71</div>
-              <div className="bg-orange-500 text-white text-sm font-bold px-2 py-1 rounded">99</div>
-              <div className="bg-indigo-500 text-white text-sm font-bold px-2 py-1 rounded">74</div>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Mobile-First Header */}
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b">
+        <div className="flex items-center justify-between px-3 py-2">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded min-w-[28px] text-center">70</div>
+              <div className="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded min-w-[28px] text-center">98</div>
+              <div className="bg-purple-500 text-white text-xs font-bold px-1.5 py-0.5 rounded min-w-[28px] text-center">71</div>
+              <div className="bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded min-w-[28px] text-center">99</div>
+              <div className="bg-indigo-500 text-white text-xs font-bold px-1.5 py-0.5 rounded min-w-[28px] text-center">74</div>
             </div>
           </div>
           
           {user && (
-            <div className="text-right">
+            <div className="text-right flex-shrink-0">
               <p className="text-xs text-muted-foreground">Rank</p>
               <p className="text-sm font-semibold text-foreground">{getUserRank(user.id)}</p>
             </div>
           )}
         </div>
 
-        <div className="px-4 pb-3">
+        <div className="px-3 pb-2">
           <Tabs defaultValue="leaderboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="leaderboard" className="flex items-center gap-2">
-                <Trophy className="w-4 h-4" />
-                Leaderboard
+            <TabsList className="grid w-full grid-cols-2 h-9">
+              <TabsTrigger value="leaderboard" className="flex items-center gap-1.5 text-xs">
+                <Trophy className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Leaderboard</span>
+                <span className="xs:hidden">Stats</span>
               </TabsTrigger>
-              <TabsTrigger value="challenges" className="flex items-center gap-2">
-                <Target className="w-4 h-4" />
-                Challenges
+              <TabsTrigger value="challenges" className="flex items-center gap-1.5 text-xs">
+                <Target className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Challenges</span>
+                <span className="xs:hidden">Goals</span>
               </TabsTrigger>
             </TabsList>
 
-            <div className="mt-4">
-              <TabsContent value="leaderboard" className="space-y-4 px-4">
-                {/* Leaderboard Filters */}
-                <Card>
-                  <CardContent className="pt-4">
+            <div className="mt-3">
+              <TabsContent value="leaderboard" className="space-y-3 mt-0">
+                {/* Mobile-Optimized Leaderboard Filters */}
+                <Card className="border-border/50">
+                  <CardContent className="p-3">
                     <LeaderboardFilters
                       scope={scope}
                       onScopeChange={setScope}
@@ -112,19 +115,21 @@ const LeaderboardPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Leaderboard */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Trophy className="w-5 h-5" />
-                      {scope === "friends" ? "Friends" : "Global"} Leaderboard
+                {/* Mobile-Optimized Leaderboard */}
+                <Card className="border-border/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Trophy className="w-4 h-4" />
+                      <span className="truncate">
+                        {scope === "friends" ? "Friends" : "Global"} Rankings
+                      </span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="px-3 pb-3">
                     {isLoading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-                        <span className="ml-3 text-muted-foreground">Loading leaderboard...</span>
+                      <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
+                        <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
                       </div>
                     ) : currentLeaderboard.length > 0 ? (
                       <LeaderboardList 
@@ -134,9 +139,11 @@ const LeaderboardPage = () => {
                         onProfileClick={(userId) => navigate(`/profile/${userId}`)}
                       />
                     ) : scope === "friends" ? (
-                      <div className="text-center py-12">
-                        <p className="text-muted-foreground mb-4">No friends on the leaderboard yet</p>
+                      <div className="text-center py-8">
+                        <Trophy className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                        <p className="text-sm text-muted-foreground mb-3">No friends on the leaderboard yet</p>
                         <Button 
+                          size="sm"
                           onClick={() => navigate('/friends')}
                           aria-label="Find friends to compete with"
                         >
@@ -144,23 +151,24 @@ const LeaderboardPage = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="text-center py-12">
-                        <p className="text-muted-foreground">No leaderboard data available</p>
+                      <div className="text-center py-8">
+                        <Trophy className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                        <p className="text-sm text-muted-foreground">No leaderboard data available</p>
                       </div>
                     )}
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="challenges" className="space-y-4 px-4">
-                <ChallengesSection />
+              <TabsContent value="challenges" className="space-y-3 mt-0">
+                <div className="px-0">
+                  <ChallengesSection />
+                </div>
               </TabsContent>
             </div>
           </Tabs>
         </div>
       </header>
-      
-      <div className="pb-20"></div>
 
       <BottomNav />
     </div>

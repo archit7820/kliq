@@ -13,6 +13,7 @@ interface ChallengeStatusCardProps {
   onComplete?: () => void;
   joining?: boolean;
 }
+
 const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
   title,
   description,
@@ -23,40 +24,42 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
   onComplete,
   joining
 }) => (
-  <div className="bg-[#f6f3ff] border border-[#e8e3fa] rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between shadow group transition-all mb-3 min-h-[72px]">
-    <div>
-      <div className="font-semibold text-violet-900 text-lg mb-1">{title}</div>
-      <div className="text-xs text-violet-700 mb-2">{description}</div>
-      <span className="inline-flex items-center gap-1 bg-[#d0fae4] text-green-700 font-mono text-[11px] px-2 py-0.5 rounded-full">
-        <Activity className="w-3 h-3" /> Reward: +{reward} Kelp Points
+  <div className="bg-[#f6f3ff] border border-[#e8e3fa] rounded-xl p-3 flex flex-col gap-2 shadow-sm group transition-all mb-2 touch-manipulation">
+    <div className="flex flex-col gap-2">
+      <div className="font-semibold text-violet-900 text-sm leading-tight">{title}</div>
+      <div className="text-xs text-violet-700 leading-relaxed line-clamp-2">{description}</div>
+      <span className="inline-flex items-center gap-1 bg-[#d0fae4] text-green-700 font-mono text-xs px-2 py-1 rounded-full w-fit">
+        <Activity className="w-3 h-3" /> +{reward} Kelp Points
       </span>
     </div>
-    <div className="flex flex-row gap-2 items-center mt-2 md:mt-0 min-w-[150px] justify-end">
+    
+    <div className="flex flex-row gap-2 items-center justify-end mt-1">
       {!joined && onJoin && (
         <Button
           size="sm"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 font-semibold rounded-xl"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 font-semibold rounded-lg text-xs h-7 touch-manipulation"
           onClick={onJoin}
           disabled={joining}
         >
-          {joining ? "Joining..." : "Accept Challenge"}
+          {joining ? "Joining..." : "Accept"}
         </Button>
       )}
       {joined && !completed && onComplete && (
         <Button
           size="sm"
-          className="bg-green-500 hover:bg-green-600 text-white px-4 font-semibold rounded-xl"
+          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 font-semibold rounded-lg text-xs h-7 touch-manipulation"
           onClick={onComplete}
         >
-          Mark as Completed
+          Mark Complete
         </Button>
       )}
       {completed && (
-        <span className="inline-flex items-center text-green-700 text-sm font-semibold ml-2">
-          <Check className="w-5 h-5 mr-1" /> Completed!
+        <span className="inline-flex items-center text-green-700 text-xs font-semibold">
+          <Check className="w-4 h-4 mr-1" /> Completed!
         </span>
       )}
     </div>
   </div>
 );
+
 export default ChallengeStatusCard;
