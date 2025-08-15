@@ -118,16 +118,16 @@ const FriendsList = () => {
   if (!user) return null;
 
   return (
-    <section className="space-y-3 sm:space-y-4">
+    <section className="space-y-3 px-1">
       {/* Mobile-optimized header */}
-      <div className="flex items-center gap-2 sm:gap-3 px-1">
-        <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg">
-          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+      <div className="flex items-center gap-2 px-1">
+        <div className="p-1 bg-primary/10 rounded-lg">
+          <Users className="w-4 h-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-base sm:text-xl font-semibold text-foreground truncate">Your Friends</h2>
-          <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+          <h2 className="text-sm font-semibold text-foreground truncate">Your Friends</h2>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Sparkles className="w-3 h-3" />
             <span>AI-enhanced connections</span>
           </div>
         </div>
@@ -136,12 +136,12 @@ const FriendsList = () => {
       {/* Mobile-optimized loading state */}
       {loading && (
         <Card>
-          <CardContent className="p-3 sm:p-6">
-            <div className="flex items-center gap-2 sm:gap-3 animate-pulse">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full" />
-              <div className="flex-1 space-y-1 sm:space-y-2">
-                <div className="h-3 sm:h-4 bg-muted rounded w-1/3" />
-                <div className="h-2 sm:h-3 bg-muted rounded w-1/4" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 animate-pulse">
+              <div className="w-10 h-10 bg-muted rounded-full" />
+              <div className="flex-1 space-y-1">
+                <div className="h-3 bg-muted rounded w-1/3" />
+                <div className="h-2 bg-muted rounded w-1/4" />
               </div>
             </div>
           </CardContent>
@@ -151,55 +151,55 @@ const FriendsList = () => {
       {/* Mobile-optimized empty state */}
       {!loading && friends.length === 0 && (
         <Card className="border-dashed border-2">
-          <CardContent className="p-6 sm:p-8 text-center">
-            <div className="p-2 sm:p-3 bg-muted rounded-full w-fit mx-auto mb-3 sm:mb-4">
-              <User className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
+          <CardContent className="p-4 text-center">
+            <div className="p-2 bg-muted rounded-full w-fit mx-auto mb-3">
+              <User className="w-5 h-5 text-muted-foreground" />
             </div>
-            <h3 className="font-medium text-foreground mb-1 sm:mb-2 text-sm sm:text-base">No friends yet</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">Start connecting with people who share your interests!</p>
+            <h3 className="font-medium text-foreground mb-1 text-sm">No friends yet</h3>
+            <p className="text-xs text-muted-foreground">Start connecting with people who share your interests!</p>
           </CardContent>
         </Card>
       )}
 
       {/* Mobile-optimized friends grid */}
-      <div className="space-y-2 sm:space-y-3">
+      <div className="space-y-2">
         {friends.map((f) => {
           const friendId = f.user1_id === user.id ? f.user2_id : f.user1_id;
           return (
             <Card key={f.id} className="hover:shadow-md transition-all duration-200 border-border/50">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-3 sm:gap-4">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-3">
                   {/* Mobile-optimized avatar */}
                   {f.profile?.avatar_url ? (
                     <img
                       src={f.profile.avatar_url}
                       alt="avatar"
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-border object-cover"
+                      className="w-10 h-10 rounded-full border border-border object-cover"
                     />
                   ) : (
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center">
-                      <User className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
                   
                   {/* Mobile-optimized content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-foreground truncate text-sm sm:text-base">
+                    <h3 className="font-medium text-foreground truncate text-sm">
                       {f.profile?.full_name || f.profile?.username || "User"}
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       @{f.profile?.username}
                     </p>
                   </div>
                   
                   {/* Mobile-optimized actions */}
-                  <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="flex items-center gap-1">
                     <Link 
                       to={`/chat/${friendId}`} 
                       className="p-2 hover:bg-accent rounded-lg transition-colors touch-manipulation"
                       title="Send message"
                     >
-                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                      <MessageCircle className="w-4 h-4 text-primary" />
                     </Link>
                     <FriendManagement
                       friendId={friendId}

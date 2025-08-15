@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { useQuery } from '@tanstack/react-query';
@@ -176,18 +177,18 @@ const ProfilePage = () => {
 
     if (profileLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-background">
-                <LoaderCircle className="w-8 h-8 animate-spin text-primary" />
+            <div className="flex items-center justify-center min-h-screen bg-background px-2">
+                <LoaderCircle className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
     }
     
     if (!profile) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 text-center">
-                <p className="text-muted-foreground">Could not load profile. It might be that you just signed up.</p>
-                <p className="text-muted-foreground text-sm mb-4">Try refreshing the page in a bit.</p>
-                <Button onClick={() => navigate('/login')} className="mt-4">Go to Login</Button>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background p-3 text-center">
+                <p className="text-muted-foreground text-sm">Could not load profile. It might be that you just signed up.</p>
+                <p className="text-muted-foreground text-xs mb-3">Try refreshing the page in a bit.</p>
+                <Button onClick={() => navigate('/login')} size="sm">Go to Login</Button>
             </div>
         )
     }
@@ -203,16 +204,16 @@ const ProfilePage = () => {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <header className="bg-card/80 backdrop-blur-sm px-4 py-3 sticky top-0 z-40 flex items-center justify-between border-b">
-                <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Close">
-                    <X className="w-5 h-5 text-muted-foreground" />
+            <header className="bg-card/80 backdrop-blur-sm px-3 py-2 sticky top-0 z-40 flex items-center justify-between border-b">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1)} aria-label="Close" className="h-8 w-8 p-0">
+                    <X className="w-4 h-4 text-muted-foreground" />
                 </Button>
-                <h1 className="text-base font-semibold text-foreground">Profile</h1>
-                <Button variant="ghost" size="icon" onClick={() => navigate('/communities/create')} aria-label="Start a club">
-                    <Crown className="w-5 h-5 text-muted-foreground" />
+                <h1 className="text-sm font-semibold text-foreground">Profile</h1>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/communities/create')} aria-label="Start a club" className="h-8 w-8 p-0">
+                    <Crown className="w-4 h-4 text-muted-foreground" />
                 </Button>
             </header>
-            <main className="flex-grow max-w-md w-full mx-auto px-4 py-6 space-y-6 mb-16">
+            <main className="flex-grow max-w-sm w-full mx-auto px-3 py-3 space-y-4 mb-16">
                 {/* EDIT MODE MODAL: moved to component */}
                 <EditProfileModal
                     open={editing}
@@ -227,28 +228,28 @@ const ProfilePage = () => {
                 />
                 {/* Enhanced Start Your Own Club Banner */}
                 {showStartCard && (
-                  <div className="rounded-xl border-2 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-4 flex items-start justify-between shadow-sm">
-                    <div className="flex-1">
-                      <p className="text-base font-semibold text-foreground">Start your own club</p>
-                      <p className="text-sm text-muted-foreground mt-1">Lead a community around your passion</p>
+                  <div className="rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-3 flex items-center justify-between shadow-sm">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">Start your own club</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Lead a community around your passion</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 ml-2">
                       <Button 
-                        size="default" 
+                        size="sm" 
                         onClick={() => navigate('/communities/create')}
-                        className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-slate-700 hover:border-slate-800"
+                        className="bg-slate-800 hover:bg-slate-900 text-white font-medium px-3 py-1 text-xs shadow-sm hover:shadow-md transition-all duration-200 border border-slate-700 hover:border-slate-800"
                         aria-label="Navigate to create community page"
                       >
                         Start
                       </Button>
                       <Button 
                         variant="ghost" 
-                        size="icon" 
+                        size="sm" 
                         onClick={() => setShowStartCard(false)} 
                         aria-label="Dismiss start club banner"
-                        className="hover:bg-white/80"
+                        className="h-6 w-6 p-0 hover:bg-white/80"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -258,15 +259,15 @@ const ProfilePage = () => {
                 <ProfileHeaderSimple profile={profile} onEdit={() => setEditing(true)} />
 
                 {/* Enhanced Invite a Friend Card */}
-                <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex-1">
-                    <p className="font-semibold text-base text-foreground">Invite a friend, earn Kelp</p>
-                    <p className="text-sm text-muted-foreground mt-1">Invite a friend to Kelp and both of you get points.</p>
+                <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-3 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-foreground">Invite a friend, earn Kelp</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Invite a friend to Kelp and both of you get points.</p>
                   </div>
                   <Button 
-                    size="default" 
+                    size="sm" 
                     onClick={() => navigate('/friends')}
-                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-slate-700 hover:border-slate-800"
+                    className="bg-slate-800 hover:bg-slate-900 text-white font-medium px-3 py-1 text-xs shadow-sm hover:shadow-md transition-all duration-200 border border-slate-700 hover:border-slate-800"
                     aria-label="Navigate to friends page to invite friends"
                   >
                     Invite
@@ -274,88 +275,88 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-4 gap-3">
-                  <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-3 text-center">
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-2 text-center">
                     <div className="text-lg font-bold text-primary">{profile?.kelp_points ?? 0}</div>
                     <div className="text-xs text-muted-foreground">Kelp Points</div>
                   </div>
-                  <div className="rounded-xl bg-gradient-to-br from-orange-100 to-orange-50 border border-orange-200 p-3 text-center">
+                  <div className="rounded-lg bg-gradient-to-br from-orange-100 to-orange-50 border border-orange-200 p-2 text-center">
                     <div className="text-lg font-bold text-orange-600">{profile?.streak_count ?? 0}</div>
                     <div className="text-xs text-muted-foreground">Day Streak</div>
                   </div>
-                  <div className="rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 p-3 text-center">
+                  <div className="rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 p-2 text-center">
                     <div className="text-lg font-bold text-blue-600">{activities?.length || 0}</div>
                     <div className="text-xs text-muted-foreground">Activities</div>
                   </div>
-                  <div className="rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 p-3 text-center">
+                  <div className="rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 p-2 text-center">
                     <div className="text-lg font-bold text-purple-600">0</div>
                     <div className="text-xs text-muted-foreground">Friends</div>
                   </div>
                 </div>
 
                 {/* Enhanced Weekly Progress Card */}
-                <div className="rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-green-800 text-base">Weekly CO₂e Progress</h3>
-                    <span className="text-sm text-green-700 font-semibold bg-green-100 px-3 py-1 rounded-full">
+                <div className="rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 p-3 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-bold text-green-800 text-sm">Weekly CO₂e Progress</h3>
+                    <span className="text-xs text-green-700 font-semibold bg-green-100 px-2 py-0.5 rounded-full">
                       {profile?.co2e_weekly_progress ?? 0} / {profile?.co2e_weekly_goal ?? 0} kg
                     </span>
                   </div>
-                  <div className="w-full bg-green-200 rounded-full h-3 mb-3">
+                  <div className="w-full bg-green-200 rounded-full h-2 mb-2">
                     <div 
-                      className="bg-green-500 h-3 rounded-full transition-all duration-500 shadow-sm"
+                      className="bg-green-500 h-2 rounded-full transition-all duration-500 shadow-sm"
                       style={{
                         width: `${Math.min(100, ((profile?.co2e_weekly_progress ?? 0) / (profile?.co2e_weekly_goal ?? 1)) * 100)}%`
                       }}
                     ></div>
                   </div>
-                  <div className="text-sm text-green-700 font-medium">
+                  <div className="text-xs text-green-700 font-medium">
                     {((profile?.co2e_weekly_progress ?? 0) / (profile?.co2e_weekly_goal ?? 1) * 100).toFixed(0)}% of weekly goal achieved
                   </div>
                 </div>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary" /> About Me</CardTitle>
+                    <CardHeader className="p-3">
+                        <CardTitle className="flex items-center gap-2 text-sm"><Users className="w-4 h-4 text-primary" /> About Me</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-3 p-3 pt-0">
                         {profile.location && (
-                            <div className="flex items-center gap-3 text-sm">
-                                <MapPin className="w-4 h-4 text-muted-foreground" />
+                            <div className="flex items-center gap-2 text-xs">
+                                <MapPin className="w-3 h-3 text-muted-foreground" />
                                 <span>{profile.location}</span>
                             </div>
                         )}
                         {(profile.lifestyle_tags && profile.lifestyle_tags.length > 0) ? (
-                            <div className="flex items-start gap-3 text-sm">
-                                <Tag className="w-4 h-4 text-muted-foreground mt-1" />
-                                <div className="flex flex-wrap gap-2">
+                            <div className="flex items-start gap-2 text-xs">
+                                <Tag className="w-3 h-3 text-muted-foreground mt-0.5" />
+                                <div className="flex flex-wrap gap-1">
                                     {profile.lifestyle_tags.map(tag => (
-                                        <div key={tag} className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-medium">
+                                        <div key={tag} className="px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs font-medium">
                                             {tag}
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                        ) : <p className="text-sm text-muted-foreground">No lifestyle tags added yet.</p>}
+                        ) : <p className="text-xs text-muted-foreground">No lifestyle tags added yet.</p>}
                         {/* Enhanced Edit Profile Button */}
                         <Button
                           variant="default"
-                          size="default"
-                          className="w-full mt-4 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-slate-700 hover:border-slate-800"
+                          size="sm"
+                          className="w-full mt-3 bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 shadow-sm hover:shadow-md transition-all duration-200 border border-slate-700 hover:border-slate-800"
                           onClick={() => setEditing(true)}
                           aria-label="Edit your profile information"
                         >
-                          <Settings className="w-4 h-4 mr-2" />
+                          <Settings className="w-3 h-3 mr-1" />
                           Edit Profile
                         </Button>
                     </CardContent>
                 </Card>
 
                 {/* Enhanced Achievements Section */}
-                <div className="rounded-2xl bg-card border p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Award className="w-5 h-5 text-primary" />
-                    <h3 className="font-semibold">Achievements & Progress</h3>
+                <div className="rounded-lg bg-card border p-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Award className="w-4 h-4 text-primary" />
+                    <h3 className="font-semibold text-sm">Achievements & Progress</h3>
                   </div>
                   <DynamicAchievements 
                     profile={profile} 
@@ -365,80 +366,80 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Enhanced Analytics Section with Better Accessibility */}
-                <div className="rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-primary/20 p-6 shadow-lg">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-primary" />
+                <div className="rounded-lg bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-primary/20 p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-primary" />
                       Your Impact Analytics
                     </h3>
                     <Button 
                       variant="outline" 
-                      size="default"
+                      size="sm"
                       onClick={() => navigate('/impact-dashboard')}
-                      className="bg-slate-700 hover:bg-slate-800 border-2 border-slate-600 hover:border-slate-700 text-white hover:text-white font-semibold px-4 py-2 shadow-md hover:shadow-lg transition-all duration-200"
+                      className="bg-slate-700 hover:bg-slate-800 border border-slate-600 hover:border-slate-700 text-white hover:text-white font-medium px-2 py-1 text-xs shadow-sm hover:shadow-md transition-all duration-200"
                       aria-label="Navigate to full impact dashboard"
                     >
                       View Full Dashboard
                     </Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="rounded-xl bg-white/90 backdrop-blur-sm border-2 border-green-200 p-4 hover:shadow-md transition-shadow">
-                      <div className="text-sm font-medium text-muted-foreground mb-2">Weekly Impact</div>
-                      <div className="text-2xl font-bold text-green-600 mb-1">
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="rounded-lg bg-white/90 backdrop-blur-sm border border-green-200 p-3 hover:shadow-sm transition-shadow">
+                      <div className="text-xs font-medium text-muted-foreground mb-1">Weekly Impact</div>
+                      <div className="text-xl font-bold text-green-600 mb-1">
                         {profile?.co2e_weekly_progress ?? 0} kg
                       </div>
-                      <div className="text-sm text-muted-foreground">CO₂e saved</div>
+                      <div className="text-xs text-muted-foreground">CO₂e saved</div>
                     </div>
-                    <div className="rounded-xl bg-white/90 backdrop-blur-sm border-2 border-orange-200 p-4 hover:shadow-md transition-shadow">
-                      <div className="text-sm font-medium text-muted-foreground mb-2">Current Streak</div>
-                      <div className="text-2xl font-bold text-orange-600 flex items-center gap-1 mb-1">
-                        <Leaf className="w-5 h-5" />
+                    <div className="rounded-lg bg-white/90 backdrop-blur-sm border border-orange-200 p-3 hover:shadow-sm transition-shadow">
+                      <div className="text-xs font-medium text-muted-foreground mb-1">Current Streak</div>
+                      <div className="text-xl font-bold text-orange-600 flex items-center gap-1 mb-1">
+                        <Leaf className="w-4 h-4" />
                         {profile?.streak_count ?? 0}
                       </div>
-                      <div className="text-sm text-muted-foreground">days active</div>
+                      <div className="text-xs text-muted-foreground">days active</div>
                     </div>
                   </div>
                   {/* Enhanced Primary CTA Button with Darker Colors */}
                   <Button 
                     variant="default"
-                    size="lg"
-                    className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-2 border-slate-700 hover:border-slate-800" 
+                    size="default"
+                    className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border border-slate-700 hover:border-slate-800" 
                     onClick={() => navigate('/log-activity')}
                     aria-label="Log a new environmental activity"
                   >
-                    <Plus className="w-5 h-5 mr-2" />
+                    <Plus className="w-4 h-4 mr-2" />
                     Log New Activity
                   </Button>
                 </div>
 
                 {/* Recent Activity */}
-                <div className="rounded-2xl bg-card border p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">Recent Activity</h3>
+                <div className="rounded-lg bg-card border p-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-sm">Recent Activity</h3>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => navigate('/log-activity')}
-                      className="text-xs"
+                      className="text-xs px-2 py-1"
                     >
                       Add Activity
                     </Button>
                   </div>
                   {activitiesLoading && (
-                    <div className="flex justify-center py-8">
-                      <LoaderCircle className="w-6 h-6 animate-spin text-primary" />
+                    <div className="flex justify-center py-6">
+                      <LoaderCircle className="w-5 h-5 animate-spin text-primary" />
                     </div>
                   )}
                   {activities && activities.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {activities.slice(0, 3).map(item => (
-                        <div key={item.id} className="p-3 rounded-xl bg-gradient-to-r from-muted/30 to-muted/10 border border-muted/50">
-                          <div className="flex items-center gap-3">
+                        <div key={item.id} className="p-2 rounded-lg bg-gradient-to-r from-muted/30 to-muted/10 border border-muted/50">
+                          <div className="flex items-center gap-2">
                             {item.emoji && (
-                              <span className="text-lg">{item.emoji}</span>
+                              <span className="text-base">{item.emoji}</span>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{item.activity}</p>
+                              <p className="font-medium text-xs truncate">{item.activity}</p>
                               <p className="text-xs text-muted-foreground">
                                 {item.carbon_footprint_kg} kg CO₂e • {new Date(item.created_at).toLocaleDateString()}
                               </p>
@@ -454,7 +455,7 @@ const ProfilePage = () => {
                       {activities.length > 3 && (
                         <Button 
                           variant="ghost" 
-                          className="w-full mt-2" 
+                          className="w-full mt-2 text-xs" 
                           onClick={() => navigate('/feed')}
                         >
                           View All Activities ({activities.length})
@@ -463,12 +464,12 @@ const ProfilePage = () => {
                     </div>
                   ) : (
                     !activitiesLoading && (
-                      <div className="text-center py-8">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
-                          <Leaf className="w-8 h-8 text-muted-foreground" />
+                      <div className="text-center py-6">
+                        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
+                          <Leaf className="w-6 h-6 text-muted-foreground" />
                         </div>
-                        <p className="text-muted-foreground mb-4">No activities yet</p>
-                        <Button onClick={() => navigate('/log-activity')}>
+                        <p className="text-muted-foreground mb-3 text-sm">No activities yet</p>
+                        <Button onClick={() => navigate('/log-activity')} size="sm">
                           Log Your First Activity
                         </Button>
                       </div>

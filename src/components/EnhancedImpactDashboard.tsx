@@ -112,15 +112,15 @@ export default function EnhancedImpactDashboard() {
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-3 px-1">
       {/* Mobile-first header with Impact Score */}
-      <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-        <CardHeader className="p-4">
+      <Card className="border border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <CardHeader className="p-3">
           <div className="flex items-center justify-between">
             <div className="space-y-1 flex-1 min-w-0">
-              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                <div className="p-1.5 bg-primary/20 rounded-full">
-                  <Target className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                <div className="p-1 bg-primary/20 rounded-full">
+                  <Target className="w-3 h-3 text-primary" />
                 </div>
                 <span className="truncate">Impact Dashboard</span>
               </CardTitle>
@@ -128,8 +128,8 @@ export default function EnhancedImpactDashboard() {
                 Track your environmental impact
               </p>
             </div>
-            <div className="text-center ml-4">
-              <div className="text-2xl font-bold text-primary">{impactScore}</div>
+            <div className="text-center ml-3">
+              <div className="text-xl font-bold text-primary">{impactScore}</div>
               <div className="text-xs text-muted-foreground">Score</div>
             </div>
           </div>

@@ -17,25 +17,25 @@ const WeeklyGoalCard: React.FC<WeeklyGoalCardProps> = ({
   goalProgress
 }) => {
   return (
-    <Card className="border-2 border-primary/10 bg-gradient-to-r from-primary/5 to-secondary/5">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
+    <Card className="border border-primary/10 bg-gradient-to-r from-primary/5 to-secondary/5">
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-primary/20 rounded-full">
-              <Target className="w-4 h-4 text-primary" />
+            <div className="p-1 bg-primary/20 rounded-full">
+              <Target className="w-3 h-3 text-primary" />
             </div>
-            <h3 className="font-semibold text-sm">Weekly CO₂e Goal</h3>
+            <h3 className="font-semibold text-xs">Weekly CO₂e Goal</h3>
           </div>
           <Badge 
             variant={goalProgress >= 100 ? "default" : "secondary"}
-            className="text-xs px-2 py-1"
+            className="text-xs px-2 py-0.5"
           >
             {weeklyProgress.toFixed(1)} / {weeklyGoal} kg
           </Badge>
         </div>
         <Progress 
           value={Math.min(goalProgress, 100)} 
-          className="h-2 mb-3 bg-muted/50" 
+          className="h-2 mb-2 bg-muted/50" 
         />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{goalProgress.toFixed(0)}% complete</span>

@@ -36,37 +36,39 @@ const ImpactVisualizationCard: React.FC<ImpactVisualizationCardProps> = ({
 }) => {
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-          <CardTitle className="text-lg font-semibold">Impact Visualization</CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleGenerateInsights}
-            disabled={loadingInsight}
-            className="self-start md:self-auto"
-          >
-            {loadingInsight ? "Generating..." : "Generate AI Insights"}
-          </Button>
-        </div>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {tabOptions.map(opt => (
+      <CardHeader className="pb-3 p-3">
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold">Impact Visualization</CardTitle>
             <Button
-              key={opt.value}
-              variant={tab === opt.value ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              onClick={() => setTab(opt.value)}
-              className="flex items-center gap-2 flex-shrink-0"
+              onClick={handleGenerateInsights}
+              disabled={loadingInsight}
+              className="text-xs px-2 py-1"
             >
-              <opt.icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{opt.label}</span>
-              <span className="sm:hidden">{opt.label.charAt(0)}</span>
+              {loadingInsight ? "Generating..." : "Generate AI Insights"}
             </Button>
-          ))}
+          </div>
+          <div className="flex gap-1 overflow-x-auto pb-1">
+            {tabOptions.map(opt => (
+              <Button
+                key={opt.value}
+                variant={tab === opt.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTab(opt.value)}
+                className="flex items-center gap-1 flex-shrink-0 text-xs px-2 py-1"
+              >
+                <opt.icon className="w-3 h-3" />
+                <span className="hidden xs:inline">{opt.label}</span>
+                <span className="xs:hidden">{opt.label.charAt(0)}</span>
+              </Button>
+            ))}
+          </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="w-full h-64 md:h-72">
+      <CardContent className="p-3 pt-0">
+        <div className="w-full h-48">
           <ImpactChart data={chartData} chartType={chartType} xKey={xKey} yKey={yKey}/>
         </div>
       </CardContent>
