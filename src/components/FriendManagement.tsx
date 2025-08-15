@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserMinus, MoreHorizontal, MessageCircle, UserX } from "lucide-react";
+import { UserMinus, MoreHorizontal, MessageCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
@@ -59,29 +59,29 @@ const FriendManagement: React.FC<FriendManagementProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="hover:bg-gray-100">
+        <Button variant="ghost" size="icon" className="hover:bg-accent h-8 w-8 sm:h-10 sm:w-10 touch-manipulation">
           <MoreHorizontal className="w-4 h-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md mx-4 sm:mx-0">
         <DialogHeader>
-          <DialogTitle>Manage Friendship</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">Manage Friendship</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div className="text-center py-4">
-            <p className="text-gray-600 mb-4">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="text-center py-2 sm:py-4">
+            <p className="text-muted-foreground mb-3 sm:mb-4 text-sm">
               What would you like to do with <span className="font-medium">{friendName || friendUsername}</span>?
             </p>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:gap-3">
             <Link 
               to={`/chat/${friendId}`}
               className="w-full"
               onClick={() => setOpen(false)}
             >
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start text-sm">
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Send Message
               </Button>
@@ -91,7 +91,7 @@ const FriendManagement: React.FC<FriendManagementProps> = ({
               variant="outline"
               onClick={handleRemoveFriend}
               disabled={removing}
-              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 text-sm"
             >
               {removing ? (
                 <>
@@ -107,8 +107,8 @@ const FriendManagement: React.FC<FriendManagementProps> = ({
             </Button>
           </div>
 
-          <div className="flex justify-end pt-4 border-t">
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+          <div className="flex justify-end pt-2 sm:pt-4 border-t">
+            <Button variant="ghost" onClick={() => setOpen(false)} className="text-sm">
               Cancel
             </Button>
           </div>

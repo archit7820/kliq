@@ -118,75 +118,88 @@ const FriendsList = () => {
   if (!user) return null;
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <Users className="w-5 h-5 text-blue-600" />
+    <section className="space-y-3 sm:space-y-4">
+      {/* Mobile-optimized header */}
+      <div className="flex items-center gap-2 sm:gap-3 px-1">
+        <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg">
+          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">Your Friends</h2>
-        <div className="flex items-center gap-1 text-sm text-gray-500">
-          <Sparkles className="w-4 h-4" />
-          <span>AI-enhanced connections</span>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-base sm:text-xl font-semibold text-foreground truncate">Your Friends</h2>
+          <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>AI-enhanced connections</span>
+          </div>
         </div>
       </div>
 
+      {/* Mobile-optimized loading state */}
       {loading && (
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 animate-pulse">
-              <div className="w-12 h-12 bg-gray-200 rounded-full" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-1/3" />
-                <div className="h-3 bg-gray-200 rounded w-1/4" />
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex items-center gap-2 sm:gap-3 animate-pulse">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full" />
+              <div className="flex-1 space-y-1 sm:space-y-2">
+                <div className="h-3 sm:h-4 bg-muted rounded w-1/3" />
+                <div className="h-2 sm:h-3 bg-muted rounded w-1/4" />
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Mobile-optimized empty state */}
       {!loading && friends.length === 0 && (
-        <Card className="border-dashed border-2 border-gray-200">
-          <CardContent className="p-8 text-center">
-            <div className="p-3 bg-gray-100 rounded-full w-fit mx-auto mb-4">
-              <User className="w-8 h-8 text-gray-400" />
+        <Card className="border-dashed border-2">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <div className="p-2 sm:p-3 bg-muted rounded-full w-fit mx-auto mb-3 sm:mb-4">
+              <User className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
             </div>
-            <h3 className="font-medium text-gray-900 mb-2">No friends yet</h3>
-            <p className="text-sm text-gray-500">Start connecting with people who share your interests!</p>
+            <h3 className="font-medium text-foreground mb-1 sm:mb-2 text-sm sm:text-base">No friends yet</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">Start connecting with people who share your interests!</p>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-4">
+      {/* Mobile-optimized friends grid */}
+      <div className="space-y-2 sm:space-y-3">
         {friends.map((f) => {
           const friendId = f.user1_id === user.id ? f.user2_id : f.user1_id;
           return (
-            <Card key={f.id} className="hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
+            <Card key={f.id} className="hover:shadow-md transition-all duration-200 border-border/50">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  {/* Mobile-optimized avatar */}
                   {f.profile?.avatar_url ? (
                     <img
                       src={f.profile.avatar_url}
                       alt="avatar"
-                      className="w-12 h-12 rounded-full border-2 border-gray-100 object-cover"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-border object-cover"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                      <User className="w-6 h-6 text-gray-400" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
                     </div>
                   )}
+                  
+                  {/* Mobile-optimized content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">
+                    <h3 className="font-medium text-foreground truncate text-sm sm:text-base">
                       {f.profile?.full_name || f.profile?.username || "User"}
                     </h3>
-                    <p className="text-sm text-gray-500 truncate">@{f.profile?.username}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                      @{f.profile?.username}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* Mobile-optimized actions */}
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <Link 
                       to={`/chat/${friendId}`} 
-                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 hover:bg-accent rounded-lg transition-colors touch-manipulation"
                       title="Send message"
                     >
-                      <MessageCircle className="w-5 h-5 text-blue-600" />
+                      <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                     </Link>
                     <FriendManagement
                       friendId={friendId}

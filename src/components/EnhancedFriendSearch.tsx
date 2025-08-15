@@ -6,18 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, UserPlus, User, Filter, X } from "lucide-react";
+import { Search, UserPlus, User, Users, Sparkles, Zap, Filter, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type Profile = {
   id: string;
   full_name: string | null;
   username: string | null;
   avatar_url: string | null;
-  location: string | null;
   lifestyle_tags: string[] | null;
+  location: string | null;
+  kelp_points: number | null;
 };
+
+const LIFESTYLE_TAGS = [
+  "Vegetarian", "Vegan", "Cyclist", "Gardener", "Minimalist", "Composter",
+  "Zero Waste", "Car Free", "Parent", "Techie", "Student", "Remote Worker"
+];
 
 const EnhancedFriendSearch = () => {
   const { user } = useAuthStatus();
@@ -25,84 +30,87 @@ const EnhancedFriendSearch = () => {
   const [results, setResults] = useState<Profile[]>([]);
   const [searching, setSearching] = useState(false);
   const [inviting, setInviting] = useState<string | null>(null);
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [locationFilter, setLocationFilter] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
-  const [existingFriends, setExistingFriends] = useState<Set<string>>(new Set());
-  const [pendingRequests, setPendingRequests] = useState<Set<string>>(new Set());
+  const [existingFriends, setExistingFriends] = useState<string[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<string[]>([]);
 
-  // Load existing friends and pending requests
+  // Fetch existing friends and pending requests
   useEffect(() => {
     if (!user) return;
 
-    const loadFriendsAndRequests = async () => {
+    const fetchExistingConnections = async () => {
       // Get existing friends
       const { data: friends } = await supabase
         .from("friends")
         .select("user1_id, user2_id")
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
 
-      const friendIds = new Set(
-        friends?.map(f => f.user1_id === user.id ? f.user2_id : f.user1_id) || []
-      );
-      setExistingFriends(friendIds);
+      const friendIds = friends?.map(f => 
+        f.user1_id === user.id ? f.user2_id : f.user1_id
+      ) || [];
 
-      // Get pending requests (sent by current user)
+      // Get pending requests (both sent and received)
       const { data: requests } = await supabase
         .from("friend_requests")
-        .select("receiver_id")
-        .eq("sender_id", user.id)
+        .select("sender_id, receiver_id")
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .eq("status", "pending");
 
-      const pendingIds = new Set(requests?.map(r => r.receiver_id) || []);
-      setPendingRequests(pendingIds);
+      const requestIds = requests?.map(r => 
+        r.sender_id === user.id ? r.receiver_id : r.sender_id
+      ) || [];
+
+      setExistingFriends(friendIds);
+      setPendingRequests(requestIds);
     };
 
-    loadFriendsAndRequests();
+    fetchExistingConnections();
   }, [user]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim() && !locationFilter.trim() && !tagFilter.trim()) return;
-    
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setSearching(true);
+
     try {
       let queryBuilder = supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, location, lifestyle_tags")
-        .neq("id", user?.id || ""); // Exclude current user
+        .select("id, full_name, username, avatar_url, lifestyle_tags, location, kelp_points")
+        .neq("id", user?.id || "");
 
-      // Apply search filters
+      // Apply text search
       if (query.trim()) {
-        queryBuilder = queryBuilder.or(
-          `username.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`
-        );
+        queryBuilder = queryBuilder.or(`username.ilike.%${query.trim()}%,full_name.ilike.%${query.trim()}%`);
       }
 
+      // Apply lifestyle tags filter
+      if (selectedTags.length > 0) {
+        queryBuilder = queryBuilder.overlaps("lifestyle_tags", selectedTags);
+      }
+
+      // Apply location filter
       if (locationFilter.trim()) {
         queryBuilder = queryBuilder.ilike("location", `%${locationFilter.trim()}%`);
       }
 
-      if (tagFilter.trim()) {
-        queryBuilder = queryBuilder.contains("lifestyle_tags", [tagFilter.trim()]);
+      queryBuilder = queryBuilder.limit(20);
+
+      const { data, error } = await queryBuilder;
+
+      if (error) {
+        toast({ title: "Error searching", description: error.message, variant: "destructive" });
+        setResults([]);
+      } else {
+        // Filter out existing friends and pending requests
+        const filteredResults = (data || []).filter(profile => 
+          !existingFriends.includes(profile.id) && !pendingRequests.includes(profile.id)
+        );
+        setResults(filteredResults);
       }
-
-      const { data, error } = await queryBuilder.limit(20);
-
-      if (error) throw error;
-
-      // Filter out existing friends and users with pending requests
-      const filteredResults = (data || []).filter(profile => 
-        !existingFriends.has(profile.id) && !pendingRequests.has(profile.id)
-      );
-
-      setResults(filteredResults);
     } catch (error) {
-      toast({ 
-        title: "Search failed", 
-        description: "Failed to search users. Please try again.",
-        variant: "destructive" 
-      });
+      toast({ title: "Search failed", description: "Please try again", variant: "destructive" });
+      setResults([]);
     } finally {
       setSearching(false);
     }
@@ -110,163 +118,260 @@ const EnhancedFriendSearch = () => {
 
   const handleInvite = async (profile: Profile) => {
     if (!user) return;
-    
     setInviting(profile.id);
+
     try {
-      const { error } = await supabase
-        .from("friend_requests")
-        .insert([{ sender_id: user.id, receiver_id: profile.id, status: "pending" }]);
+      const { error } = await supabase.from("friend_requests").insert([
+        { sender_id: user.id, receiver_id: profile.id, status: "pending" }
+      ]);
 
-      if (error) throw error;
-
-      toast({
-        title: "Request Sent!",
-        description: `Friend request sent to ${profile.full_name || profile.username}.`,
-      });
-
-      // Remove from results and add to pending
-      setResults(prev => prev.filter(p => p.id !== profile.id));
-      setPendingRequests(prev => new Set([...prev, profile.id]));
+      if (error) {
+        toast({ title: "Failed", description: error.message, variant: "destructive" });
+      } else {
+        toast({
+          title: "Request Sent!",
+          description: `Sent friend invite to @${profile.username}.`,
+        });
+        setResults(res => res.filter(p => p.id !== profile.id));
+        setPendingRequests(prev => [...prev, profile.id]);
+      }
     } catch (error) {
-      toast({ 
-        title: "Failed", 
-        description: "Failed to send friend request. Please try again.",
-        variant: "destructive" 
-      });
+      toast({ title: "Failed to send request", description: "Please try again", variant: "destructive" });
     } finally {
       setInviting(null);
     }
   };
 
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
   const clearFilters = () => {
-    setQuery("");
+    setSelectedTags([]);
     setLocationFilter("");
-    setTagFilter("");
+    setQuery("");
     setResults([]);
   };
 
+  // Auto-search when filters change
+  useEffect(() => {
+    if (query || selectedTags.length > 0 || locationFilter) {
+      const timeoutId = setTimeout(() => {
+        handleSearch();
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [query, selectedTags, locationFilter, existingFriends, pendingRequests]);
+
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="p-4 space-y-4">
-          <form onSubmit={handleSearch} className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Search by name or username..."
-                className="flex-1"
-              />
-              <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Filter className="w-4 h-4" />
-                  </Button>
-                </CollapsibleTrigger>
-              </Collapsible>
+    <section className="space-y-3 sm:space-y-4">
+      {/* Mobile-optimized header */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base sm:text-xl font-semibold text-foreground">Find Friends</h2>
+            <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+              <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>AI-powered discovery</span>
             </div>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3"
+        >
+          <Filter className="w-4 h-4" />
+          <span className="hidden sm:inline ml-2">Filters</span>
+        </Button>
+      </div>
 
-            <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
-              <CollapsibleContent className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Input
-                    type="text"
-                    value={locationFilter}
-                    onChange={e => setLocationFilter(e.target.value)}
-                    placeholder="Filter by location..."
-                  />
-                  <Input
-                    type="text"
-                    value={tagFilter}
-                    onChange={e => setTagFilter(e.target.value)}
-                    placeholder="Filter by lifestyle tag..."
-                  />
-                </div>
-                
-                {(query || locationFilter || tagFilter) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="w-full"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Clear Filters
-                  </Button>
-                )}
-              </CollapsibleContent>
-            </Collapsible>
-
+      {/* Mobile-optimized search */}
+      <Card>
+        <CardContent className="p-3 sm:p-4 space-y-3">
+          <form className="flex gap-2 sm:gap-3" onSubmit={handleSearch}>
+            <Input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search by name or username..."
+              className="flex-1 text-sm"
+            />
             <Button
               type="submit"
               disabled={searching}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-3 sm:px-6 shrink-0"
             >
               {searching ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <Search className="w-4 h-4 mr-2" />
+                <Search className="w-4 h-4" />
               )}
-              Search Users
             </Button>
           </form>
+
+          {/* Mobile-optimized filters */}
+          {showFilters && (
+            <div className="space-y-3 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Filters</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-7 px-2 text-xs"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Clear
+                </Button>
+              </div>
+              
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                  Location
+                </label>
+                <Input
+                  type="text"
+                  value={locationFilter}
+                  onChange={e => setLocationFilter(e.target.value)}
+                  placeholder="Enter location..."
+                  className="text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                  Lifestyle Tags
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {LIFESTYLE_TAGS.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant={selectedTags.includes(tag) ? "default" : "outline"}
+                      className="cursor-pointer text-xs px-2 py-1 transition-colors touch-manipulation"
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <div className="space-y-3">
+      {/* Mobile-optimized results */}
+      <div className="space-y-2 sm:space-y-3">
+        {/* Loading state */}
+        {searching && (
+          <Card>
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="flex items-center justify-center gap-2 text-purple-600">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm">Searching for users...</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Empty states */}
+        {!searching && results.length === 0 && (query || selectedTags.length > 0 || locationFilter) && (
+          <Card className="border-dashed border-2">
+            <CardContent className="p-4 sm:p-6 text-center">
+              <div className="p-2 sm:p-3 bg-muted rounded-full w-fit mx-auto mb-3 sm:mb-4">
+                <Search className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+              </div>
+              <h3 className="font-medium text-foreground mb-1 sm:mb-2 text-sm sm:text-base">No users found</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Try adjusting your search or filters</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {!searching && results.length === 0 && !query && selectedTags.length === 0 && !locationFilter && (
+          <Card className="border-dashed border-2">
+            <CardContent className="p-6 sm:p-8 text-center">
+              <div className="p-2 sm:p-3 bg-purple-100 rounded-full w-fit mx-auto mb-3 sm:mb-4">
+                <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+              </div>
+              <h3 className="font-medium text-foreground mb-1 sm:mb-2 text-sm sm:text-base">AI-Powered Friend Discovery</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">Search for friends or use filters to discover like-minded people</p>
+              <div className="text-xs text-muted-foreground">Smart suggestions coming soon!</div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Results */}
         {results.map(profile => (
-          <Card key={profile.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
+          <Card key={profile.id} className="hover:shadow-md transition-all duration-200 border-border/50">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-start gap-3 sm:gap-4">
+                {/* Avatar */}
                 {profile.avatar_url ? (
                   <img
                     src={profile.avatar_url}
                     alt="avatar"
-                    className="w-12 h-12 rounded-full border-2 border-gray-100 object-cover"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-border object-cover shrink-0"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                    <User className="w-6 h-6 text-gray-400" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <User className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
                   </div>
                 )}
                 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">
-                    {profile.full_name || profile.username || "User"}
-                  </h3>
-                  <p className="text-sm text-gray-500 truncate">@{profile.username}</p>
-                  {profile.location && (
-                    <p className="text-xs text-gray-400 truncate">{profile.location}</p>
-                  )}
-                  {profile.lifestyle_tags && profile.lifestyle_tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {profile.lifestyle_tags.slice(0, 3).map(tag => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {profile.lifestyle_tags.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{profile.lifestyle_tags.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                {/* Content */}
+                <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
+                  <div>
+                    <h3 className="font-medium text-foreground truncate text-sm sm:text-base">
+                      {profile.full_name || profile.username || "User"}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                      @{profile.username}
+                    </p>
+                  </div>
+                  
+                  {/* Tags and location */}
+                  <div className="space-y-1.5">
+                    {profile.location && (
+                      <p className="text-xs text-muted-foreground truncate">📍 {profile.location}</p>
+                    )}
+                    {profile.lifestyle_tags && profile.lifestyle_tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {profile.lifestyle_tags.slice(0, 3).map(tag => (
+                          <Badge key={tag} variant="secondary" className="text-xs px-1.5 py-0.5">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {profile.lifestyle_tags.length > 3 && (
+                          <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                            +{profile.lifestyle_tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
+                {/* Action button */}
                 <Button
                   onClick={() => handleInvite(profile)}
                   disabled={inviting === profile.id}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-purple-600 hover:bg-purple-700 text-white shrink-0 h-8 px-3 sm:h-9 sm:px-4 text-xs sm:text-sm"
                 >
                   {inviting === profile.id ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <UserPlus className="w-4 h-4 mr-1" />
-                      Add
+                      <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="hidden sm:inline">Invite</span>
                     </>
                   )}
                 </Button>
@@ -274,18 +379,8 @@ const EnhancedFriendSearch = () => {
             </CardContent>
           </Card>
         ))}
-        
-        {results.length === 0 && (query || locationFilter || tagFilter) && !searching && (
-          <Card className="border-dashed border-2 border-gray-200">
-            <CardContent className="p-8 text-center">
-              <Search className="w-8 h-8 text-gray-400 mx-auto mb-4" />
-              <h3 className="font-medium text-gray-900 mb-2">No users found</h3>
-              <p className="text-sm text-gray-500">Try adjusting your search criteria</p>
-            </CardContent>
-          </Card>
-        )}
       </div>
-    </div>
+    </section>
   );
 };
 

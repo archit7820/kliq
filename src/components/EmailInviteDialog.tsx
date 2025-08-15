@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, Send, Loader2 } from "lucide-react";
+import { Mail, Send, Loader2, Users } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
@@ -75,21 +75,21 @@ Kelp helps you track your environmental impact, connect with like-minded people,
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700 text-white">
+        <Button className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">
           <Mail className="w-4 h-4 mr-2" />
-          Invite via Email
+          <span className="sm:inline">Invite via Email</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md mx-4 sm:mx-0">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Mail className="w-5 h-5 text-green-600" />
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             Invite Friends to Kelp
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSendInvite} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Friend's Email</Label>
+        <form onSubmit={handleSendInvite} className="space-y-3 sm:space-y-4">
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium">Friend's Email</Label>
             <Input
               id="email"
               type="email"
@@ -97,33 +97,35 @@ Kelp helps you track your environmental impact, connect with like-minded people,
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="text-sm"
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="message">Personal Message (Optional)</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="message" className="text-sm font-medium">Personal Message (Optional)</Label>
             <Textarea
               id="message"
               placeholder="Add a personal touch to your invitation..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={3}
+              className="text-sm resize-none"
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="flex-1"
+              className="order-2 sm:order-1 flex-1 text-sm"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={sending || !email.trim()}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              className="order-1 sm:order-2 flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
             >
               {sending ? (
                 <>
