@@ -23,14 +23,25 @@ export default function CommunityDiscover() {
 
   const { data: myCommunities = [] } = useQuery({
     queryKey: ["discover-my-communities", user?.id],
-    queryFn: async (): Promise<{ id: string }[]> => {
-      if (!user) return [] as { id: string }[];
-      const { data } = await supabase
+    queryFn: async (): Promise<string[]> => {
+      if (!user) return [];
+      
+      console.log('Fetching user communities for user:', user.id);
+      
+      const { data, error } = await supabase
         .from("community_memberships")
-        .select("communities(id)")
+        .select("community_id")
         .eq("user_id", user.id)
         .eq("status", "approved");
-      return (data || []).map((r: any) => r.communities as { id: string });
+      
+      if (error) {
+        console.error('Error fetching user communities:', error);
+        return [];
+      }
+      
+      const communityIds = (data || []).map((membership: any) => membership.community_id);
+      console.log('User is member of communities:', communityIds);
+      return communityIds;
     },
     enabled: !!user,
   });
@@ -47,7 +58,11 @@ export default function CommunityDiscover() {
     },
   });
 
-  const isJoined = (id: string) => !!myCommunities.find((c: any) => c.id === id);
+  const isJoined = (communityId: string) => {
+    const joined = myCommunities.includes(communityId);
+    console.log(`Checking if joined community ${communityId}:`, joined);
+    return joined;
+  };
 
   const handleJoin = async (communityId: string) => {
     if (!user) {
@@ -56,6 +71,16 @@ export default function CommunityDiscover() {
         description: "Please sign in to join communities.",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Check if already a member first
+    if (isJoined(communityId)) {
+      toast({
+        title: "Already a member",
+        description: "You're already a member of this community. Opening it now...",
+      });
+      handleOpen(communityId);
       return;
     }
 
@@ -69,8 +94,6 @@ export default function CommunityDiscover() {
       return;
     }
 
-    // For now, we'll assume all communities are public for direct join
-    // In the future, you might want to check community privacy_type here
     try {
       const { error } = await supabase
         .from('community_memberships')
@@ -84,9 +107,11 @@ export default function CommunityDiscover() {
         if (error.code === '23505') { // Duplicate key error
           toast({
             title: "Already a member",
-            description: "You're already a member of this community.",
-            variant: "destructive"
+            description: "You're already a member of this community. Opening it now...",
           });
+          // Refresh the communities list and then open
+          await queryClient.invalidateQueries({ queryKey: ["discover-my-communities"] });
+          handleOpen(communityId);
         } else {
           toast({
             title: "Failed to join",
@@ -103,10 +128,12 @@ export default function CommunityDiscover() {
       });
 
       // Refresh the communities list
-      queryClient.invalidateQueries({ queryKey: ["discover-my-communities"] });
+      await queryClient.invalidateQueries({ queryKey: ["discover-my-communities"] });
       
       // Navigate to the community page
-      window.location.href = `/communities/${communityId}`;
+      setTimeout(() => {
+        handleOpen(communityId);
+      }, 1000);
     } catch (error) {
       console.error('Error joining community:', error);
       toast({
@@ -129,17 +156,17 @@ export default function CommunityDiscover() {
     }
   };
 
-  const handleJoinSuccess = () => {
+  const handleJoinSuccess = async () => {
     // Refresh the communities list
-    queryClient.invalidateQueries({ queryKey: ["discover-my-communities"] });
+    await queryClient.invalidateQueries({ queryKey: ["discover-my-communities"] });
     setIsJoinModalOpen(false);
     setSelectedCommunity(null);
     
     // Navigate to the community page if we have a selected community
     if (selectedCommunity) {
       setTimeout(() => {
-        window.location.href = `/communities/${selectedCommunity.id}`;
-      }, 1000); // Small delay to let the success message show
+        handleOpen(selectedCommunity.id);
+      }, 1000);
     }
   };
 
