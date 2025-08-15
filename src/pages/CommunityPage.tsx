@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -19,13 +20,33 @@ const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[
 const CommunityPage = () => {
   const { user } = useAuthStatus();
   const { communityId } = useParams();
-  const isMobile = useIsMobile(); // Move hook to top before any returns
+  const isMobile = useIsMobile();
+
+  console.log('CommunityPage Debug - Initial:', {
+    communityId,
+    userLoggedIn: !!user,
+    isValidUUID: communityId ? isValidUUID(communityId) : false,
+    currentPath: window.location.pathname,
+    params: useParams()
+  });
 
   // If we're on /communities/create or the id is invalid, show "Not found"
   if (!communityId || communityId === "create" || !isValidUUID(communityId)) {
+    console.log('CommunityPage Debug - Invalid ID:', {
+      communityId,
+      isCreate: communityId === "create",
+      isValidUUID: communityId ? isValidUUID(communityId) : false
+    });
+    
     return (
-      <div className="flex flex-col items-center justify-center h-screen text-red-500">
-        Community not found.
+      <div className="flex flex-col items-center justify-center h-screen text-red-500 p-4">
+        <h2 className="text-xl font-semibold mb-2">Community not found</h2>
+        <p className="text-sm text-muted-foreground mb-4 text-center">
+          The community you're looking for doesn't exist or the link is invalid.
+        </p>
+        <Link to="/communities">
+          <Button variant="outline">Back to Communities</Button>
+        </Link>
       </div>
     );
   }
@@ -33,10 +54,23 @@ const CommunityPage = () => {
   const { data: community, isLoading, error } = useQuery({
     queryKey: ["community", communityId],
     queryFn: async () => {
-      const { data } = await supabase.from("communities").select("*").eq("id", communityId).maybeSingle();
+      console.log('Fetching community with ID:', communityId);
+      const { data, error } = await supabase
+        .from("communities")
+        .select("*")
+        .eq("id", communityId)
+        .maybeSingle();
+      
+      console.log('Community fetch result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching community:', error);
+        throw error;
+      }
+      
       return data;
     },
-    enabled: !!communityId
+    enabled: !!communityId && isValidUUID(communityId)
   });
 
   // Get my membership row
@@ -61,13 +95,13 @@ const CommunityPage = () => {
     const { error } = await supabase.from("community_memberships").insert({
       user_id: user.id,
       community_id: communityId,
-      status: "pending"
+      status: "approved" // Auto-approve for now
     });
     if (error) {
-      toast({ title: "Could not request to join", description: error.message, variant: "destructive" });
+      toast({ title: "Could not join community", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Join request sent.", description: "Wait for approval from community owner." });
+    toast({ title: "Successfully joined!", description: "Welcome to the community!" });
     refetchMembership();
   };
 
@@ -95,10 +129,32 @@ const CommunityPage = () => {
     );
   }
 
-  if (error || !community) {
+  if (error) {
+    console.error('Community page error:', error);
     return (
-      <div className="flex flex-col items-center justify-center h-screen text-red-500">
-        Community not found.
+      <div className="flex flex-col items-center justify-center h-screen text-red-500 p-4">
+        <h2 className="text-xl font-semibold mb-2">Error loading community</h2>
+        <p className="text-sm text-muted-foreground mb-4 text-center">
+          There was an error loading this community. Please try again.
+        </p>
+        <Link to="/communities">
+          <Button variant="outline">Back to Communities</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (!community) {
+    console.log('Community not found in database');
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-red-500 p-4">
+        <h2 className="text-xl font-semibold mb-2">Community not found</h2>
+        <p className="text-sm text-muted-foreground mb-4 text-center">
+          This community doesn't exist or may have been deleted.
+        </p>
+        <Link to="/communities">
+          <Button variant="outline">Back to Communities</Button>
+        </Link>
       </div>
     );
   }
@@ -110,23 +166,17 @@ const CommunityPage = () => {
   const canViewContent = user && (amOwner || isApprovedMember);
 
   // Debug logging
-  console.log('🚀 NEW COMMUNITY PAGE LOADING! 🚀');
-  console.log('CommunityPage Debug:', {
+  console.log('CommunityPage Debug - Final:', {
     user: user?.id,
-    community: community?.name,
+    community: { id: community.id, name: community.name },
     myMembership: myMembership?.status,
     amOwner,
     canViewContent,
-    isMobile,
-    currentUrl: window.location.href
+    isMobile
   });
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Debug Banner - Remove this later */}
-      <div className="bg-primary text-primary-foreground text-center py-2 text-sm font-medium">
-        ✨ New Enhanced Community Interface ✨ - Check console for debug info
-      </div>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/95 border-b">
         <div className="flex items-center gap-3 p-4">
@@ -180,7 +230,7 @@ const CommunityPage = () => {
                 onClick={handleRequestJoin}
                 className="w-full bg-primary hover:bg-primary/90"
               >
-                Request to Join
+                Join Community
               </Button>
             ) : myMembership.status === "pending" ? (
               <Button variant="outline" disabled className="w-full">
@@ -232,10 +282,10 @@ const CommunityPage = () => {
                 <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
                 <h3 className="font-semibold text-foreground mb-2">Join Community</h3>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Request to join this community to view content and participate.
+                  Join this community to view content and participate.
                 </p>
                 <Button onClick={handleRequestJoin} className="bg-primary hover:bg-primary/90">
-                  Request to Join
+                  Join Community
                 </Button>
               </div>
             )}
