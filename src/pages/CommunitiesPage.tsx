@@ -10,31 +10,44 @@ import { useNavigate } from "react-router-dom";
 const CommunitiesPage = () => {
   const { user } = useAuthStatus();
   const navigate = useNavigate();
+  
   React.useEffect(() => {
     document.title = 'Kelp • Communities';
   }, []);
+
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
-      <header className="bg-card px-4 py-3 border-b sticky top-0 z-10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users className="w-5 h-5 text-muted-foreground" />
-          <h1 className="font-semibold text-lg text-foreground">Communities</h1>
+      {/* Mobile-optimized header */}
+      <header className="bg-card px-3 py-2.5 border-b sticky top-0 z-10 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="p-1 bg-primary/10 rounded-md flex-shrink-0">
+            <Users className="w-4 h-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-semibold text-base text-foreground truncate">Communities</h1>
+            <p className="text-xs text-muted-foreground truncate">Connect & make impact together</p>
+          </div>
         </div>
         <Button
           variant="default"
-          size="default"
+          size="sm"
           onClick={() => navigate("/communities/create")}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 animate-fade-in border-2 border-emerald-500 hover:border-emerald-600"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-3 py-1.5 text-xs shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 animate-fade-in border border-primary/20 flex-shrink-0"
           aria-label="Create a new community"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Create
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          <span className="hidden xs:inline">Create</span>
+          <span className="xs:hidden">New</span>
         </Button>
       </header>
-      <main className="flex-1 p-3 space-y-4 max-w-md w-full mx-auto">
-        <CommunityList user={user} />
-        <div className="h-px bg-border" />
-        <CommunityDiscover />
+
+      {/* Mobile-optimized main content */}
+      <main className="flex-1 p-2 space-y-3 max-w-md w-full mx-auto pb-safe">
+        <div className="space-y-3">
+          <CommunityList user={user} />
+          <div className="h-px bg-border/60 my-2" />
+          <CommunityDiscover />
+        </div>
       </main>
     </div>
   );

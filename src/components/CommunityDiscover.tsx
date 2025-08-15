@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { useQuery } from "@tanstack/react-query";
@@ -47,10 +48,6 @@ export default function CommunityDiscover() {
   const handleJoin = async (communityId: string) => {
     if (!user) return;
     await supabase.from('community_memberships').insert({ user_id: user.id, community_id: communityId });
-    // Optimistic refresh
-    await Promise.all([
-      supabase.from('community_memberships').select('id').eq('user_id', user.id),
-    ]);
     window.location.href = `/communities/${communityId}`;
   };
 
@@ -59,31 +56,46 @@ export default function CommunityDiscover() {
   };
 
   return (
-    <section className="w-full space-y-3">
+    <section className="w-full space-y-2">
+      <div className="flex items-center gap-2 mb-2">
+        <h2 className="text-sm font-semibold text-foreground">Discover Communities</h2>
+      </div>
+      
       <Tabs value={scope} onValueChange={(v) => setScope(v as Scope)}>
-        <TabsList className="grid grid-cols-3 w-full rounded-2xl bg-muted/60">
-          <TabsTrigger value="local" className="data-[state=active]:bg-background">Local</TabsTrigger>
-          <TabsTrigger value="national" className="data-[state=active]:bg-background">National</TabsTrigger>
-          <TabsTrigger value="global" className="data-[state=active]:bg-background">Global</TabsTrigger>
+        <TabsList className="grid grid-cols-3 w-full rounded-lg bg-muted/60 h-8">
+          <TabsTrigger value="local" className="data-[state=active]:bg-background text-xs py-1">
+            Local
+          </TabsTrigger>
+          <TabsTrigger value="national" className="data-[state=active]:bg-background text-xs py-1">
+            National
+          </TabsTrigger>
+          <TabsTrigger value="global" className="data-[state=active]:bg-background text-xs py-1">
+            Global
+          </TabsTrigger>
         </TabsList>
+        
         <TabsContent className="mt-2" value={scope}>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2">
             {CATEGORIES.map((c) => (
               <Button
                 key={c}
                 size="sm"
                 variant={category === c ? "secondary" : "outline"}
-                className="rounded-full whitespace-nowrap"
+                className="rounded-full whitespace-nowrap text-xs py-1 px-2.5 h-6 flex-shrink-0"
                 onClick={() => setCategory(c)}
               >
                 {c === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1)}
               </Button>
             ))}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+          
+          <div className="grid grid-cols-1 gap-2 mt-2">
             {isLoading ? (
-              <div className="text-sm text-muted-foreground">Loading communities…</div>
-            ) : (
+              <div className="flex items-center justify-center py-6">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                <span className="ml-2 text-xs text-muted-foreground">Loading communities…</span>
+              </div>
+            ) : communities.length > 0 ? (
               communities.map((community) => (
                 <CommunityCardMinimal
                   key={community.id}
@@ -93,6 +105,11 @@ export default function CommunityDiscover() {
                   onOpen={handleOpen}
                 />
               ))
+            ) : (
+              <div className="text-center py-6 bg-card rounded-lg border border-dashed border-border">
+                <p className="text-xs text-muted-foreground">No communities found</p>
+                <p className="text-xs text-muted-foreground mt-1">Try a different category or scope</p>
+              </div>
             )}
           </div>
         </TabsContent>
