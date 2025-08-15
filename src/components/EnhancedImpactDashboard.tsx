@@ -6,7 +6,7 @@ import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import { toast } from "@/components/ui/use-toast";
 import { Target, Sparkles } from "lucide-react";
 
-// Import new components
+// Import components
 import ImpactMetricsGrid from "./dashboard/ImpactMetricsGrid";
 import WeeklyGoalCard from "./dashboard/WeeklyGoalCard";
 import ImpactVisualizationCard from "./dashboard/ImpactVisualizationCard";
@@ -29,19 +29,19 @@ export default function EnhancedImpactDashboard() {
   let chartData, chartType, xKey, yKey, breakdown;
   if (tab === "week") {
     chartData = weekChart;
-    chartType = "area";
+    chartType = "area" as const;
     xKey = "day";
     yKey = "savings";
     breakdown = weekBreakdown;
   } else if (tab === "month") {
     chartData = monthChart;
-    chartType = "bar";
+    chartType = "bar" as const;
     xKey = "month";
     yKey = "savings";
     breakdown = monthBreakdown;
   } else {
     chartData = yearChart;
-    chartType = "line";
+    chartType = "line" as const;
     xKey = "year";
     yKey = "savings";
     breakdown = yearBreakdown;
@@ -112,34 +112,31 @@ export default function EnhancedImpactDashboard() {
   };
 
   return (
-    <div className="w-full space-y-4 md:space-y-6 px-4 md:px-0">
-      {/* Header with Impact Score */}
+    <div className="w-full space-y-4">
+      {/* Mobile-first header with Impact Score */}
       <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-        <CardHeader className="pb-4">
-          <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
-            <div className="space-y-1">
-              <CardTitle className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
-                <div className="p-2 bg-primary/20 rounded-full">
-                  <Target className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+        <CardHeader className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1 flex-1 min-w-0">
+              <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                <div className="p-1.5 bg-primary/20 rounded-full">
+                  <Target className="w-4 h-4 text-primary" />
                 </div>
-                Impact Dashboard
+                <span className="truncate">Impact Dashboard</span>
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Track your environmental impact and progress
+              <p className="text-xs text-muted-foreground">
+                Track your environmental impact
               </p>
             </div>
-            <div className="text-center md:text-right">
-              <div className="flex items-center gap-2 md:flex-col md:gap-0">
-                <Sparkles className="w-5 h-5 text-primary md:hidden" />
-                <div className="text-2xl md:text-3xl font-bold text-primary">{impactScore}</div>
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">Impact Score</div>
+            <div className="text-center ml-4">
+              <div className="text-2xl font-bold text-primary">{impactScore}</div>
+              <div className="text-xs text-muted-foreground">Score</div>
             </div>
           </div>
         </CardHeader>
       </Card>
 
-      {/* Key Metrics Grid */}
+      {/* Mobile-optimized components */}
       <ImpactMetricsGrid
         totalSavings={totalSavings}
         streak={streak}
@@ -148,14 +145,12 @@ export default function EnhancedImpactDashboard() {
         tab={tab}
       />
 
-      {/* Weekly Goal Progress */}
       <WeeklyGoalCard
         weeklyProgress={weeklyProgress}
         weeklyGoal={weeklyGoal}
         goalProgress={goalProgress}
       />
 
-      {/* Chart Section */}
       <ImpactVisualizationCard
         tab={tab}
         setTab={setTab}
@@ -167,10 +162,8 @@ export default function EnhancedImpactDashboard() {
         loadingInsight={loadingInsight}
       />
 
-      {/* Category Breakdown */}
       <CategoryBreakdownCard breakdown={breakdown} />
 
-      {/* AI Insights */}
       <SmartInsightsCard insights={getInsights()} />
     </div>
   );

@@ -14,8 +14,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {children}
+    <div className="min-h-screen bg-background">
+      {/* Mobile-first main content area */}
+      <main className={hideNav ? "pb-4" : "pb-20 sm:pb-24"}>
+        {children}
+      </main>
+      
+      {/* Bottom navigation - mobile optimized */}
       {!hideNav && <BottomNav />}
     </div>
   );
