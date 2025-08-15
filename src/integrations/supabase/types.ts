@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1021,12 +1021,12 @@ export type Database = {
     Functions: {
       award_kelp_points: {
         Args: {
-          p_user_id: string
           p_amount: number
-          p_transaction_type: string
-          p_source: string
           p_description: string
           p_metadata?: Json
+          p_source: string
+          p_transaction_type: string
+          p_user_id: string
         }
         Returns: undefined
       }
@@ -1041,13 +1041,13 @@ export type Database = {
       get_user_conversations: {
         Args: Record<PropertyKey, never>
         Returns: {
-          other_user_id: string
-          full_name: string
-          username: string
           avatar_url: string
-          last_message_content: string
+          full_name: string
           last_message_at: string
+          last_message_content: string
+          other_user_id: string
           unread_count: number
+          username: string
         }[]
       }
       is_valid_invite_code: {
@@ -1056,11 +1056,11 @@ export type Database = {
       }
       spend_kelp_points: {
         Args: {
-          p_user_id: string
           p_amount: number
-          p_source: string
           p_description: string
           p_metadata?: Json
+          p_source: string
+          p_user_id: string
         }
         Returns: boolean
       }
