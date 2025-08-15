@@ -1047,6 +1047,7 @@ export type Database = {
           description: string
           id: string
           is_joined: boolean
+          is_official: boolean
           member_count: number
           name: string
           privacy_type: string
