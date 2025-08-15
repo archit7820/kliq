@@ -1038,6 +1038,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_discoverable_communities: {
+        Args: { p_category?: string; p_scope?: string }
+        Returns: {
+          category: string
+          cover_image_url: string
+          created_by: string
+          description: string
+          id: string
+          is_joined: boolean
+          member_count: number
+          name: string
+          privacy_type: string
+          scope: string
+        }[]
+      }
       get_leaderboard_profiles: {
         Args: { limit_count?: number }
         Returns: {

@@ -33,11 +33,8 @@ const CommunityList = ({ user }: { user: any }) => {
   const { data: allCommunities, isLoading: loadingAll } = useQuery({
     queryKey: ["allCommunities"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("communities")
-        .select("*")
-        .eq("privacy_type", "public")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_discoverable_communities");
+      if (error) throw error;
       return data || [];
     },
   });

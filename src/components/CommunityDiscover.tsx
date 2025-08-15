@@ -33,20 +33,11 @@ export default function CommunityDiscover() {
   const { data: communities = [], isLoading } = useQuery({
     queryKey: ["discover-communities", scope, category],
     queryFn: async (): Promise<Community[]> => {
-      if (category === 'all') {
-        const { data } = await sb
-          .from("communities")
-          .select("*")
-          .eq("scope", scope)
-          .order("created_at", { ascending: false });
-        return (data || []) as any as Community[];
-      }
-      const { data } = await sb
-        .from("communities")
-        .select("*")
-        .eq("scope", scope)
-        .eq("category", category)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_discoverable_communities", {
+        p_scope: scope,
+        p_category: category === 'all' ? null : category
+      });
+      if (error) throw error;
       return (data || []) as any as Community[];
     },
   });
