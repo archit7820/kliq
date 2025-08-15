@@ -1,28 +1,17 @@
+
 import React, { useState } from "react";
 import { Card, CardTitle, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useImpactDashboardData } from "@/hooks/useImpactDashboardData";
 import { useProfileWithStats } from "@/hooks/useProfileWithStats";
 import { toast } from "@/components/ui/use-toast";
-import ImpactChart from "./ImpactChart";
-import { 
-  TrendingUp, 
-  Target, 
-  Calendar, 
-  BarChart3, 
-  Leaf, 
-  Zap,
-  Award,
-  Info
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Target, Sparkles } from "lucide-react";
 
-const tabOptions = [
-  { value: "week", label: "Week", icon: Calendar },
-  { value: "month", label: "Month", icon: BarChart3 },
-  { value: "year", label: "Year", icon: TrendingUp }
-];
+// Import new components
+import ImpactMetricsGrid from "./dashboard/ImpactMetricsGrid";
+import WeeklyGoalCard from "./dashboard/WeeklyGoalCard";
+import ImpactVisualizationCard from "./dashboard/ImpactVisualizationCard";
+import CategoryBreakdownCard from "./dashboard/CategoryBreakdownCard";
+import SmartInsightsCard from "./dashboard/SmartInsightsCard";
 
 export default function EnhancedImpactDashboard() {
   const [tab, setTab] = useState("week");
@@ -112,173 +101,77 @@ export default function EnhancedImpactDashboard() {
     }
     
     if (weeklyProgress > weeklyGoal) {
-      return "Excellent work! You've exceeded your weekly CO₂e goal. Your consistent green choices are making a real difference.";
+      return "Excellent work! You've exceeded your weekly CO₂e goal. Your consistent green choices are making a real difference for our planet.";
     } else if (weeklyProgress > weeklyGoal * 0.7) {
-      return "Great progress! You're on track to meet your weekly goal. Keep up the sustainable habits!";
+      return "Great progress! You're on track to meet your weekly goal. Keep up the sustainable habits – every action counts!";
     } else if (streak?.current && streak.current > 3) {
-      return "Your activity streak is impressive! Consistency is key to maximizing environmental impact.";
+      return "Your activity streak is impressive! Consistency is key to maximizing environmental impact. You're building great eco-habits!";
     } else {
-      return "Small daily actions create big environmental changes. Consider logging one eco-friendly activity today!";
+      return "Small daily actions create big environmental changes. Consider logging one eco-friendly activity today to start building your impact!";
     }
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 md:space-y-6 px-4 md:px-0">
       {/* Header with Impact Score */}
-      <Card className="border-2 border-primary/20">
-        <CardHeader className="bg-primary/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                <Target className="w-6 h-6 text-primary" />
+      <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div className="space-y-1">
+              <CardTitle className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+                <div className="p-2 bg-primary/20 rounded-full">
+                  <Target className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                </div>
                 Impact Dashboard
               </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground">
                 Track your environmental impact and progress
               </p>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{impactScore}</div>
-              <div className="text-xs text-muted-foreground">Impact Score</div>
+            <div className="text-center md:text-right">
+              <div className="flex items-center gap-2 md:flex-col md:gap-0">
+                <Sparkles className="w-5 h-5 text-primary md:hidden" />
+                <div className="text-2xl md:text-3xl font-bold text-primary">{impactScore}</div>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">Impact Score</div>
             </div>
           </div>
         </CardHeader>
       </Card>
 
       {/* Key Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Leaf className="w-4 h-4 text-green-600" />
-              <span className="text-xs font-medium text-green-700">Total Saved</span>
-            </div>
-            <div className="text-lg font-bold text-green-800">{totalSavings.toFixed(1)} kg</div>
-            <div className="text-xs text-green-600">CO₂e this {tab}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-orange-600" />
-              <span className="text-xs font-medium text-orange-700">Streak</span>
-            </div>
-            <div className="text-lg font-bold text-orange-800">{streak?.current || 0}</div>
-            <div className="text-xs text-orange-600">days active</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <BarChart3 className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-medium text-blue-700">Daily Avg</span>
-            </div>
-            <div className="text-lg font-bold text-blue-800">{averageDaily.toFixed(1)} kg</div>
-            <div className="text-xs text-blue-600">per day</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Award className="w-4 h-4 text-purple-600" />
-              <span className="text-xs font-medium text-purple-700">Goal</span>
-            </div>
-            <div className="text-lg font-bold text-purple-800">{goalProgress.toFixed(0)}%</div>
-            <div className="text-xs text-purple-600">completed</div>
-          </CardContent>
-        </Card>
-      </div>
+      <ImpactMetricsGrid
+        totalSavings={totalSavings}
+        streak={streak}
+        averageDaily={averageDaily}
+        goalProgress={goalProgress}
+        tab={tab}
+      />
 
       {/* Weekly Goal Progress */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm">Weekly CO₂e Goal</h3>
-            <Badge variant={goalProgress >= 100 ? "default" : "secondary"}>
-              {weeklyProgress.toFixed(1)} / {weeklyGoal} kg
-            </Badge>
-          </div>
-          <Progress value={Math.min(goalProgress, 100)} className="h-3 mb-2" />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{goalProgress.toFixed(0)}% complete</span>
-            <span>{goalProgress >= 100 ? "Goal achieved! 🎉" : `${(weeklyGoal - weeklyProgress).toFixed(1)} kg to go`}</span>
-          </div>
-        </CardContent>
-      </Card>
+      <WeeklyGoalCard
+        weeklyProgress={weeklyProgress}
+        weeklyGoal={weeklyGoal}
+        goalProgress={goalProgress}
+      />
 
       {/* Chart Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <CardTitle className="text-lg">Impact Visualization</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateInsights}
-              disabled={loadingInsight}
-            >
-              {loadingInsight ? "Generating..." : "Generate AI Insights"}
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            {tabOptions.map(opt => (
-              <Button
-                key={opt.value}
-                variant={tab === opt.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTab(opt.value)}
-                className="flex items-center gap-2"
-              >
-                <opt.icon className="w-4 h-4" />
-                {opt.label}
-              </Button>
-            ))}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div style={{ width: "100%", height: 250 }}>
-            <ImpactChart data={chartData} chartType={chartType} xKey={xKey} yKey={yKey}/>
-          </div>
-        </CardContent>
-      </Card>
+      <ImpactVisualizationCard
+        tab={tab}
+        setTab={setTab}
+        chartData={chartData}
+        chartType={chartType}
+        xKey={xKey}
+        yKey={yKey}
+        handleGenerateInsights={handleGenerateInsights}
+        loadingInsight={loadingInsight}
+      />
 
       {/* Category Breakdown */}
-      {breakdown && Object.keys(breakdown).length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Category Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(breakdown).map(([category, value]: [string, any]) => (
-                <div key={category} className="p-3 rounded-lg border bg-muted/30">
-                  <div className="text-sm font-medium capitalize mb-1">{category}</div>
-                  <div className="text-lg font-bold text-primary">{typeof value === 'number' ? value.toFixed(1) : value} kg</div>
-                  <div className="text-xs text-muted-foreground">CO₂e saved</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <CategoryBreakdownCard breakdown={breakdown} />
 
       {/* AI Insights */}
-      <Card className="border-2 border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Info className="w-5 h-5 text-blue-600" />
-            Smart Insights
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-blue-800">
-            {getInsights()}
-          </p>
-        </CardContent>
-      </Card>
+      <SmartInsightsCard insights={getInsights()} />
     </div>
   );
 }
