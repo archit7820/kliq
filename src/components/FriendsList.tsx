@@ -5,6 +5,7 @@ import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { User, MessageCircle, Users, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import FriendManagement from "./FriendManagement";
 
 type Friend = {
   id: string;
@@ -110,6 +111,10 @@ const FriendsList = () => {
     // eslint-disable-next-line
   }, [user]);
 
+  const handleFriendRemoved = () => {
+    fetchFriends(); // Refresh the friends list
+  };
+
   if (!user) return null;
 
   return (
@@ -175,13 +180,21 @@ const FriendsList = () => {
                     </h3>
                     <p className="text-sm text-gray-500 truncate">@{f.profile?.username}</p>
                   </div>
-                  <Link 
-                    to={`/chat/${friendId}`} 
-                    className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Send message"
-                  >
-                    <MessageCircle className="w-5 h-5 text-blue-600" />
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      to={`/chat/${friendId}`} 
+                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Send message"
+                    >
+                      <MessageCircle className="w-5 h-5 text-blue-600" />
+                    </Link>
+                    <FriendManagement
+                      friendId={friendId}
+                      friendName={f.profile?.full_name || ""}
+                      friendUsername={f.profile?.username || ""}
+                      onFriendRemoved={handleFriendRemoved}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
