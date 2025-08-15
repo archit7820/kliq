@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GamifiedUserSummary from "./GamifiedUserSummary";
@@ -12,7 +13,7 @@ const HomeContent = ({ profile }: { profile: any }) => {
   // Enhanced impact calculations
   const weeklyImpact = {
     co2Saved: profile?.co2e_weekly_progress ?? 2.3,
-    waterSaved: (profile?.kelp_points ?? 30) * 0.8, // Estimate based on activities
+    waterSaved: (profile?.kelp_points ?? 30) * 0.8,
     wasteReduced: (profile?.kelp_points ?? 30) * 0.05,
     energySaved: (profile?.kelp_points ?? 30) * 0.3
   };
@@ -26,19 +27,18 @@ const HomeContent = ({ profile }: { profile: any }) => {
   const bestBadge =
     (profile?.badges && profile.badges.length > 0 && profile.badges[0].name) ||
     "Kelp Sprout";
-  
 
   return (
-    <main className="flex-grow px-3 py-4 bg-background min-h-screen">
-      <div className="max-w-md mx-auto space-y-4 pb-20">{/* Reduced bottom padding for mobile nav */}
+    <main className="flex-grow px-2 sm:px-3 py-2 bg-background min-h-screen">
+      <div className="max-w-sm mx-auto space-y-3 pb-20">
         
-        {/* Stories & Highlights Carousel */}
+        {/* Stories & Highlights Carousel - Mobile optimized */}
         <section className="bg-card rounded-xl p-3 shadow-sm border" aria-label="Activities">
           <h2 className="sr-only">Activities & Stories</h2>
           <HomeStoriesBar profile={profile} />
         </section>
 
-        {/* Overall Status & Rankings */}
+        {/* Overall Status & Rankings - Compact mobile layout */}
         <section className="bg-card rounded-xl shadow-sm border" aria-label="Your impact summary">
           <h2 className="sr-only">Your Impact & Rankings</h2>
           <GamifiedUserSummary
@@ -50,25 +50,25 @@ const HomeContent = ({ profile }: { profile: any }) => {
           />
         </section>
 
-        {/* For You Suggestions */}
+        {/* For You Suggestions - Mobile first */}
         <PersonalizedSuggestionsSection profile={profile} />
 
-        {/* My Challenges */}
-        <section className="bg-card rounded-xl p-4 shadow-sm border" aria-label="Your current challenges">
-          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <span className="text-2xl">🎯</span>
+        {/* My Challenges - Touch friendly */}
+        <section className="bg-card rounded-xl p-3 shadow-sm border" aria-label="Your current challenges">
+          <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+            <span className="text-xl">🎯</span>
             My Current Challenges
           </h2>
           <CurrentChallenges />
         </section>
 
-        {/* Community Activity */}
+        {/* Community Activity - Scrollable on mobile */}
         <CommunityActivity />
 
-        {/* Gamified Engagement Cards */}
+        {/* Gamified Engagement Cards - Stacked on mobile */}
         <GamifiedEngagementCards profile={profile} />
 
-        {/* Marketplace Section */}
+        {/* Marketplace Section - Compact */}
         <section className="bg-card rounded-xl shadow-sm border" aria-label="Marketplace">
           <h2 className="sr-only">Marketplace</h2>
           <MarketplaceSection />

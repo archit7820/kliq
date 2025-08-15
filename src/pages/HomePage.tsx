@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
@@ -20,7 +21,6 @@ const HomePage = () => {
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      // Select * instead of only lifestyle_tags
       const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (error) {
         console.error("Error fetching profile:", error);
@@ -43,7 +43,7 @@ const HomePage = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (profileLoading || profileFetching) return; // wait for fresh data
+    if (profileLoading || profileFetching) return;
     if (profile && Array.isArray(profile.lifestyle_tags) && profile.lifestyle_tags.length === 0) {
       navigate('/onboarding', { replace: true });
     }
@@ -59,8 +59,8 @@ const HomePage = () => {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-xl font-semibold text-foreground/80">Loading Kelp...</div>
+      <div className="flex items-center justify-center min-h-screen bg-background px-4">
+        <div className="text-lg font-semibold text-foreground/80 text-center">Loading Kelp...</div>
       </div>
     );
   }
@@ -72,8 +72,8 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <HomeHeader />
-      {/* Pass profile as prop everywhere! */}
-      <div className="max-w-xl w-full mx-auto">
+      {/* Mobile-first wallet banner */}
+      <div className="w-full px-3 pt-2">
         <KelpWalletBanner profile={profile} />
       </div>
       <HomeContent profile={profile} />
