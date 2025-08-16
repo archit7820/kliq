@@ -284,9 +284,9 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
                         {challenge.title}
                       </CardTitle>
                       {challenge.is_active ? (
-                        <Eye className="w-4 h-4 text-green-600" title="Active Challenge" />
+                        <Eye className="w-4 h-4 text-green-600" />
                       ) : (
-                        <EyeOff className="w-4 h-4 text-gray-400" title="Inactive Challenge" />
+                        <EyeOff className="w-4 h-4 text-gray-400" />
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
