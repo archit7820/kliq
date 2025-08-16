@@ -1075,6 +1075,10 @@ export type Database = {
           username: string
         }[]
       }
+      is_community_owner: {
+        Args: { community_id: string }
+        Returns: boolean
+      }
       is_valid_invite_code: {
         Args: { code: string }
         Returns: boolean
