@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Target, Calendar, Users, Trophy, Clock } from "lucide-react";
+import { Plus, Target, Calendar, Users, Trophy, Clock, Settings, Eye, EyeOff } from "lucide-react";
 import { format } from "date-fns";
 
 interface CommunityChallengeManagerProps {
@@ -46,7 +48,6 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
           profiles:created_by(full_name, username, avatar_url)
         `)
         .eq("community_id", communityId)
-        .eq("is_active", true)
         .order("created_at", { ascending: false });
 
       if (error) throw new Error(error.message);
@@ -79,10 +80,35 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
         end_date: ""
       });
       queryClient.invalidateQueries({ queryKey: ["community-challenges", communityId] });
+      queryClient.invalidateQueries({ queryKey: ["active-community-challenges"] });
     },
     onError: (error: any) => {
       toast({
         title: "Failed to create challenge",
+        description: error?.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Toggle challenge active status mutation
+  const toggleChallengeMutation = useMutation({
+    mutationFn: async ({ challengeId, isActive }: { challengeId: string; isActive: boolean }) => {
+      const { error } = await supabase
+        .from("community_challenges")
+        .update({ is_active: isActive })
+        .eq("id", challengeId);
+
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast({ title: "Challenge status updated!" });
+      queryClient.invalidateQueries({ queryKey: ["community-challenges", communityId] });
+      queryClient.invalidateQueries({ queryKey: ["active-community-challenges"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update challenge",
         description: error?.message,
         variant: "destructive"
       });
@@ -104,6 +130,7 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
     onSuccess: () => {
       toast({ title: "Joined challenge successfully!" });
       queryClient.invalidateQueries({ queryKey: ["community-challenges", communityId] });
+      queryClient.invalidateQueries({ queryKey: ["active-community-challenges"] });
     },
     onError: (error: any) => {
       toast({
@@ -123,6 +150,10 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
       return;
     }
     createChallengeMutation.mutate(newChallenge);
+  };
+
+  const handleToggleChallenge = (challengeId: string, currentStatus: boolean) => {
+    toggleChallengeMutation.mutate({ challengeId, isActive: !currentStatus });
   };
 
   const getTypeColor = (type: string) => {
@@ -238,26 +269,45 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
       {challenges.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>No active challenges yet.</p>
+          <p>No challenges yet.</p>
           {isOwner && <p className="text-sm">Create the first challenge to get started!</p>}
         </div>
       ) : (
         <div className="grid gap-4">
           {challenges.map((challenge: any) => (
-            <Card key={challenge.id} className="hover:shadow-md transition-shadow">
+            <Card key={challenge.id} className={`hover:shadow-md transition-shadow ${!challenge.is_active ? 'opacity-60' : ''}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <CardTitle className="text-base font-semibold leading-tight">
-                      {challenge.title}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CardTitle className="text-base font-semibold leading-tight">
+                        {challenge.title}
+                      </CardTitle>
+                      {challenge.is_active ? (
+                        <Eye className="w-4 h-4 text-green-600" title="Active Challenge" />
+                      ) : (
+                        <EyeOff className="w-4 h-4 text-gray-400" title="Inactive Challenge" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
                       by {challenge.profiles?.full_name || challenge.profiles?.username || "Unknown"}
                     </p>
                   </div>
-                  <Badge className={getTypeColor(challenge.challenge_type)}>
-                    {challenge.challenge_type}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getTypeColor(challenge.challenge_type)}>
+                      {challenge.challenge_type}
+                    </Badge>
+                    {isOwner && challenge.created_by === userId && (
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={challenge.is_active}
+                          onCheckedChange={() => handleToggleChallenge(challenge.id, challenge.is_active)}
+                          disabled={toggleChallengeMutation.isPending}
+                        />
+                        <Settings className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -282,21 +332,34 @@ const CommunityChallengeManager: React.FC<CommunityChallengeManagerProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center justify-end pt-2">
-                  {isParticipant(challenge) ? (
-                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-300">Joined</Badge>
-                  ) : (
-                    <Button 
-                      size="default" 
-                      variant="outline"
-                      onClick={() => joinChallengeMutation.mutate(challenge.id)}
-                      disabled={joinChallengeMutation.isPending}
-                      className="btn-blue-outline btn-pulse btn-glow font-semibold px-4 py-2"
-                      aria-label={`Join challenge: ${challenge.title}`}
-                    >
-                      {joinChallengeMutation.isPending ? "Joining..." : "Join Challenge"}
-                    </Button>
-                  )}
+                <div className="flex items-center justify-between pt-2">
+                  <div>
+                    {!challenge.is_active && (
+                      <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                        Inactive
+                      </Badge>
+                    )}
+                  </div>
+                  <div>
+                    {challenge.is_active && (
+                      isParticipant(challenge) ? (
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-300">
+                          Joined
+                        </Badge>
+                      ) : (
+                        <Button 
+                          size="default" 
+                          variant="outline"
+                          onClick={() => joinChallengeMutation.mutate(challenge.id)}
+                          disabled={joinChallengeMutation.isPending}
+                          className="btn-blue-outline btn-pulse btn-glow font-semibold px-4 py-2"
+                          aria-label={`Join challenge: ${challenge.title}`}
+                        >
+                          {joinChallengeMutation.isPending ? "Joining..." : "Join Challenge"}
+                        </Button>
+                      )
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

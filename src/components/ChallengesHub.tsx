@@ -4,10 +4,11 @@ import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ChallengeStatusCard from "@/components/ChallengeStatusCard";
+import CommunityChallengeCard from "@/components/CommunityChallengeCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import ChallengeCreate from "@/components/ChallengeCreate";
-import { Users, Trophy, Plus } from "lucide-react";
+import { Users, Trophy, Plus, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ChallengesHub: React.FC = () => {
@@ -46,6 +47,35 @@ const ChallengesHub: React.FC = () => {
     refetchInterval: 10000,
   });
 
+  // Fetch community-specific challenges from the community_challenges table
+  const { data: activeCommunitySpecificChallenges = [], isLoading: loadingCommunitySpecific } = useQuery({
+    queryKey: ["active-community-challenges", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from("community_challenges")
+        .select(`
+          *,
+          communities!inner(name, id),
+          profiles!community_challenges_created_by_fkey(username, avatar_url),
+          community_challenge_participants(user_id, is_completed)
+        `)
+        .eq("is_active", true)
+        .eq("communities.id", "community_challenges.community_id")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching community challenges:", error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!user,
+    refetchInterval: 5000,
+  });
+
   const { data: myParticipation = [] } = useQuery({
     queryKey: ["user-challenges", user?.id],
     queryFn: async () => {
@@ -68,6 +98,20 @@ const ChallengesHub: React.FC = () => {
     setJoiningId(null);
   };
 
+  const handleJoinCommunityChallenge = async (challengeId: string) => {
+    if (!user || joiningId) return;
+    setJoiningId(challengeId);
+    
+    const { error } = await supabase
+      .from("community_challenge_participants")
+      .insert({ challenge_id: challengeId, user_id: user.id });
+    
+    if (!error) {
+      await qc.invalidateQueries({ queryKey: ["active-community-challenges"] });
+    }
+    setJoiningId(null);
+  };
+
   const renderList = (list: any[]) => (
     <div className="flex flex-col gap-2">
       {list.map((ch: any) => {
@@ -84,6 +128,42 @@ const ChallengesHub: React.FC = () => {
               onJoin={() => handleJoin(ch.id)}
             />
           </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderCommunitySpecificChallenges = (list: any[]) => (
+    <div className="flex flex-col gap-3">
+      {list.map((challenge: any) => {
+        const userParticipating = challenge.community_challenge_participants?.some(
+          (p: any) => p.user_id === user?.id
+        );
+        
+        return (
+          <CommunityChallengeCard
+            key={challenge.id}
+            challenge={{
+              id: challenge.id,
+              title: challenge.title,
+              description: challenge.description,
+              challenge_type: challenge.challenge_type,
+              reward_points: challenge.reward_points,
+              start_date: challenge.start_date,
+              end_date: challenge.end_date,
+              max_participants: challenge.max_participants,
+              created_by: challenge.created_by,
+              participant_count: challenge.community_challenge_participants?.length || 0,
+              user_participating: userParticipating
+            }}
+            creator={{
+              username: challenge.profiles?.username,
+              avatar_url: challenge.profiles?.avatar_url
+            }}
+            onJoin={() => handleJoinCommunityChallenge(challenge.id)}
+            onView={() => navigate(`/communities/${challenge.community_id}`)}
+            isLoading={joiningId === challenge.id}
+          />
         );
       })}
     </div>
@@ -120,6 +200,36 @@ const ChallengesHub: React.FC = () => {
         </div>
       </section>
 
+      {/* Active Community Challenges */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-green-100 rounded-lg flex-shrink-0">
+            <Target className="w-4 h-4 text-green-600" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-base font-bold text-gray-800 truncate">Active Community Challenges</h3>
+            <p className="text-xs text-gray-600 truncate">From communities you can join</p>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          {loadingCommunitySpecific ? (
+            <div className="flex items-center justify-center py-6">
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent"></div>
+              <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+            </div>
+          ) : activeCommunitySpecificChallenges.length > 0 ? (
+            renderCommunitySpecificChallenges(activeCommunitySpecificChallenges)
+          ) : (
+            <div className="text-center py-6 text-gray-500">
+              <Target className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm">No active community challenges at the moment</p>
+              <p className="text-xs text-gray-400 mt-1">Join communities to see their challenges!</p>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Mobile-Optimized Community Challenges */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
@@ -127,7 +237,7 @@ const ChallengesHub: React.FC = () => {
             <Users className="w-4 h-4 text-blue-600" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-base font-bold text-gray-800 truncate">Community Challenges</h3>
+            <h3 className="text-base font-bold text-gray-800 truncate">General Community Challenges</h3>
             <p className="text-xs text-gray-600 truncate">Created by users like you</p>
           </div>
         </div>
