@@ -1,14 +1,12 @@
 
 import React, { useState, useEffect } from "react";
-import { Search, Filter, TrendingUp, Flame, Crown, Zap } from "lucide-react";
+import { Zap, RotateCcw, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import GamePostCard from "@/components/GamePostCard";
-import PostDetail from "@/components/PostDetail";
-import ImpactLeaderboard from "@/components/ImpactLeaderboard";
+import SwipeContainer from "@/components/SwipeContainer";
+import StoryViewer from "@/components/StoryViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { toast } from "@/hooks/use-toast";
 
 interface Post {
   id: string;
@@ -38,19 +36,13 @@ interface Post {
 const ExplorePage = () => {
   const { user } = useAuthStatus();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [activeTab, setActiveTab] = useState("trending");
   const [loading, setLoading] = useState(true);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [storyIndex, setStoryIndex] = useState(0);
 
   useEffect(() => {
     fetchPosts();
   }, []);
-
-  useEffect(() => {
-    filterPosts();
-  }, [posts, activeTab]);
 
   const fetchPosts = async () => {
     try {
@@ -58,17 +50,17 @@ const ExplorePage = () => {
         .from("activities")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(50);
 
       if (error) throw error;
       
       // Transform the data with enhanced gamified scoring
       const transformedPosts = (data || []).map(activity => {
-        const environmental = Math.floor(Math.random() * 40) + 60; // 60-100
-        const social = Math.floor(Math.random() * 50) + 50; // 50-100
-        const adventure = Math.floor(Math.random() * 60) + 40; // 40-100
-        const economic = Math.floor(Math.random() * 70) + 30; // 30-100
-        const learning = Math.floor(Math.random() * 80) + 20; // 20-100
+        const environmental = Math.floor(Math.random() * 40) + 60;
+        const social = Math.floor(Math.random() * 50) + 50;
+        const adventure = Math.floor(Math.random() * 60) + 40;
+        const economic = Math.floor(Math.random() * 70) + 30;
+        const learning = Math.floor(Math.random() * 80) + 20;
         
         return {
           ...activity,
@@ -83,180 +75,136 @@ const ExplorePage = () => {
             economic_impact: economic,
             learning_growth: learning,
           },
-          total_impact_score: Math.floor((environmental + social + adventure + economic + learning) / 5),
-          streak: Math.floor(Math.random() * 15) + 1,
-          level: Math.floor(Math.random() * 20) + 1,
-          badges: Math.floor(Math.random() * 8) + 1
         };
       });
       
       setPosts(transformedPosts);
     } catch (error) {
       console.error("Error fetching posts:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load posts. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const filterPosts = () => {
-    let filtered = posts;
-
-    switch (activeTab) {
-      case "trending":
-        filtered = posts
-          .filter(post => (post as any).total_impact_score > 75)
-          .sort((a, b) => (b as any).total_impact_score - (a as any).total_impact_score);
-        break;
-      case "friends":
-        filtered = posts.slice(0, 20); // Mock friends filter
-        break;
-      case "achievements":
-        filtered = posts.filter(post => (post as any).badges > 5);
-        break;
-      default:
-        filtered = posts;
-    }
-
-    setFilteredPosts(filtered);
-  };
-
   const handlePostClick = (post: Post) => {
+    const index = posts.findIndex(p => p.id === post.id);
+    setStoryIndex(index);
     setSelectedPost(post);
   };
 
-  const handleCloseDetail = () => {
-    setSelectedPost(null);
+  const handleSwipeLeft = (post: Post) => {
+    console.log("Passed on:", post.activity);
+    toast({
+      title: "Passed",
+      description: `Skipped "${post.activity}"`,
+    });
+  };
+
+  const handleSwipeRight = (post: Post) => {
+    console.log("Liked:", post.activity);
+    toast({
+      title: "Liked! 💚",
+      description: `You liked "${post.activity}"`,
+    });
+  };
+
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchPosts();
   };
 
   if (selectedPost) {
     return (
-      <PostDetail 
-        post={selectedPost} 
-        onClose={handleCloseDetail}
+      <StoryViewer
+        posts={posts}
+        initialIndex={storyIndex}
+        onClose={() => setSelectedPost(null)}
         onUpdate={(updatedPost) => {
           setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
-          setSelectedPost(updatedPost);
         }}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile-First Header */}
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
       <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-lg border-b">
-        <div className="px-3 py-2">
-          {/* Main header row */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="p-1.5 bg-primary/20 rounded-lg flex-shrink-0">
-                <Zap className="w-4 h-4 text-primary" />
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-xl">
+                <Zap className="w-5 h-5 text-primary" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-base font-bold text-foreground truncate">Impact Hub</h1>
-                <p className="text-xs text-muted-foreground hidden xs:block">Real actions, real change</p>
+              <div>
+                <h1 className="text-lg font-bold text-foreground">Discover</h1>
+                <p className="text-xs text-muted-foreground">Swipe to explore impact</p>
               </div>
             </div>
             
-            {/* Action buttons */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-2">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full h-8 w-8"
-                onClick={() => setShowLeaderboard(!showLeaderboard)}
+                className="rounded-full"
+                onClick={handleRefresh}
+                disabled={loading}
               >
-                <Crown className="w-4 h-4" />
+                <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                <Search className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                <Filter className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Settings className="w-4 h-4" />
               </Button>
             </div>
           </div>
-
-          {/* Mobile-optimized tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4 h-8 rounded-lg bg-muted/60">
-              <TabsTrigger value="trending" className="text-xs py-1 data-[state=active]:bg-background">
-                <Flame className="w-3 h-3 mr-1" />
-                <span className="hidden xs:inline">Trending</span>
-                <span className="xs:hidden">🔥</span>
-              </TabsTrigger>
-              <TabsTrigger value="all" className="text-xs py-1 data-[state=active]:bg-background">
-                <span className="hidden xs:inline">🌍 All</span>
-                <span className="xs:hidden">🌍</span>
-              </TabsTrigger>
-              <TabsTrigger value="friends" className="text-xs py-1 data-[state=active]:bg-background">
-                <span className="hidden xs:inline">👥 Friends</span>
-                <span className="xs:hidden">👥</span>
-              </TabsTrigger>
-              <TabsTrigger value="achievements" className="text-xs py-1 data-[state=active]:bg-background">
-                <span className="hidden xs:inline">🏆 Top</span>
-                <span className="xs:hidden">🏆</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
       </header>
 
-      {/* Collapsible Leaderboard */}
-      {showLeaderboard && (
-        <div className="border-b bg-muted/10">
-          <div className="p-3">
-            <ImpactLeaderboard />
+      {/* Main content */}
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading amazing content...</p>
           </div>
         </div>
+      ) : posts.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🌱</div>
+            <h3 className="text-xl font-bold mb-2">No Posts Yet</h3>
+            <p className="text-muted-foreground mb-4">
+              Be the first to share your impact!
+            </p>
+            <Button onClick={handleRefresh}>
+              Try Again
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <SwipeContainer
+          posts={posts}
+          onPostClick={handlePostClick}
+          onSwipeLeft={handleSwipeLeft}
+          onSwipeRight={handleSwipeRight}
+        />
       )}
 
-      {/* Mobile-optimized content */}
-      <div className="p-3 pb-20">
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="bg-card rounded-2xl p-4 border animate-pulse">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-muted rounded-xl" />
-                  <div className="flex-1">
-                    <div className="h-3 bg-muted rounded mb-1" />
-                    <div className="h-2 bg-muted rounded w-1/2" />
-                  </div>
-                </div>
-                <div className="aspect-video bg-muted rounded-xl mb-3" />
-                <div className="h-3 bg-muted rounded mb-1" />
-                <div className="h-2 bg-muted rounded w-2/3" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredPosts.map(post => (
-              <GamePostCard 
-                key={post.id} 
-                post={post as any}
-                onClick={() => handlePostClick(post)}
-                onUpdate={(updatedPost) => {
-                  setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
-                }}
-              />
-            ))}
-
-            {filteredPosts.length === 0 && !loading && (
-              <div className="text-center py-8 bg-muted/5 rounded-2xl border border-dashed">
-                <div className="text-3xl mb-2">🌱</div>
-                <h3 className="text-base font-bold mb-1">No Impact Posts Yet</h3>
-                <p className="text-sm text-muted-foreground mb-4 px-4">
-                  Be the first to share your real-world action!
-                </p>
-                <Button size="sm" className="rounded-full px-4">
-                  Log Your Impact
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+      {/* Instructions for first-time users */}
+      <div className="p-4 bg-muted/30">
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground mb-2">
+            💚 Swipe right or tap ❤️ to like • ❌ Swipe left or tap ✖️ to pass
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Tap on a card to view as story
+          </p>
+        </div>
       </div>
     </div>
   );
