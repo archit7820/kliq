@@ -93,7 +93,6 @@ export default function CurrentChallenges() {
                 completed={completed}
                 joining={joiningId === ch.id}
                 onJoin={() => handleJoin(ch.id)}
-                onComplete={joined && !completed ? () => {} : undefined}
               />
               {joined && !completed && (
                 <div className="absolute bottom-2 right-2">
