@@ -1,7 +1,14 @@
-
 import React, { useState, useEffect } from "react";
-import { Zap, RotateCcw, Settings } from "lucide-react";
+import { Zap, RotateCcw, Settings, LogOut, Users, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
 import SwipeContainer from "@/components/SwipeContainer";
 import StoryViewer from "@/components/StoryViewer";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +42,7 @@ interface Post {
 
 const ExplorePage = () => {
   const { user } = useAuthStatus();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -88,6 +96,23 @@ const ExplorePage = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({ 
+        title: "Logout Failed", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } else {
+      toast({ 
+        title: "Logged Out", 
+        description: "You have been successfully logged out." 
+      });
+      navigate('/login');
     }
   };
 
@@ -157,9 +182,38 @@ const ExplorePage = () => {
               >
                 <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Settings className="w-4 h-4" />
-              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-popover/95 backdrop-blur-sm">
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/friends')} 
+                    className="text-sm cursor-pointer"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Friends
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/invite')} 
+                    className="text-sm cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Invite
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleLogout} 
+                    className="text-sm cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
