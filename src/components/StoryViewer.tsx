@@ -92,8 +92,8 @@ const StoryViewer = ({ posts, initialIndex, onClose, onUpdate }: StoryViewerProp
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: currentPost.activity || "Activity",
-        text: currentPost.caption || "Check this out!",
+        title: currentPost?.activity || "Activity",
+        text: currentPost?.caption || "Check this out!",
         url: window.location.href
       });
     }
@@ -112,12 +112,7 @@ const StoryViewer = ({ posts, initialIndex, onClose, onUpdate }: StoryViewerProp
         {posts.map((_, index) => (
           <div key={index} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
             <div 
-              className={cn(
-                "h-full bg-white transition-all duration-100",
-                index < currentIndex && "w-full",
-                index === currentIndex && `w-[${progress}%]`,
-                index > currentIndex && "w-0"
-              )}
+              className="h-full bg-white transition-all duration-100"
               style={{ 
                 width: index < currentIndex ? "100%" : index === currentIndex ? `${progress}%` : "0%" 
               }}
