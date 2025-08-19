@@ -10,7 +10,6 @@ interface ChallengeStatusCardProps {
   joined: boolean;
   completed: boolean;
   onJoin?: () => void;
-  onComplete?: () => void;
   joining?: boolean;
 }
 
@@ -36,7 +35,7 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
       {!joined && onJoin && (
         <Button
           size="sm"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 font-semibold rounded-lg text-xs h-7 touch-manipulation"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 font-medium rounded-md text-xs h-6 touch-manipulation"
           onClick={onJoin}
           disabled={joining}
         >
