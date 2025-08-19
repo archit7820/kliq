@@ -78,15 +78,11 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     const target = e.target as HTMLElement;
     const isImageSection = target.closest('.image-section');
     const isImpactSection = target.closest('.impact-section');
+    const isActionButtons = target.closest('.action-buttons');
     
-    if (isImageSection && !isImpactSection) {
+    if (isImageSection && !isImpactSection && !isActionButtons) {
       onTap();
     }
-  };
-
-  const handleImpactSectionClick = (e: React.MouseEvent) => {
-    // Prevent the card click from firing when clicking on impact section
-    e.stopPropagation();
   };
 
   // Safe category handling with null checks
@@ -174,7 +170,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         </div>
 
         {/* Impact Score Breakdown - Compact Mobile Version */}
-        <div className="impact-section flex-1 mb-3" onClick={handleImpactSectionClick}>
+        <div className="impact-section flex-1 mb-3">
           <ImpactScoreBreakdown
             dimensions={post.activity_analysis || {
               adventure_intensity: Math.floor(Math.random() * 40) + 60,
@@ -189,7 +185,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         </div>
 
         {/* Action buttons - Smaller and more compact */}
-        <div className="flex items-center justify-center gap-4" onClick={(e) => e.stopPropagation()}>
+        <div className="action-buttons flex items-center justify-center gap-4">
           <Button
             variant="ghost"
             size="sm"
