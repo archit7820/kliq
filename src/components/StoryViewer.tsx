@@ -92,14 +92,18 @@ const StoryViewer = ({ posts, initialIndex, onClose, onUpdate }: StoryViewerProp
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: currentPost.activity,
-        text: currentPost.caption,
+        title: currentPost.activity || "Activity",
+        text: currentPost.caption || "Check this out!",
         url: window.location.href
       });
     }
   };
 
   if (!currentPost) return null;
+
+  // Safe category handling with null checks
+  const safeCategory = currentPost.category || "default";
+  const displayCategory = safeCategory.replace('_', ' ');
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -174,7 +178,7 @@ const StoryViewer = ({ posts, initialIndex, onClose, onUpdate }: StoryViewerProp
           {currentPost.image_url && (
             <img 
               src={currentPost.image_url} 
-              alt={currentPost.activity}
+              alt={currentPost.activity || "Activity"}
               className="w-full h-full object-cover"
             />
           )}
@@ -194,13 +198,13 @@ const StoryViewer = ({ posts, initialIndex, onClose, onUpdate }: StoryViewerProp
       <div className="p-6 bg-gradient-to-t from-black/80 to-transparent">
         <div className="mb-4">
           <Badge className="mb-3 bg-white/20 text-white border-white/30">
-            {currentPost.category.replace('_', ' ')}
+            {displayCategory}
           </Badge>
           <h3 className="font-bold text-white text-xl mb-2">
-            {currentPost.activity}
+            {currentPost.activity || "Activity"}
           </h3>
           <p className="text-white/90 text-sm leading-relaxed">
-            {currentPost.caption}
+            {currentPost.caption || "No description available"}
           </p>
         </div>
 
