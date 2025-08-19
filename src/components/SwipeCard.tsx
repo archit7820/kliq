@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { Heart, MessageCircle, Share, X, Zap, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import ImpactScoreBreakdown from "@/components/ImpactScoreBreakdown";
 
 interface SwipeCardProps {
   post: {
@@ -77,14 +77,17 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
   const categoryColorClass = categoryColors[safeCategory] || categoryColors.default;
   const displayCategory = safeCategory.replace('_', ' ');
 
+  // Calculate impact score from carbon footprint
+  const impactScore = Math.round(Math.abs(post.carbon_footprint_kg || 0) * 10 + 50);
+
   return (
     <div 
-      className="relative w-full h-full bg-card rounded-3xl shadow-lg overflow-hidden cursor-pointer"
+      className="relative w-full h-full bg-card rounded-3xl shadow-lg overflow-hidden cursor-pointer flex flex-col"
       onClick={onTap}
       style={style}
     >
-      {/* Background Image/Video */}
-      <div className="absolute inset-0">
+      {/* Background Image/Video - Takes 60% of height */}
+      <div className="relative h-[60%] overflow-hidden rounded-t-3xl">
         {post.image_url && (
           <img 
             src={post.image_url} 
@@ -103,84 +106,100 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         )}
         {/* Gradient overlay for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-      </div>
 
-      {/* Top content */}
-      <div className="absolute top-0 left-0 right-0 p-4 z-10">
-        <div className="flex items-center justify-between">
-          {/* Category Tag */}
-          <Badge className={cn("text-xs font-medium border backdrop-blur-sm", categoryColorClass)}>
-            {displayCategory}
-          </Badge>
+        {/* Top content overlay */}
+        <div className="absolute top-0 left-0 right-0 p-4 z-10">
+          <div className="flex items-center justify-between">
+            {/* Category Tag */}
+            <Badge className={cn("text-xs font-medium border backdrop-blur-sm", categoryColorClass)}>
+              {displayCategory}
+            </Badge>
 
-          {/* Impact Score */}
-          <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1">
-            <TrendingUp className="w-3 h-3 text-white" />
-            <span className="text-xs font-semibold text-white">
-              {Math.round((post.carbon_footprint_kg || 0) * 10)}
-            </span>
+            {/* Impact Score Chip */}
+            <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm rounded-full px-3 py-1">
+              <TrendingUp className="w-3 h-3 text-white" />
+              <span className="text-xs font-semibold text-white">
+                {impactScore}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* User info overlay at bottom of image */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-8 h-8 ring-2 ring-white/20">
+              <AvatarImage src={post.profiles?.avatar_url} />
+              <AvatarFallback className="text-xs bg-primary/20">
+                {post.profiles?.display_name?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <p className="font-semibold text-white text-sm">
+                {post.profiles?.display_name || "Anonymous"}
+              </p>
+              <p className="text-white/70 text-xs">2h ago</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom content */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-        {/* User info */}
-        <div className="flex items-center gap-3 mb-4">
-          <Avatar className="w-10 h-10 ring-2 ring-white/20">
-            <AvatarImage src={post.profiles?.avatar_url} />
-            <AvatarFallback className="text-xs bg-primary/20">
-              {post.profiles?.display_name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="font-semibold text-white text-sm">
-              {post.profiles?.display_name || "Anonymous"}
-            </p>
-            <p className="text-white/70 text-xs">2h ago</p>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="mb-6">
-          <h3 className="font-bold text-white text-lg mb-2 line-clamp-2">
+      {/* Content Area - Takes 40% of height */}
+      <div className="flex-1 p-4 bg-card flex flex-col">
+        {/* Activity Title and Caption */}
+        <div className="mb-3 flex-1">
+          <h3 className="font-bold text-foreground text-lg mb-2 line-clamp-2">
             {post.activity || "Activity"}
           </h3>
-          <p className="text-white/90 text-sm line-clamp-3">
+          <p className="text-muted-foreground text-sm line-clamp-2">
             {post.caption || "No description available"}
           </p>
         </div>
 
+        {/* Impact Score Breakdown - Main Feature */}
+        <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+          <ImpactScoreBreakdown
+            dimensions={post.activity_analysis || {
+              adventure_intensity: Math.floor(Math.random() * 40) + 60,
+              social_connection: Math.floor(Math.random() * 50) + 50,
+              environmental_impact: Math.floor(Math.random() * 60) + 40,
+              economic_impact: Math.floor(Math.random() * 70) + 30,
+              learning_growth: Math.floor(Math.random() * 80) + 20,
+            }}
+            impactScore={impactScore}
+          />
+        </div>
+
         {/* Action buttons */}
-        <div className="flex items-center justify-center gap-8">
+        <div className="flex items-center justify-center gap-6" onClick={(e) => e.stopPropagation()}>
           <Button
             variant="ghost"
             size="lg"
-            className="h-14 w-14 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-500/30"
+            className="h-12 w-12 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-500/30"
             onClick={handlePass}
           >
-            <X className="w-6 h-6 text-red-400" />
+            <X className="w-5 h-5 text-red-400" />
           </Button>
 
           <Button
             variant="ghost"
             size="lg"
-            className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm"
+            className="h-10 w-10 rounded-full bg-muted/20 hover:bg-muted/30 backdrop-blur-sm"
             onClick={handleShare}
           >
-            <Share className="w-5 h-5 text-white" />
+            <Share className="w-4 h-4 text-muted-foreground" />
           </Button>
 
           <Button
             variant="ghost"
             size="lg"
             className={cn(
-              "h-14 w-14 rounded-full backdrop-blur-sm border",
+              "h-12 w-12 rounded-full backdrop-blur-sm border",
               "bg-green-500/20 hover:bg-green-500/30 border-green-500/30"
             )}
             onClick={handleLike}
           >
-            <Heart className={cn("w-6 h-6 text-green-400", isLiked && "fill-current")} />
+            <Heart className={cn("w-5 h-5 text-green-400", isLiked && "fill-current")} />
           </Button>
         </div>
       </div>
