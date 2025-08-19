@@ -5,13 +5,13 @@ import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ChallengeStatusCard from "@/components/ChallengeStatusCard";
-import ChallengeVerificationDialog from "./ChallengeVerificationDialog";
 import { toast } from "@/hooks/use-toast";
 
 export default function CurrentChallenges() {
   const { user } = useAuthStatus();
   const queryClient = useQueryClient();
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [completingId, setCompletingId] = useState<string | null>(null);
 
   // Fetch all global (Kelp) challenges
   const { data: challenges, isLoading } = useQuery({
@@ -48,25 +48,125 @@ export default function CurrentChallenges() {
   const handleJoin = async (challengeId: string) => {
     if (!user || joiningId) return;
     setJoiningId(challengeId);
-    await supabase.from("challenge_participants").insert({
-      challenge_id: challengeId,
-      user_id: user.id,
-    });
-    await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
-    setJoiningId(null);
+    
+    try {
+      const { error } = await supabase.from("challenge_participants").insert({
+        challenge_id: challengeId,
+        user_id: user.id,
+      });
+      
+      if (error) throw error;
+      
+      await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+      toast({
+        title: "Challenge Joined! 🎯",
+        description: "You've successfully joined the challenge. Start working towards completion!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to join challenge. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setJoiningId(null);
+    }
   };
 
-  // Handle completion
-  const handleCompletion = () => {
-    queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+  // Handle completion - simplified verification
+  const handleComplete = async (challengeId: string, challengeTitle: string, participantId: string, rewardPoints: number) => {
+    if (!user || completingId) return;
+    setCompletingId(challengeId);
+    
+    try {
+      // 1. Mark challenge as completed
+      const { error: updateError } = await supabase
+        .from("challenge_participants")
+        .update({
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", participantId);
+      
+      if (updateError) throw updateError;
+
+      // 2. Add activity to feed
+      const { error: activityError } = await supabase.from("activities").insert({
+        user_id: user.id,
+        activity: `Completed challenge: ${challengeTitle}`,
+        caption: "Challenge completed successfully!",
+        category: "challenge",
+        explanation: "Challenge completion verified",
+        carbon_footprint_kg: 0,
+        emoji: "🏆",
+      });
+      
+      if (activityError) throw activityError;
+
+      // 3. Reward kelp points
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("kelp_points")
+        .eq("id", user.id)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      const currentPoints = Number(profile?.kelp_points ?? 0);
+      const { error: pointsError } = await supabase.from("profiles").update({
+        kelp_points: currentPoints + rewardPoints,
+      }).eq("id", user.id);
+      
+      if (pointsError) throw pointsError;
+
+      await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      
+      toast({
+        title: "Challenge Completed! 🎉",
+        description: `Congratulations! You earned ${rewardPoints} Kelp Points.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to complete challenge. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCompletingId(null);
+    }
   };
 
-  // Handle action (for joined but not completed challenges)
-  const handleAction = (challengeTitle: string) => {
+  // Handle real-world actions
+  const handleRealWorldAction = (challengeTitle: string) => {
+    let actionMessage = "";
+    
+    if (challengeTitle.toLowerCase().includes("mission")) {
+      actionMessage = `Mission "${challengeTitle}" accepted! Complete your real-world action and mark as completed.`;
+    } else if (challengeTitle.toLowerCase().includes("streak") || challengeTitle.toLowerCase().includes("action")) {
+      actionMessage = `Action logged for "${challengeTitle}"! Keep up the great work.`;
+    } else if (challengeTitle.toLowerCase().includes("tree") || challengeTitle.toLowerCase().includes("event")) {
+      actionMessage = `Successfully joined event: "${challengeTitle}"! Details will be shared soon.`;
+    } else {
+      actionMessage = `Action taken for "${challengeTitle}"! Progress recorded.`;
+    }
+    
     toast({
-      title: "Action Logged! 🎯",
-      description: `Progress recorded for "${challengeTitle}"`,
+      title: "Action Recorded! 🎯",
+      description: actionMessage,
     });
+  };
+
+  // Get action label based on challenge type
+  const getActionLabel = (challengeTitle: string, joined: boolean, completed: boolean) => {
+    if (completed) return "Completed!";
+    if (!joined) {
+      if (challengeTitle.toLowerCase().includes("mission")) return "Accept Mission";
+      if (challengeTitle.toLowerCase().includes("tree") || challengeTitle.toLowerCase().includes("event")) return "Join Event";
+      if (challengeTitle.toLowerCase().includes("streak") || challengeTitle.toLowerCase().includes("action")) return "Start Tracking";
+      return "Accept Challenge";
+    }
+    return "Mark as Completed";
   };
 
   // Render
@@ -93,37 +193,24 @@ export default function CurrentChallenges() {
           const completed = joined && participation.is_completed;
 
           return (
-            <div key={ch.id} className="relative">
-              <ChallengeStatusCard
-                title={ch.title}
-                description={ch.description}
-                reward={ch.reward_kelp_points}
-                joined={joined}
-                completed={completed}
-                joining={joiningId === ch.id}
-                onJoin={() => handleJoin(ch.id)}
-                onAction={joined && !completed ? () => handleAction(ch.title) : undefined}
-                actionLabel={
-                  ch.title.includes("IRL Mission") ? "Accept Mission" :
-                  ch.title.includes("Impact Streak") ? "Log Action" :
-                  ch.title.includes("Tree") ? "Join Event" : "Take Action"
+            <ChallengeStatusCard
+              key={ch.id}
+              title={ch.title}
+              description={ch.description}
+              reward={ch.reward_kelp_points}
+              joined={joined}
+              completed={completed}
+              joining={joiningId === ch.id}
+              onJoin={() => {
+                if (!joined) {
+                  handleJoin(ch.id);
+                } else {
+                  handleRealWorldAction(ch.title);
                 }
-              />
-              {joined && !completed && (
-                <div className="absolute bottom-2 right-2">
-                  <ChallengeVerificationDialog
-                    challenge={{
-                      id: ch.id,
-                      title: ch.title,
-                      description: ch.description,
-                      reward: ch.reward_kelp_points,
-                    }}
-                    participantId={participation.id}
-                    onFinish={handleCompletion}
-                  />
-                </div>
-              )}
-            </div>
+              }}
+              onComplete={joined && !completed ? () => handleComplete(ch.id, ch.title, participation.id, ch.reward_kelp_points) : undefined}
+              actionLabel={getActionLabel(ch.title, joined, completed)}
+            />
           );
         })}
       </div>

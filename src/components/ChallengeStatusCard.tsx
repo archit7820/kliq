@@ -13,6 +13,7 @@ interface ChallengeStatusCardProps {
   joining?: boolean;
   actionLabel?: string;
   onAction?: () => void;
+  onComplete?: () => void;
 }
 
 const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
@@ -24,49 +25,64 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
   onJoin,
   joining,
   actionLabel,
-  onAction
-}) => (
-  <div className="bg-[#f6f3ff] border border-[#e8e3fa] rounded-xl p-3 flex flex-col gap-2 shadow-sm group transition-all mb-2 touch-manipulation">
-    <div className="flex flex-col gap-2">
-      <div className="font-semibold text-violet-900 text-sm leading-tight">{title}</div>
-      <div className="text-xs text-violet-700 leading-relaxed line-clamp-2">{description}</div>
-      <span className="inline-flex items-center gap-1 bg-[#d0fae4] text-green-700 font-mono text-xs px-2 py-1 rounded-full w-fit">
-        <Activity className="w-3 h-3" /> +{reward} Kelp Points
-      </span>
-    </div>
+  onAction,
+  onComplete
+}) => {
+  // Determine button state and action
+  const getButtonConfig = () => {
+    if (completed) {
+      return {
+        text: "Completed!",
+        icon: <Check className="w-3 h-3 mr-1" />,
+        className: "bg-green-600 hover:bg-green-700 text-white cursor-default",
+        disabled: true,
+        onClick: undefined
+      };
+    }
     
-    <div className="flex flex-row gap-2 items-center justify-end mt-1">
-      {!joined && onJoin && (
+    if (!joined) {
+      return {
+        text: actionLabel || "Accept Mission",
+        className: "bg-emerald-500 hover:bg-emerald-600 text-white",
+        disabled: joining,
+        onClick: onJoin
+      };
+    }
+    
+    // Joined but not completed - show completion button
+    return {
+      text: "Mark as Completed",
+      className: "bg-blue-500 hover:bg-blue-600 text-white",
+      disabled: false,
+      onClick: onComplete
+    };
+  };
+
+  const buttonConfig = getButtonConfig();
+
+  return (
+    <div className="bg-[#f6f3ff] border border-[#e8e3fa] rounded-xl p-3 flex flex-col gap-2 shadow-sm group transition-all mb-2 touch-manipulation">
+      <div className="flex flex-col gap-2">
+        <div className="font-semibold text-violet-900 text-sm leading-tight">{title}</div>
+        <div className="text-xs text-violet-700 leading-relaxed line-clamp-2">{description}</div>
+        <span className="inline-flex items-center gap-1 bg-[#d0fae4] text-green-700 font-mono text-xs px-2 py-1 rounded-full w-fit">
+          <Activity className="w-3 h-3" /> +{reward} Kelp Points
+        </span>
+      </div>
+      
+      <div className="flex justify-end mt-1">
         <Button
           size="sm"
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 font-medium rounded-lg text-xs h-7 touch-manipulation"
-          onClick={onJoin}
-          disabled={joining}
+          className={`${buttonConfig.className} px-2 py-1 font-medium rounded-lg text-xs h-6 touch-manipulation`}
+          onClick={buttonConfig.onClick}
+          disabled={buttonConfig.disabled}
         >
-          {actionLabel || (joining ? "Joining..." : "Accept Mission")}
+          {buttonConfig.icon}
+          {buttonConfig.text}
         </Button>
-      )}
-      {joined && !completed && onAction && (
-        <Button
-          size="sm"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 font-medium rounded-lg text-xs h-7 touch-manipulation"
-          onClick={onAction}
-        >
-          {actionLabel || "Log Action"}
-        </Button>
-      )}
-      {joined && !completed && !onAction && (
-        <span className="inline-flex items-center text-blue-700 text-xs font-semibold">
-          In Progress...
-        </span>
-      )}
-      {completed && (
-        <span className="inline-flex items-center text-green-700 text-xs font-semibold">
-          <Check className="w-4 h-4 mr-1" /> Completed!
-        </span>
-      )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default ChallengeStatusCard;
