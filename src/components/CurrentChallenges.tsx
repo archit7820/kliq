@@ -34,7 +34,7 @@ export default function CurrentChallenges() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("challenge_participants")
-        .select("challenge_id, is_completed")
+        .select("id, challenge_id, is_completed")
         .eq("user_id", user.id);
       if (error) return [];
       return data || [];
@@ -53,6 +53,11 @@ export default function CurrentChallenges() {
     });
     await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
     setJoiningId(null);
+  };
+
+  // Handle completion
+  const handleCompletion = () => {
+    queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
   };
 
   // Render
@@ -75,18 +80,36 @@ export default function CurrentChallenges() {
           const participation = (myParticipation || []).find(
             (p: any) => p.challenge_id === ch.id
           );
+          const joined = !!participation;
+          const completed = joined && participation.is_completed;
+
           return (
-            <ChallengeStatusCard
-              key={ch.id}
-              title={ch.title}
-              description={ch.description}
-              reward={ch.reward_kelp_points}
-              joined={!!participation}
-              completed={!!participation && participation.is_completed}
-              joining={joiningId === ch.id}
-              onJoin={() => handleJoin(ch.id)}
-              onComplete={() => {/* Intentionally left out: handled by ChallengeVerificationDialog elsewhere */}}
-            />
+            <div key={ch.id} className="relative">
+              <ChallengeStatusCard
+                title={ch.title}
+                description={ch.description}
+                reward={ch.reward_kelp_points}
+                joined={joined}
+                completed={completed}
+                joining={joiningId === ch.id}
+                onJoin={() => handleJoin(ch.id)}
+                onComplete={joined && !completed ? () => {} : undefined}
+              />
+              {joined && !completed && (
+                <div className="absolute bottom-2 right-2">
+                  <ChallengeVerificationDialog
+                    challenge={{
+                      id: ch.id,
+                      title: ch.title,
+                      description: ch.description,
+                      reward: ch.reward_kelp_points,
+                    }}
+                    participantId={participation.id}
+                    onFinish={handleCompletion}
+                  />
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
