@@ -72,7 +72,10 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     }
   };
 
-  const categoryColorClass = categoryColors[post.category] || categoryColors.default;
+  // Safe category handling with null checks
+  const safeCategory = post.category || "default";
+  const categoryColorClass = categoryColors[safeCategory] || categoryColors.default;
+  const displayCategory = safeCategory.replace('_', ' ');
 
   return (
     <div 
@@ -85,7 +88,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         {post.image_url && (
           <img 
             src={post.image_url} 
-            alt={post.activity}
+            alt={post.activity || "Activity"}
             className="w-full h-full object-cover"
           />
         )}
@@ -107,7 +110,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         <div className="flex items-center justify-between">
           {/* Category Tag */}
           <Badge className={cn("text-xs font-medium border backdrop-blur-sm", categoryColorClass)}>
-            {post.category.replace('_', ' ')}
+            {displayCategory}
           </Badge>
 
           {/* Impact Score */}
@@ -141,10 +144,10 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         {/* Content */}
         <div className="mb-6">
           <h3 className="font-bold text-white text-lg mb-2 line-clamp-2">
-            {post.activity}
+            {post.activity || "Activity"}
           </h3>
           <p className="text-white/90 text-sm line-clamp-3">
-            {post.caption}
+            {post.caption || "No description available"}
           </p>
         </div>
 
