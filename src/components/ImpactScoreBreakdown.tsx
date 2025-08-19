@@ -46,12 +46,14 @@ interface ImpactScoreBreakdownProps {
   dimensions: Dimensions;
   impactScore?: number;
   compact?: boolean;
+  interactive?: boolean;
 }
 
 export default function ImpactScoreBreakdown({
   dimensions,
   impactScore,
-  compact = false
+  compact = false,
+  interactive = true
 }: ImpactScoreBreakdownProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -68,11 +70,14 @@ export default function ImpactScoreBreakdown({
   if (compact) {
     return (
       <div className="space-y-2">
-        {/* Compact Impact Score Bar */}
-        <Button
-          variant="ghost"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full p-2 h-auto hover:bg-muted/50 rounded-xl"
+        {/* Compact Impact Score Bar - Non-interactive when interactive=false */}
+        <div
+          className={cn(
+            "w-full p-2 h-auto rounded-xl transition-colors",
+            interactive 
+              ? "cursor-pointer hover:bg-muted/50" 
+              : "cursor-pointer bg-muted/30"
+          )}
         >
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
@@ -92,10 +97,10 @@ export default function ImpactScoreBreakdown({
               <div className="text-right">
                 <div className="text-lg font-bold text-primary">{score}</div>
               </div>
-              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              <ChevronUp className="w-3 h-3" />
             </div>
           </div>
-        </Button>
+        </div>
         
         {/* Compact progress bar */}
         <Progress value={Math.max(0, Math.min(100, avgScore))} className="h-1.5" />
@@ -112,37 +117,6 @@ export default function ImpactScoreBreakdown({
             </div>
           </div>
         </div>
-
-        {/* Detailed Breakdown - Expandable */}
-        {isExpanded && (
-          <Card className="border mt-2">
-            <CardContent className="p-3 space-y-2">
-              <div className="grid gap-2">
-                {Object.entries(dimensions).map(([key, val]) => {
-                  const dimension = friendly[key as keyof Dimensions];
-                  const score = Math.round(Number(val) || 0);
-                  const IconComponent = dimension.icon;
-                  
-                  return (
-                    <div key={key} className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <IconComponent className={cn("w-3 h-3", dimension.color)} />
-                          <span className="text-xs font-medium">{dimension.name}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs font-bold">{score}/100</span>
-                          {score >= 80 && <span className="text-xs">🔥</span>}
-                        </div>
-                      </div>
-                      <Progress value={Math.max(0, Math.min(100, score))} className="h-1" />
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     );
   }
@@ -155,8 +129,9 @@ export default function ImpactScoreBreakdown({
         <CardContent className="p-4">
           <Button
             variant="ghost"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => interactive && setIsExpanded(!isExpanded)}
             className="w-full p-0 h-auto hover:bg-transparent"
+            disabled={!interactive}
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
@@ -170,7 +145,9 @@ export default function ImpactScoreBreakdown({
                       {scoreLevel.emoji} {scoreLevel.level}
                     </span>
                   </div>
-                  <div className="text-sm text-muted-foreground">Tap to view breakdown</div>
+                  <div className="text-sm text-muted-foreground">
+                    {interactive ? "Tap to view breakdown" : "View detailed breakdown"}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -178,7 +155,7 @@ export default function ImpactScoreBreakdown({
                   <div className="text-2xl font-bold text-primary">{score}</div>
                   <div className="text-xs text-muted-foreground">/ 100</div>
                 </div>
-                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {interactive && (isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />)}
               </div>
             </div>
           </Button>
@@ -204,7 +181,7 @@ export default function ImpactScoreBreakdown({
       </div>
 
       {/* Detailed Breakdown - Expandable */}
-      {isExpanded && (
+      {isExpanded && interactive && (
         <Card className="border">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
