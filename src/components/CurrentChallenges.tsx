@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ChallengeStatusCard from "@/components/ChallengeStatusCard";
 import ChallengeVerificationDialog from "./ChallengeVerificationDialog";
+import { toast } from "@/hooks/use-toast";
 
 export default function CurrentChallenges() {
   const { user } = useAuthStatus();
@@ -60,6 +61,14 @@ export default function CurrentChallenges() {
     queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
   };
 
+  // Handle action (for joined but not completed challenges)
+  const handleAction = (challengeTitle: string) => {
+    toast({
+      title: "Action Logged! 🎯",
+      description: `Progress recorded for "${challengeTitle}"`,
+    });
+  };
+
   // Render
   return (
     <section className="mt-4 animate-fade-in">
@@ -93,6 +102,12 @@ export default function CurrentChallenges() {
                 completed={completed}
                 joining={joiningId === ch.id}
                 onJoin={() => handleJoin(ch.id)}
+                onAction={joined && !completed ? () => handleAction(ch.title) : undefined}
+                actionLabel={
+                  ch.title.includes("IRL Mission") ? "Accept Mission" :
+                  ch.title.includes("Impact Streak") ? "Log Action" :
+                  ch.title.includes("Tree") ? "Join Event" : "Take Action"
+                }
               />
               {joined && !completed && (
                 <div className="absolute bottom-2 right-2">

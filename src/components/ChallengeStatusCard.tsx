@@ -11,6 +11,8 @@ interface ChallengeStatusCardProps {
   completed: boolean;
   onJoin?: () => void;
   joining?: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
@@ -20,7 +22,9 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
   joined,
   completed,
   onJoin,
-  joining
+  joining,
+  actionLabel,
+  onAction
 }) => (
   <div className="bg-[#f6f3ff] border border-[#e8e3fa] rounded-xl p-3 flex flex-col gap-2 shadow-sm group transition-all mb-2 touch-manipulation">
     <div className="flex flex-col gap-2">
@@ -35,12 +39,26 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
       {!joined && onJoin && (
         <Button
           size="sm"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 font-medium rounded-md text-xs h-6 touch-manipulation"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 font-medium rounded-lg text-xs h-7 touch-manipulation"
           onClick={onJoin}
           disabled={joining}
         >
-          {joining ? "Joining..." : "Accept"}
+          {actionLabel || (joining ? "Joining..." : "Accept Mission")}
         </Button>
+      )}
+      {joined && !completed && onAction && (
+        <Button
+          size="sm"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 font-medium rounded-lg text-xs h-7 touch-manipulation"
+          onClick={onAction}
+        >
+          {actionLabel || "Log Action"}
+        </Button>
+      )}
+      {joined && !completed && !onAction && (
+        <span className="inline-flex items-center text-blue-700 text-xs font-semibold">
+          In Progress...
+        </span>
       )}
       {completed && (
         <span className="inline-flex items-center text-green-700 text-xs font-semibold">
