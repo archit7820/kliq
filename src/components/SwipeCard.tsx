@@ -73,6 +73,17 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only trigger onTap if the click is on the main card area (image section)
+    const target = e.target as HTMLElement;
+    const isImageSection = target.closest('.image-section');
+    const isImpactSection = target.closest('.impact-section');
+    
+    if (isImageSection && !isImpactSection) {
+      onTap();
+    }
+  };
+
   // Safe category handling with null checks
   const safeCategory = post.category || "default";
   const categoryColorClass = categoryColors[safeCategory] || categoryColors.default;
@@ -84,11 +95,11 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
   return (
     <div 
       className="relative w-full h-full bg-card rounded-3xl shadow-lg overflow-hidden cursor-pointer flex flex-col"
-      onClick={onTap}
+      onClick={handleCardClick}
       style={style}
     >
       {/* Background Image/Video - Takes 70% of height on mobile */}
-      <div className="relative h-[70%] overflow-hidden rounded-t-3xl">
+      <div className="image-section relative h-[70%] overflow-hidden rounded-t-3xl">
         {post.image_url && (
           <img 
             src={post.image_url} 
@@ -158,7 +169,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         </div>
 
         {/* Impact Score Breakdown - Compact Mobile Version */}
-        <div className="flex-1 mb-3" onClick={(e) => e.stopPropagation()}>
+        <div className="impact-section flex-1 mb-3">
           <ImpactScoreBreakdown
             dimensions={post.activity_analysis || {
               adventure_intensity: Math.floor(Math.random() * 40) + 60,
