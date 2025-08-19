@@ -84,6 +84,11 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     }
   };
 
+  const handleImpactSectionClick = (e: React.MouseEvent) => {
+    // Prevent the card click from firing when clicking on impact section
+    e.stopPropagation();
+  };
+
   // Safe category handling with null checks
   const safeCategory = post.category || "default";
   const categoryColorClass = categoryColors[safeCategory] || categoryColors.default;
@@ -169,7 +174,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         </div>
 
         {/* Impact Score Breakdown - Compact Mobile Version */}
-        <div className="impact-section flex-1 mb-3">
+        <div className="impact-section flex-1 mb-3" onClick={handleImpactSectionClick}>
           <ImpactScoreBreakdown
             dimensions={post.activity_analysis || {
               adventure_intensity: Math.floor(Math.random() * 40) + 60,
