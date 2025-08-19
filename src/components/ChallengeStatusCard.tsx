@@ -21,7 +21,6 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
   joined,
   completed,
   onJoin,
-  onComplete,
   joining
 }) => (
   <div className="bg-[#f6f3ff] border border-[#e8e3fa] rounded-xl p-3 flex flex-col gap-2 shadow-sm group transition-all mb-2 touch-manipulation">
@@ -42,15 +41,6 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
           disabled={joining}
         >
           {joining ? "Joining..." : "Accept"}
-        </Button>
-      )}
-      {joined && !completed && onComplete && (
-        <Button
-          size="sm"
-          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 font-semibold rounded-lg text-xs h-7 touch-manipulation"
-          onClick={onComplete}
-        >
-          Mark Complete
         </Button>
       )}
       {completed && (
