@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Zap, RotateCcw, Settings, LogOut, Users, UserPlus } from "lucide-react";
+import { Zap, RotateCcw, Settings, LogOut, Users, UserPlus, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import SwipeContainer from "@/components/SwipeContainer";
 import StoryViewer from "@/components/StoryViewer";
+import ShareableCard from "@/components/ShareableCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { toast } from "@/hooks/use-toast";
@@ -47,6 +48,7 @@ const ExplorePage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [storyIndex, setStoryIndex] = useState(0);
+  const [showShareableCard, setShowShareableCard] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -167,12 +169,21 @@ const ExplorePage = () => {
                 <Zap className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-foreground">Discover</h1>
+                <h1 className="text-lg font-bold text-foreground">Feeds</h1>
                 <p className="text-xs text-muted-foreground">Swipe to explore impact</p>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full"
+                onClick={() => setShowShareableCard(true)}
+              >
+                <Share className="w-4 h-4" />
+              </Button>
+              
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -260,6 +271,15 @@ const ExplorePage = () => {
           </p>
         </div>
       </div>
+
+      {/* Shareable Card Modal */}
+      {showShareableCard && (
+        <ShareableCard
+          isOpen={showShareableCard}
+          onClose={() => setShowShareableCard(false)}
+          userId={user?.id}
+        />
+      )}
     </div>
   );
 };
