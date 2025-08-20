@@ -11,7 +11,6 @@ export default function CurrentChallenges() {
   const { user } = useAuthStatus();
   const queryClient = useQueryClient();
   const [joiningId, setJoiningId] = useState<string | null>(null);
-  const [completingId, setCompletingId] = useState<string | null>(null);
 
   // Fetch all global (Kelp) challenges
   const { data: challenges, isLoading } = useQuery({
@@ -73,70 +72,6 @@ export default function CurrentChallenges() {
     }
   };
 
-  // Handle completion - simplified verification
-  const handleComplete = async (challengeId: string, challengeTitle: string, participantId: string, rewardPoints: number) => {
-    if (!user || completingId) return;
-    setCompletingId(challengeId);
-    
-    try {
-      // 1. Mark challenge as completed
-      const { error: updateError } = await supabase
-        .from("challenge_participants")
-        .update({
-          is_completed: true,
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", participantId);
-      
-      if (updateError) throw updateError;
-
-      // 2. Add activity to feed
-      const { error: activityError } = await supabase.from("activities").insert({
-        user_id: user.id,
-        activity: `Completed challenge: ${challengeTitle}`,
-        caption: "Challenge completed successfully!",
-        category: "challenge",
-        explanation: "Challenge completion verified",
-        carbon_footprint_kg: 0,
-        emoji: "🏆",
-      });
-      
-      if (activityError) throw activityError;
-
-      // 3. Reward kelp points
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("kelp_points")
-        .eq("id", user.id)
-        .single();
-      
-      if (profileError) throw profileError;
-      
-      const currentPoints = Number(profile?.kelp_points ?? 0);
-      const { error: pointsError } = await supabase.from("profiles").update({
-        kelp_points: currentPoints + rewardPoints,
-      }).eq("id", user.id);
-      
-      if (pointsError) throw pointsError;
-
-      await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
-      
-      toast({
-        title: "Challenge Completed! 🎉",
-        description: `Congratulations! You earned ${rewardPoints} Kelp Points.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to complete challenge. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setCompletingId(null);
-    }
-  };
-
   // Handle real-world actions
   const handleRealWorldAction = (challengeTitle: string) => {
     let actionMessage = "";
@@ -167,6 +102,12 @@ export default function CurrentChallenges() {
       return "Accept Challenge";
     }
     return "Mark as Completed";
+  };
+
+  // Handle completion refresh
+  const handleCompletionRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
   };
 
   // Render
@@ -201,6 +142,8 @@ export default function CurrentChallenges() {
               joined={joined}
               completed={completed}
               joining={joiningId === ch.id}
+              challengeId={ch.id}
+              participantId={participation?.id}
               onJoin={() => {
                 if (!joined) {
                   handleJoin(ch.id);
@@ -208,7 +151,7 @@ export default function CurrentChallenges() {
                   handleRealWorldAction(ch.title);
                 }
               }}
-              onComplete={joined && !completed ? () => handleComplete(ch.id, ch.title, participation.id, ch.reward_kelp_points) : undefined}
+              onComplete={handleCompletionRefresh}
               actionLabel={getActionLabel(ch.title, joined, completed)}
             />
           );

@@ -2,6 +2,7 @@
 import React from "react";
 import { Activity, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ChallengeVerificationDialog from "@/components/ChallengeVerificationDialog";
 
 interface ChallengeStatusCardProps {
   title: string;
@@ -12,7 +13,8 @@ interface ChallengeStatusCardProps {
   onJoin?: () => void;
   joining?: boolean;
   actionLabel?: string;
-  onAction?: () => void;
+  challengeId?: string;
+  participantId?: string;
   onComplete?: () => void;
 }
 
@@ -25,7 +27,8 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
   onJoin,
   joining,
   actionLabel,
-  onAction,
+  challengeId,
+  participantId,
   onComplete
 }) => {
   // Determine button state and action
@@ -36,7 +39,8 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
         icon: <Check className="w-3 h-3 mr-1" />,
         className: "bg-green-600 hover:bg-green-700 text-white cursor-default",
         disabled: true,
-        onClick: undefined
+        onClick: undefined,
+        showDialog: false
       };
     }
     
@@ -45,16 +49,18 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
         text: actionLabel || "Accept Mission",
         className: "bg-emerald-500 hover:bg-emerald-600 text-white",
         disabled: joining,
-        onClick: onJoin
+        onClick: onJoin,
+        showDialog: false
       };
     }
     
-    // Joined but not completed - show completion button
+    // Joined but not completed - show verification dialog
     return {
       text: "Mark as Completed",
       className: "bg-blue-500 hover:bg-blue-600 text-white",
       disabled: false,
-      onClick: onComplete
+      onClick: undefined,
+      showDialog: true
     };
   };
 
@@ -71,15 +77,28 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
       </div>
       
       <div className="flex justify-end mt-1">
-        <Button
-          size="sm"
-          className={`${buttonConfig.className} px-2 py-1 font-medium rounded-lg text-xs h-6 touch-manipulation`}
-          onClick={buttonConfig.onClick}
-          disabled={buttonConfig.disabled}
-        >
-          {buttonConfig.icon}
-          {buttonConfig.text}
-        </Button>
+        {buttonConfig.showDialog && challengeId && participantId ? (
+          <ChallengeVerificationDialog
+            challenge={{
+              id: challengeId,
+              title: title,
+              description: description,
+              reward: reward
+            }}
+            participantId={participantId}
+            onFinish={onComplete}
+          />
+        ) : (
+          <Button
+            size="sm"
+            className={`${buttonConfig.className} px-2 py-1 font-medium rounded-lg text-xs h-6 touch-manipulation`}
+            onClick={buttonConfig.onClick}
+            disabled={buttonConfig.disabled}
+          >
+            {buttonConfig.icon}
+            {buttonConfig.text}
+          </Button>
+        )}
       </div>
     </div>
   );
