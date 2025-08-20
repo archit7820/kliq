@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { LogOut, Users, UserPlus, ChevronDown } from 'lucide-react';
+import { useProfileWithStats } from '@/hooks/useProfileWithStats';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,6 +16,7 @@ import {
 
 const HomeHeader = () => {
   const navigate = useNavigate();
+  const { profile, isProfileLoading } = useProfileWithStats();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -36,7 +38,9 @@ const HomeHeader = () => {
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 rounded-full px-2.5 py-1 flex items-center gap-1.5">
             <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-            <span className="text-xs font-medium text-primary">30.72 Kelp Points</span>
+            <span className="text-xs font-medium text-primary">
+              {isProfileLoading ? "..." : (profile?.kelp_points ?? 0)} Kelp Points
+            </span>
           </div>
           
           <DropdownMenu>
