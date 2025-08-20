@@ -73,8 +73,13 @@ const impactDimensions = [
 const ImpactScoreModal = ({ isOpen, onClose, post }: ImpactScoreModalProps) => {
   const analysis = post.activity_analysis;
 
+  const handleClose = () => {
+    console.log('Closing impact modal');
+    onClose();
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
         <SheetHeader className="text-left pb-6">
           <div className="flex items-center justify-between">
@@ -91,6 +96,15 @@ const ImpactScoreModal = ({ isOpen, onClose, post }: ImpactScoreModalProps) => {
                 </p>
                 <p className="text-xs text-muted-foreground">Impact Score</p>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 rounded-full hover:bg-muted/30 touch-manipulation active:scale-95"
+                onClick={handleClose}
+                type="button"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </SheetHeader>

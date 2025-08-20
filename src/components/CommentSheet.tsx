@@ -15,7 +15,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { Database } from '@/integrations/supabase/types';
-import { LoaderCircle, Send } from 'lucide-react';
+import { LoaderCircle, Send, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -35,6 +35,11 @@ const CommentSheet: React.FC<CommentSheetProps> = ({ activityId, isOpen, onOpenC
   const { user } = useAuthStatus();
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState('');
+
+  const handleClose = () => {
+    console.log('Closing comment sheet');
+    onOpenChange(false);
+  };
 
   const { data: comments, isLoading, isError } = useQuery<CommentWithProfile[]>({
     queryKey: ['comments', activityId],
@@ -77,11 +82,24 @@ const CommentSheet: React.FC<CommentSheetProps> = ({ activityId, isOpen, onOpenC
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent className="flex flex-col">
         <SheetHeader>
-          <SheetTitle>Comments</SheetTitle>
-          <SheetDescription>Join the conversation.</SheetDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <SheetTitle>Comments</SheetTitle>
+              <SheetDescription>Join the conversation.</SheetDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 rounded-full hover:bg-muted/30 touch-manipulation active:scale-95"
+              onClick={handleClose}
+              type="button"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </SheetHeader>
         <div className="flex-grow overflow-y-auto pr-4 -mr-4 space-y-4">
           {isLoading && <div className="flex justify-center items-center h-full"><LoaderCircle className="w-6 h-6 animate-spin" /></div>}
@@ -124,4 +142,3 @@ const CommentSheet: React.FC<CommentSheetProps> = ({ activityId, isOpen, onOpenC
 };
 
 export default CommentSheet;
-

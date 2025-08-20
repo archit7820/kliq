@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,7 @@ import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import uploadChallengeSnap from "@/lib/uploadChallengeSnap";
+import { X } from "lucide-react";
 
 type Challenge = {
   id: string;
@@ -31,6 +33,11 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
   const [offset, setOffset] = useState(""); // <--- new for co2e offset
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClose = () => {
+    console.log('Closing challenge verification dialog');
+    setOpen(false);
+  };
 
   // Main submit handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,7 +100,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       if (pointsErr) throw pointsErr;
 
       toast.success("Challenge completed! Rewarded " + challenge.reward + " Kelp Points.");
-      setOpen(false);
+      handleClose();
       if (onFinish) onFinish();
     } catch (err: any) {
       toast.error("Failed to verify challenge", { description: err?.message });
@@ -104,7 +111,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
         <Button
           size="sm"
@@ -115,11 +122,24 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Complete: {challenge.title}</DialogTitle>
-          <DialogDescription>
-            Upload a photo as proof of completion. Optionally, add a comment.<br />
-            <span className="text-green-800 font-medium">If your challenge removes CO₂e (offsets), you can enter your estimated offset!</span>
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>Complete: {challenge.title}</DialogTitle>
+              <DialogDescription>
+                Upload a photo as proof of completion. Optionally, add a comment.<br />
+                <span className="text-green-800 font-medium">If your challenge removes CO₂e (offsets), you can enter your estimated offset!</span>
+              </DialogDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 rounded-full hover:bg-muted/30 touch-manipulation active:scale-95"
+              onClick={handleClose}
+              type="button"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label htmlFor="snap" className="text-sm">Photo Verification <span className="text-red-500">*</span></label>
@@ -162,9 +182,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
             >
               {submitting ? "Submitting..." : "Submit"}
             </Button>
-            <DialogClose asChild>
-              <Button type="button" variant="ghost" disabled={submitting}>Cancel</Button>
-            </DialogClose>
+            <Button type="button" variant="ghost" disabled={submitting} onClick={handleClose}>Cancel</Button>
           </DialogFooter>
         </form>
       </DialogContent>
