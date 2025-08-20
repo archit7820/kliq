@@ -61,33 +61,46 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
   const handleEnd = useCallback(() => {
     if (!isDragging) return;
 
-    const threshold = 100;
+    const threshold = 80; // Reduced threshold for mobile
     const { x } = dragOffset;
 
     if (Math.abs(x) > threshold) {
-      // Swipe detected
       if (x > 0) {
-        // Swipe right - like
         onSwipeRight(currentPost);
       } else {
-        // Swipe left - pass
         onSwipeLeft(currentPost);
       }
       
-      // Move to next card
       setTimeout(() => {
         setCurrentIndex(prev => prev + 1);
         setDragOffset({ x: 0, y: 0 });
         setIsDragging(false);
       }, 200);
     } else {
-      // Return to center
       setDragOffset({ x: 0, y: 0 });
       setIsDragging(false);
     }
   }, [isDragging, dragOffset, currentPost, onSwipeLeft, onSwipeRight]);
 
-  // Mouse events
+  // Touch events (primary for mobile)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleStart(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleMove(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleEnd();
+  };
+
+  // Mouse events (desktop fallback)
   const handleMouseDown = (e: React.MouseEvent) => {
     handleStart(e.clientX, e.clientY);
   };
@@ -97,21 +110,6 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
   };
 
   const handleMouseUp = () => {
-    handleEnd();
-  };
-
-  // Touch events
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleStart(touch.clientX, touch.clientY);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    handleMove(touch.clientX, touch.clientY);
-  };
-
-  const handleTouchEnd = () => {
     handleEnd();
   };
 
@@ -127,29 +125,30 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
 
   if (currentIndex >= posts.length) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center py-8">
-          <div className="text-6xl mb-4">🎉</div>
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="text-center py-8 max-w-sm mx-auto">
+          <div className="text-5xl mb-4">🎉</div>
           <h3 className="text-xl font-bold text-foreground mb-2">You're all caught up!</h3>
-          <p className="text-muted-foreground">Check back later for more posts</p>
+          <p className="text-muted-foreground text-sm">Check back later for more posts</p>
         </div>
       </div>
     );
   }
 
   const cardStyle = {
-    transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.1}deg)`,
-    transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+    transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${dragOffset.x * 0.05}deg)`,
+    transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
   };
 
   const nextCardStyle = {
-    transform: `scale(${0.95 + Math.abs(dragOffset.x) * 0.0001})`,
+    transform: `scale(${0.95 + Math.abs(dragOffset.x) * 0.0002})`,
     transition: isDragging ? 'transform 0.1s ease-out' : 'transform 0.3s ease-out',
   };
 
   return (
-    <div className="relative flex-1 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-sm h-[70vh]">
+    <div className="relative flex-1 flex items-center justify-center px-4 py-2">
+      {/* Card Container - Mobile optimized dimensions */}
+      <div className="relative w-full max-w-sm h-[75vh] max-h-[600px] min-h-[500px]">
         {/* Next card (behind) */}
         {nextPost && (
           <div className="absolute inset-0 z-0" style={nextCardStyle}>
@@ -166,15 +165,15 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
         {currentPost && (
           <div
             ref={cardRef}
-            className="absolute inset-0 z-10"
+            className="absolute inset-0 z-10 touch-pan-y"
             style={cardStyle}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
             <SwipeCard
               post={currentPost as any}
@@ -186,17 +185,24 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
         )}
       </div>
 
-      {/* Progress indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-        <div className="flex gap-1">
-          {posts.slice(0, 10).map((_, index) => (
+      {/* Progress indicator - Mobile optimized */}
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+        <div className="flex gap-1 bg-black/20 backdrop-blur-sm rounded-full px-2 py-1">
+          {posts.slice(0, Math.min(10, posts.length)).map((_, index) => (
             <div
               key={index}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index <= currentIndex ? 'bg-primary' : 'bg-muted'
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                index <= currentIndex 
+                  ? 'bg-white scale-110' 
+                  : 'bg-white/40'
               }`}
             />
           ))}
+          {posts.length > 10 && (
+            <span className="text-xs text-white/70 ml-1">
+              +{posts.length - 10}
+            </span>
+          )}
         </div>
       </div>
     </div>

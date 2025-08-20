@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Heart, MessageCircle, Share, X, Zap, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ interface SwipeCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  "thrift_fit": "bg-mint-100 text-mint-800 border-mint-200",
+  "thrift_fit": "bg-emerald-100 text-emerald-800 border-emerald-200",
   "cycle_commute": "bg-sky-100 text-sky-800 border-sky-200",
   "sustainable_food": "bg-green-100 text-green-800 border-green-200",
   "eco_travel": "bg-blue-100 text-blue-800 border-blue-200",
@@ -51,19 +52,19 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 50) + 5);
   const [showImpactModal, setShowImpactModal] = useState(false);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     setIsLiked(!isLiked);
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
     onSwipeRight();
   };
 
-  const handlePass = (e: React.MouseEvent) => {
+  const handlePass = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     onSwipeLeft();
   };
 
-  const handleShare = (e: React.MouseEvent) => {
+  const handleShare = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     if (navigator.share) {
       navigator.share({
@@ -74,8 +75,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Only trigger onTap if the click is on the main card area (image section)
+  const handleCardClick = (e: React.MouseEvent | React.TouchEvent) => {
     const target = e.target as HTMLElement;
     const isImageSection = target.closest('.image-section');
     const isImpactSection = target.closest('.impact-section');
@@ -86,33 +86,31 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     }
   };
 
-  const handleImpactClick = (e: React.MouseEvent) => {
+  const handleImpactClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     setShowImpactModal(true);
   };
 
-  // Safe category handling with null checks
   const safeCategory = post.category || "default";
   const categoryColorClass = categoryColors[safeCategory] || categoryColors.default;
   const displayCategory = safeCategory.replace('_', ' ');
-
-  // Calculate impact score from carbon footprint
   const impactScore = Math.round(Math.abs(post.carbon_footprint_kg || 0) * 10 + 50);
 
   return (
     <>
       <div 
-        className="relative w-full h-full bg-card rounded-3xl shadow-lg overflow-hidden cursor-pointer flex flex-col"
+        className="relative w-full h-full bg-card rounded-3xl shadow-xl overflow-hidden cursor-pointer flex flex-col border border-border/20"
         onClick={handleCardClick}
         style={style}
       >
-        {/* Background Image/Video - Takes 70% of height on mobile */}
-        <div className="image-section relative h-[70%] overflow-hidden rounded-t-3xl">
+        {/* Background Image/Video - Mobile optimized height */}
+        <div className="image-section relative h-[68%] overflow-hidden rounded-t-3xl">
           {post.image_url && (
             <img 
               src={post.image_url} 
               alt={post.activity || "Activity"}
               className="w-full h-full object-cover"
+              loading="lazy"
             />
           )}
           {post.video_url && (
@@ -122,21 +120,21 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
               autoPlay
               muted
               loop
+              playsInline
             />
           )}
-          {/* Gradient overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
+          
+          {/* Enhanced gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/50" />
 
-          {/* Top content overlay */}
+          {/* Top content overlay - Mobile optimized */}
           <div className="absolute top-0 left-0 right-0 p-3 z-10">
             <div className="flex items-center justify-between">
-              {/* Category Tag */}
-              <Badge className={cn("text-xs font-medium border backdrop-blur-sm", categoryColorClass)}>
+              <Badge className={cn("text-xs font-medium border backdrop-blur-md", categoryColorClass)}>
                 {displayCategory}
               </Badge>
 
-              {/* Impact Score Chip */}
-              <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-1">
+              <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
                 <TrendingUp className="w-3 h-3 text-white" />
                 <span className="text-xs font-bold text-white">
                   {impactScore}
@@ -145,17 +143,17 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
             </div>
           </div>
 
-          {/* User info overlay at bottom of image */}
+          {/* User info overlay - Mobile optimized */}
           <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
             <div className="flex items-center gap-2">
-              <Avatar className="w-7 h-7 ring-2 ring-white/30">
+              <Avatar className="w-8 h-8 ring-2 ring-white/40">
                 <AvatarImage src={post.profiles?.avatar_url} />
-                <AvatarFallback className="text-xs bg-primary/20">
+                <AvatarFallback className="text-xs bg-primary/30 text-white">
                   {post.profiles?.display_name?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold text-white text-sm">
+                <p className="font-semibold text-white text-sm leading-tight">
                   {post.profiles?.display_name || "Anonymous"}
                 </p>
                 <p className="text-white/80 text-xs">2h ago</p>
@@ -164,10 +162,10 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
           </div>
         </div>
 
-        {/* Content Area - Takes 30% of height */}
-        <div className="h-[30%] p-3 bg-card flex flex-col">
-          {/* Activity Title - Compact */}
-          <div className="mb-2">
+        {/* Content Area - Mobile optimized */}
+        <div className="h-[32%] p-3 bg-card flex flex-col">
+          {/* Activity Title */}
+          <div className="mb-2 flex-shrink-0">
             <h3 className="font-bold text-foreground text-base leading-tight line-clamp-1">
               {post.activity || "Activity"}
             </h3>
@@ -176,8 +174,8 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
             </p>
           </div>
 
-          {/* Impact Score Breakdown - Clickable to open modal */}
-          <div className="impact-section flex-1 mb-3" onClick={handleImpactClick}>
+          {/* Impact Score Breakdown - Compact mobile version */}
+          <div className="impact-section flex-1 mb-2 min-h-0" onClick={handleImpactClick}>
             <ImpactScoreBreakdown
               dimensions={post.activity_analysis || {
                 adventure_intensity: Math.floor(Math.random() * 40) + 60,
@@ -192,13 +190,14 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
             />
           </div>
 
-          {/* Action buttons - Smaller and more compact */}
-          <div className="action-buttons flex items-center justify-center gap-4">
+          {/* Action buttons - Mobile optimized */}
+          <div className="action-buttons flex items-center justify-center gap-3 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
-              className="h-10 w-10 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-500/30"
+              className="h-10 w-10 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-500/30 touch-manipulation active:scale-95"
               onClick={handlePass}
+              onTouchEnd={handlePass}
             >
               <X className="w-4 h-4 text-red-400" />
             </Button>
@@ -206,8 +205,9 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 rounded-full bg-muted/20 hover:bg-muted/30 backdrop-blur-sm"
+              className="h-8 w-8 rounded-full bg-muted/20 hover:bg-muted/30 backdrop-blur-sm touch-manipulation active:scale-95"
               onClick={handleShare}
+              onTouchEnd={handleShare}
             >
               <Share className="w-3 h-3 text-muted-foreground" />
             </Button>
@@ -216,10 +216,11 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
               variant="ghost"
               size="sm"
               className={cn(
-                "h-10 w-10 rounded-full backdrop-blur-sm border",
+                "h-10 w-10 rounded-full backdrop-blur-sm border touch-manipulation active:scale-95",
                 "bg-green-500/20 hover:bg-green-500/30 border-green-500/30"
               )}
               onClick={handleLike}
+              onTouchEnd={handleLike}
             >
               <Heart className={cn("w-4 h-4 text-green-400", isLiked && "fill-current")} />
             </Button>
@@ -227,7 +228,6 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
         </div>
       </div>
 
-      {/* Impact Score Modal */}
       <ImpactScoreModal
         isOpen={showImpactModal}
         onClose={() => setShowImpactModal(false)}

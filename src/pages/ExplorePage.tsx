@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Zap, RotateCcw, Settings, LogOut, Users, UserPlus, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -160,25 +161,27 @@ const ExplorePage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-lg border-b">
-        <div className="px-4 py-3">
+      {/* Mobile-First Header */}
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/50">
+        <div className="px-4 py-3 safe-area-pt">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            {/* Left side - App branding */}
+            <div className="flex items-center gap-2">
               <div className="p-2 bg-primary/20 rounded-xl">
-                <Zap className="w-5 h-5 text-primary" />
+                <Zap className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-foreground">Feeds</h1>
-                <p className="text-xs text-muted-foreground">Swipe to explore impact</p>
+                <h1 className="text-base font-bold text-foreground">Feeds</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Swipe to explore impact</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            {/* Right side - Actions */}
+            <div className="flex items-center gap-1">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full"
+                className="rounded-full h-8 w-8"
                 onClick={() => setShowShareableCard(true)}
               >
                 <Share className="w-4 h-4" />
@@ -187,7 +190,7 @@ const ExplorePage = () => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full"
+                className="rounded-full h-8 w-8"
                 onClick={handleRefresh}
                 disabled={loading}
               >
@@ -196,11 +199,11 @@ const ExplorePage = () => {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
+                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
                     <Settings className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-popover/95 backdrop-blur-sm">
+                <DropdownMenuContent align="end" className="w-44 bg-popover/95 backdrop-blur-sm">
                   <DropdownMenuItem 
                     onClick={() => navigate('/friends')} 
                     className="text-sm cursor-pointer"
@@ -230,23 +233,23 @@ const ExplorePage = () => {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main Content - Mobile Optimized */}
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading amazing content...</p>
+            <p className="text-muted-foreground text-sm">Loading amazing content...</p>
           </div>
         </div>
       ) : posts.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🌱</div>
-            <h3 className="text-xl font-bold mb-2">No Posts Yet</h3>
-            <p className="text-muted-foreground mb-4">
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center max-w-sm mx-auto">
+            <div className="text-4xl mb-3">🌱</div>
+            <h3 className="text-lg font-bold mb-2">No Posts Yet</h3>
+            <p className="text-muted-foreground text-sm mb-4">
               Be the first to share your impact!
             </p>
-            <Button onClick={handleRefresh}>
+            <Button onClick={handleRefresh} size="sm">
               Try Again
             </Button>
           </div>
@@ -260,10 +263,10 @@ const ExplorePage = () => {
         />
       )}
 
-      {/* Instructions for first-time users */}
-      <div className="p-4 bg-muted/30">
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground mb-2">
+      {/* Mobile-First Instructions Footer */}
+      <div className="p-3 bg-muted/20 border-t border-border/30 safe-area-pb">
+        <div className="text-center max-w-sm mx-auto">
+          <p className="text-xs text-muted-foreground mb-1">
             💚 Swipe right or tap ❤️ to like • ❌ Swipe left or tap ✖️ to pass
           </p>
           <p className="text-xs text-muted-foreground">
