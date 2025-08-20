@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Database } from '@/integrations/supabase/types';
-import { MoreHorizontal, Leaf, MapPin, Clock } from 'lucide-react';
+import { MoreHorizontal, Leaf, MapPin, Clock, Trash2 } from 'lucide-react';
 import CommentSheet from './CommentSheet';
 import PostInteractions from './PostInteractions';
 import { Button } from './ui/button';
@@ -15,7 +15,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
-import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type Activity = Database['public']['Tables']['activities']['Row'];
@@ -26,6 +36,7 @@ interface EnhancedActivityCardProps {
   profile?: Profile | null;
   currentUserId?: string | null;
   showLocation?: boolean;
+  onActivityDeleted?: (activityId: string) => void;
 }
 
 const colors = [
@@ -40,10 +51,12 @@ const EnhancedActivityCard: React.FC<EnhancedActivityCardProps> = ({
   activity, 
   profile, 
   currentUserId,
-  showLocation = true 
+  showLocation = true,
+  onActivityDeleted 
 }) => {
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const carbonFootprint = Number(activity.carbon_footprint_kg);
   const isOffset = carbonFootprint < 0;
@@ -58,18 +71,43 @@ const EnhancedActivityCard: React.FC<EnhancedActivityCardProps> = ({
     setIsCommentSheetOpen(true);
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this activity? This cannot be undone.")) return;
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     setLoading(true);
-    const { error } = await supabase
-      .from("activities")
-      .delete()
-      .eq("id", activity.id);
-    setLoading(false);
-    if (error) {
-      toast.error("Failed to delete activity", { description: error.message });
-    } else {
-      toast.success("Activity deleted!");
+    
+    try {
+      const { error } = await supabase
+        .from("activities")
+        .delete()
+        .eq("id", activity.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Activity Deleted! 🗑️",
+        description: "Your activity has been permanently removed."
+      });
+
+      // Call the callback to update the parent component
+      if (onActivityDeleted) {
+        onActivityDeleted(activity.id);
+      }
+
+    } catch (error: any) {
+      console.error("Error deleting activity:", error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete activity. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -120,11 +158,12 @@ const EnhancedActivityCard: React.FC<EnhancedActivityCardProps> = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white shadow rounded-xl py-1 w-48">
                 <DropdownMenuItem
-                  className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer"
-                  onClick={handleDelete}
+                  className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer flex items-center gap-2"
+                  onClick={handleDeleteClick}
                   disabled={loading}
                 >
-                  Delete
+                  <Trash2 className="w-4 h-4" />
+                  Delete Activity
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -191,6 +230,28 @@ const EnhancedActivityCard: React.FC<EnhancedActivityCardProps> = ({
           </button>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">Delete Activity?</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-sm">
+              This action cannot be undone. Your activity and all its comments will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel className="flex-1 rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="flex-1 rounded-xl bg-red-500 hover:bg-red-600"
+              disabled={loading}
+            >
+              {loading ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <CommentSheet
         activityId={activity.id}

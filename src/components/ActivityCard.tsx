@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Database } from '@/integrations/supabase/types';
-import { MoreHorizontal, Leaf } from 'lucide-react';
+import { MoreHorizontal, Leaf, Trash2 } from 'lucide-react';
 import CommentSheet from './CommentSheet';
 import PostInteractions from './PostInteractions';
 import { Button } from './ui/button';
@@ -14,7 +14,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
-import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 type Activity = Database['public']['Tables']['activities']['Row'] & { archived?: boolean };
@@ -24,6 +34,7 @@ interface ActivityCardProps {
   activity: Activity;
   profile?: Profile | null;
   currentUserId?: string | null;
+  onActivityDeleted?: (activityId: string) => void;
 }
 
 const colors = [
@@ -34,9 +45,15 @@ const colors = [
   "from-indigo-100 to-teal-100",
 ];
 
-const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentUserId }) => {
+const ActivityCard: React.FC<ActivityCardProps> = ({ 
+  activity, 
+  profile, 
+  currentUserId, 
+  onActivityDeleted 
+}) => {
   const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const carbonFootprint = Number(activity.carbon_footprint_kg);
   const isOffset = carbonFootprint < 0;
@@ -55,23 +72,43 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
 
   const isOwner = currentUserId === activity.user_id;
 
-  const handleArchive = async () => {
-    // Since 'archived' doesn't exist, show a toast and do nothing else for now
-    toast.info("Archive not implemented. Add 'archived' column to activities table to use this feature.");
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this activity? This cannot be undone.")) return;
+  const handleDeleteConfirm = async () => {
     setLoading(true);
-    const { error } = await supabase
-      .from("activities")
-      .delete()
-      .eq("id", activity.id);
-    setLoading(false);
-    if (error) {
-      toast.error("Failed to delete activity", { description: error.message });
-    } else {
-      toast.success("Activity deleted!");
+    
+    try {
+      const { error } = await supabase
+        .from("activities")
+        .delete()
+        .eq("id", activity.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Activity Deleted! 🗑️",
+        description: "Your activity has been permanently removed."
+      });
+
+      // Call the callback to update the parent component
+      if (onActivityDeleted) {
+        onActivityDeleted(activity.id);
+      }
+
+    } catch (error: any) {
+      console.error("Error deleting activity:", error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete activity. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -102,18 +139,12 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white shadow rounded-xl py-1 w-48">
                 <DropdownMenuItem
-                  className="px-4 py-2 hover:bg-gray-100 text-gray-800 cursor-pointer"
-                  onClick={handleArchive}
+                  className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer flex items-center gap-2"
+                  onClick={handleDeleteClick}
                   disabled={loading}
                 >
-                  Archive
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="px-4 py-2 hover:bg-red-100 text-red-700 cursor-pointer"
-                  onClick={handleDelete}
-                  disabled={loading}
-                >
-                  Delete
+                  <Trash2 className="w-4 h-4" />
+                  Delete Activity
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -158,6 +189,29 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity, profile, currentU
           <button onClick={handleComment} className="text-xs text-muted-foreground mt-2 underline hover:text-primary">View all comments</button>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center">Delete Activity?</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-sm">
+              This action cannot be undone. Your activity and all its comments will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel className="flex-1 rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="flex-1 rounded-xl bg-red-500 hover:bg-red-600"
+              disabled={loading}
+            >
+              {loading ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <CommentSheet
         activityId={activity.id}
         isOpen={isCommentSheetOpen}
