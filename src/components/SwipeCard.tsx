@@ -54,6 +54,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
 
   const handleLike = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsLiked(!isLiked);
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
     onSwipeRight();
@@ -61,11 +62,13 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
 
   const handlePass = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     onSwipeLeft();
   };
 
   const handleShare = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     if (navigator.share) {
       navigator.share({
         title: post.activity,
@@ -80,14 +83,29 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     const isImageSection = target.closest('.image-section');
     const isImpactSection = target.closest('.impact-section');
     const isActionButtons = target.closest('.action-buttons');
+    const isImpactChip = target.closest('.impact-chip');
     
-    if (isImageSection && !isImpactSection && !isActionButtons) {
+    // Don't trigger card tap if clicking on interactive elements
+    if (isImpactSection || isActionButtons || isImpactChip) {
+      return;
+    }
+    
+    if (isImageSection) {
       onTap();
     }
   };
 
   const handleImpactClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    console.log('Impact clicked, opening modal'); // Debug log
+    setShowImpactModal(true);
+  };
+
+  const handleImpactChipClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('Impact chip clicked, opening modal'); // Debug log
     setShowImpactModal(true);
   };
 
@@ -134,7 +152,12 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
                 {displayCategory}
               </Badge>
 
-              <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
+              {/* Impact Score Chip - Enhanced for mobile touch */}
+              <div 
+                className="impact-chip flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-3 py-2 cursor-pointer touch-manipulation active:scale-95 transition-transform"
+                onClick={handleImpactChipClick}
+                onTouchEnd={handleImpactChipClick}
+              >
                 <TrendingUp className="w-3 h-3 text-white" />
                 <span className="text-xs font-bold text-white">
                   {impactScore}
@@ -174,8 +197,12 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
             </p>
           </div>
 
-          {/* Impact Score Breakdown - Compact mobile version */}
-          <div className="impact-section flex-1 mb-2 min-h-0" onClick={handleImpactClick}>
+          {/* Impact Score Breakdown - Compact mobile version with enhanced touch */}
+          <div 
+            className="impact-section flex-1 mb-2 min-h-0 cursor-pointer touch-manipulation active:scale-[0.98] transition-transform" 
+            onClick={handleImpactClick}
+            onTouchEnd={handleImpactClick}
+          >
             <ImpactScoreBreakdown
               dimensions={post.activity_analysis || {
                 adventure_intensity: Math.floor(Math.random() * 40) + 60,
