@@ -3,6 +3,7 @@ import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import BottomNav from '@/components/BottomNav';
+import { useFriendsCount } from '@/hooks/useFriendsCount';
 
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings, LoaderCircle, Award, Leaf, Users, MapPin, Tag, X, Crown, Plus, TrendingUp } from 'lucide-react';
@@ -27,6 +28,7 @@ type ActivityWithProfile = Activity & { profile: Profile | null };
 const ProfilePage = () => {
     const { user } = useAuthStatus();
     const navigate = useNavigate();
+    const { friendsCount } = useFriendsCount();
 
     const { data: profile, isLoading: profileLoading } = useQuery({
         queryKey: ['profile', user?.id],
@@ -350,7 +352,7 @@ const ProfilePage = () => {
                     aria-label="View Friends Page"
                   >
                     <div className="text-lg font-bold text-purple-600 group-hover:text-purple-500 transition-colors">
-                      0
+                      {friendsCount}
                     </div>
                     <div className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
                       Friends
