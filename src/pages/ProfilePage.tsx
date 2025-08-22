@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { useQuery } from '@tanstack/react-query';
@@ -19,6 +18,7 @@ import { useUserBadges } from "@/hooks/useUserBadges";
 import UserBadges from "@/components/UserBadges";
 import EditProfileModal from "@/components/EditProfileModal";
 import DynamicAchievements from "@/components/DynamicAchievements";
+import KelpWalletModal from "@/components/KelpWalletModal";
 
 type Activity = Database['public']['Tables']['activities']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -82,6 +82,7 @@ const ProfilePage = () => {
     };
 
     const [editing, setEditing] = React.useState(false);
+    const [showKelpWallet, setShowKelpWallet] = React.useState(false);
     const [editForm, setEditForm] = React.useState({
         full_name: '',
         username: '',
@@ -175,6 +176,26 @@ const ProfilePage = () => {
         setAvatarUploading(false);
     };
 
+    // Navigation handlers for stat cards
+    const handleStatClick = (statType: string) => {
+        switch (statType) {
+            case 'kelp':
+                setShowKelpWallet(true);
+                break;
+            case 'streak':
+                navigate('/impact-dashboard');
+                break;
+            case 'activities':
+                navigate('/feed');
+                break;
+            case 'friends':
+                navigate('/friends');
+                break;
+            default:
+                break;
+        }
+    };
+
     if (profileLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-background px-2">
@@ -226,6 +247,14 @@ const ProfilePage = () => {
                     errorMsg={errorMsg}
                     onSave={() => { updateProfile(); }}
                 />
+
+                {/* Kelp Wallet Modal */}
+                <KelpWalletModal
+                    open={showKelpWallet}
+                    setOpen={setShowKelpWallet}
+                    points={profile?.kelp_points ?? 0}
+                />
+
                 {/* Enhanced Start Your Own Club Banner */}
                 {showStartCard && (
                   <div className="rounded-lg border border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-3 flex items-center justify-between shadow-sm">
@@ -274,24 +303,59 @@ const ProfilePage = () => {
                   </Button>
                 </div>
 
-                {/* Stats Grid */}
+                {/* Enhanced Interactive Stats Grid */}
                 <div className="grid grid-cols-4 gap-2">
-                  <div className="rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-2 text-center">
-                    <div className="text-lg font-bold text-primary">{profile?.kelp_points ?? 0}</div>
-                    <div className="text-xs text-muted-foreground">Kelp Points</div>
-                  </div>
-                  <div className="rounded-lg bg-gradient-to-br from-orange-100 to-orange-50 border border-orange-200 p-2 text-center">
-                    <div className="text-lg font-bold text-orange-600">{profile?.streak_count ?? 0}</div>
-                    <div className="text-xs text-muted-foreground">Day Streak</div>
-                  </div>
-                  <div className="rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 p-2 text-center">
-                    <div className="text-lg font-bold text-blue-600">{activities?.length || 0}</div>
-                    <div className="text-xs text-muted-foreground">Activities</div>
-                  </div>
-                  <div className="rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 p-2 text-center">
-                    <div className="text-lg font-bold text-purple-600">0</div>
-                    <div className="text-xs text-muted-foreground">Friends</div>
-                  </div>
+                  <button
+                    onClick={() => handleStatClick('kelp')}
+                    className="rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-2 text-center hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    aria-label="View Kelp Wallet"
+                  >
+                    <div className="text-lg font-bold text-primary group-hover:text-primary/80 transition-colors">
+                      {profile?.kelp_points ?? 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
+                      Kelp Points
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleStatClick('streak')}
+                    className="rounded-lg bg-gradient-to-br from-orange-100 to-orange-50 border border-orange-200 p-2 text-center hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    aria-label="View Impact Dashboard"
+                  >
+                    <div className="text-lg font-bold text-orange-600 group-hover:text-orange-500 transition-colors">
+                      {profile?.streak_count ?? 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
+                      Day Streak
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleStatClick('activities')}
+                    className="rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200 p-2 text-center hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    aria-label="View All Activities"
+                  >
+                    <div className="text-lg font-bold text-blue-600 group-hover:text-blue-500 transition-colors">
+                      {activities?.length || 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
+                      Activities
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleStatClick('friends')}
+                    className="rounded-lg bg-gradient-to-br from-purple-100 to-purple-50 border border-purple-200 p-2 text-center hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    aria-label="View Friends Page"
+                  >
+                    <div className="text-lg font-bold text-purple-600 group-hover:text-purple-500 transition-colors">
+                      0
+                    </div>
+                    <div className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
+                      Friends
+                    </div>
+                  </button>
                 </div>
 
                 {/* Enhanced Weekly Progress Card */}
