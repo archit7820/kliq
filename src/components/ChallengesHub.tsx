@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -47,7 +46,6 @@ const ChallengesHub: React.FC = () => {
     refetchInterval: 10000,
   });
 
-  // Fetch community-specific challenges from the community_challenges table
   const { data: activeCommunitySpecificChallenges = [], isLoading: loadingCommunitySpecific } = useQuery({
     queryKey: ["active-community-challenges", user?.id],
     queryFn: async () => {
@@ -117,17 +115,16 @@ const ChallengesHub: React.FC = () => {
       {list.map((ch: any) => {
         const participation = (myParticipation || []).find((p: any) => p.challenge_id === ch.id);
         return (
-          <div key={ch.id} onClick={() => navigate(`/challenges/${ch.id}`)} className="cursor-pointer">
-            <ChallengeStatusCard
-              title={ch.title}
-              description={ch.description}
-              reward={ch.reward_kelp_points}
-              joined={!!participation}
-              completed={!!participation && participation.is_completed}
-              joining={joiningId === ch.id}
-              onJoin={() => handleJoin(ch.id)}
-            />
-          </div>
+          <ChallengeStatusCard
+            key={ch.id}
+            title={ch.title}
+            description={ch.description}
+            reward={ch.reward_kelp_points}
+            joined={!!participation}
+            completed={!!participation && participation.is_completed}
+            joining={joiningId === ch.id}
+            onJoin={() => handleJoin(ch.id)}
+          />
         );
       })}
     </div>
