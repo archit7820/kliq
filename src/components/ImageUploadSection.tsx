@@ -28,39 +28,69 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
-    if (!file) return;
+    console.log('handleFileUpload called with file:', file);
+    
+    // Check authentication first
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    console.log('Auth error:', authError);
+    
+    if (!user) {
+      console.log('User not authenticated');
+      toast.error('Please log in to upload images');
+      return;
+    }
+    
+    if (!file) {
+      console.log('No file provided');
+      return;
+    }
+
+    console.log('File details:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
 
     // Check file size (limit to 10MB)
     if (file.size > 10 * 1024 * 1024) {
+      console.log('File too large:', file.size);
       toast.error('File size too large. Please choose a file smaller than 10MB.');
       return;
     }
 
     // Check file type
     if (!file.type.startsWith('image/')) {
+      console.log('Invalid file type:', file.type);
       toast.error('Please select an image file.');
       return;
     }
 
     // Check for HEIC files which may not display properly in browsers
     if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+      console.log('HEIC file detected');
       toast.error('HEIC files are not supported. Please convert to JPG or PNG first.');
       return;
     }
 
     // Loading toast
+    console.log('Starting upload process...');
     const loadingToast = toast.loading('Uploading image...');
 
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      console.log('Generated filename:', fileName);
       
+      console.log('Uploading to Supabase storage...');
       const { data, error } = await supabase.storage
         .from('activity_images')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
         });
+
+      console.log('Upload response:', { data, error });
 
       if (error) {
         console.error('Upload error:', error);
@@ -69,16 +99,21 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
         return;
       }
 
+      console.log('Getting public URL for path:', data.path);
       const { data: { publicUrl } } = supabase.storage
         .from('activity_images')
         .getPublicUrl(data.path);
 
+      console.log('Public URL:', publicUrl);
+
       if (!publicUrl) {
+        console.log('Failed to get public URL');
         toast.dismiss(loadingToast);
         toast.error('Failed to get image URL');
         return;
       }
 
+      console.log('Upload successful, setting image URL:', publicUrl);
       setImageUrl(publicUrl);
       toast.dismiss(loadingToast);
       toast.success('Image uploaded successfully!');
@@ -90,9 +125,13 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('handleFileSelect called');
     const file = event.target.files?.[0];
+    console.log('Selected file:', file);
     if (file) {
       handleFileUpload(file);
+    } else {
+      console.log('No file selected');
     }
   };
 
