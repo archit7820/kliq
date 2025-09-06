@@ -82,11 +82,43 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       if (activityErr) throw activityErr;
 
       // 3. Update participant row as completed
-      const { error: updateErr } = await supabase.from("challenge_participants").update({
-        is_completed: true,
-        completed_at: new Date().toISOString(),
-      }).eq("id", participantId);
-      if (updateErr) throw updateErr;
+      // Check if this is a daily challenge
+      const isDailyChallenge = challenge.title.toLowerCase().includes("daily");
+      
+      if (isDailyChallenge) {
+        // For daily challenges, track daily completions
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Get current participation data
+        const { data: currentData } = await supabase
+          .from("challenge_participants")
+          .select("daily_completions, last_completed_date")
+          .eq("id", participantId)
+          .single();
+          
+        const dailyCompletions = (currentData?.daily_completions as string[]) || [];
+        const newCompletions = [...dailyCompletions, today];
+        
+        // Update with daily completion
+        const { error: updateErr } = await supabase
+          .from("challenge_participants")
+          .update({ 
+            daily_completions: newCompletions,
+            last_completed_date: today,
+            // Mark as fully completed if it's a 5-day challenge and we've hit 5 days
+            is_completed: newCompletions.length >= 5,
+            completed_at: newCompletions.length >= 5 ? new Date().toISOString() : null
+          })
+          .eq("id", participantId);
+        if (updateErr) throw updateErr;
+      } else {
+        // Mark regular challenge as completed
+        const { error: updateErr } = await supabase.from("challenge_participants").update({
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+        }).eq("id", participantId);
+        if (updateErr) throw updateErr;
+      }
 
       // 4. Reward user kelp points
       // Fetch current kelp_points

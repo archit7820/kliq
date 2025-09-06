@@ -34,7 +34,7 @@ export default function CurrentChallenges() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("challenge_participants")
-        .select("id, challenge_id, is_completed")
+        .select("id, challenge_id, is_completed, daily_completions, last_completed_date")
         .eq("user_id", user.id);
       if (error) return [];
       return data || [];
@@ -108,8 +108,26 @@ export default function CurrentChallenges() {
     }
   };
 
-  // Get action label based on challenge type
-  const getActionLabel = (challengeTitle: string, joined: boolean, completed: boolean) => {
+  // Check if challenge is completed for today
+  const isDailyCompletedToday = (participation: any, challengeTitle: string) => {
+    if (!participation || !challengeTitle.toLowerCase().includes("daily")) return false;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const lastCompleted = participation.last_completed_date;
+    
+    return lastCompleted === today;
+  };
+
+  // Get action label based on challenge type and daily completion
+  const getActionLabel = (challengeTitle: string, joined: boolean, completed: boolean, participation: any) => {
+    // For daily challenges, check if completed today
+    if (challengeTitle.toLowerCase().includes("daily") && joined) {
+      if (isDailyCompletedToday(participation, challengeTitle)) return "Completed Today!";
+      const completions = participation?.daily_completions || [];
+      const dayCount = completions.length;
+      return `Day ${dayCount + 1} - Mark Complete`;
+    }
+    
     if (completed) return "Completed!";
     if (!joined) {
       if (challengeTitle.toLowerCase().includes("mission")) return "Accept Mission";
@@ -155,6 +173,10 @@ export default function CurrentChallenges() {
           );
           const joined = !!participation;
           const completed = joined && participation.is_completed;
+          
+          // For daily challenges, check if completed today
+          const isDailyChallenge = ch.title.toLowerCase().includes("daily");
+          const completedToday = isDailyChallenge && isDailyCompletedToday(participation, ch.title);
 
           return (
             <ChallengeStatusCard
@@ -163,7 +185,7 @@ export default function CurrentChallenges() {
               description={ch.description}
               reward={ch.reward_kelp_points}
               joined={joined}
-              completed={completed}
+              completed={completedToday || completed}
               joining={joiningId === ch.id}
               challengeId={ch.id}
               participantId={participation?.id}
@@ -175,7 +197,7 @@ export default function CurrentChallenges() {
                 }
               }}
               onComplete={handleCompletionRefresh}
-              actionLabel={getActionLabel(ch.title, joined, completed)}
+              actionLabel={getActionLabel(ch.title, joined, completed, participation)}
             />
           );
         })}

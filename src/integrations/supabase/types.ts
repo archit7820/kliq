@@ -87,25 +87,31 @@ export type Database = {
         Row: {
           challenge_id: string
           completed_at: string | null
+          daily_completions: Json | null
           id: string
           is_completed: boolean | null
           joined_at: string | null
+          last_completed_date: string | null
           user_id: string
         }
         Insert: {
           challenge_id: string
           completed_at?: string | null
+          daily_completions?: Json | null
           id?: string
           is_completed?: boolean | null
           joined_at?: string | null
+          last_completed_date?: string | null
           user_id: string
         }
         Update: {
           challenge_id?: string
           completed_at?: string | null
+          daily_completions?: Json | null
           id?: string
           is_completed?: boolean | null
           joined_at?: string | null
+          last_completed_date?: string | null
           user_id?: string
         }
         Relationships: [
