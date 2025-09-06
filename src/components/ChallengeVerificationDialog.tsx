@@ -37,6 +37,9 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
   const handleClose = () => {
     console.log('Closing challenge verification dialog');
     setOpen(false);
+    setCaption("");
+    setFile(null);
+    setOffset("");
   };
 
   // Main submit handler
@@ -102,6 +105,11 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       toast.success("Challenge completed! Rewarded " + challenge.reward + " Kelp Points.");
       handleClose();
       if (onFinish) onFinish();
+      
+      // Reset form state
+      setCaption("");
+      setFile(null);  
+      setOffset("");
     } catch (err: any) {
       toast.error("Failed to verify challenge", { description: err?.message });
       console.error("Error verifying challenge: ", err);
@@ -111,7 +119,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           size="sm"

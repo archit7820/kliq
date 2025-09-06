@@ -66,15 +66,16 @@ const ActivitySubmissionSection: React.FC<ActivitySubmissionSectionProps> = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('activities').insert({
-        user_id: userId,
-        activity: analysis.activity,
-        carbon_footprint_kg: analysis.carbon_footprint_kg,
-        explanation: analysis.explanation,
-        emoji: analysis.emoji,
-        image_url: imageUrl,
-        caption: caption || null
-      });
+        const { error } = await supabase.from('activities').insert({
+          user_id: userId,
+          activity: analysis.activity,
+          carbon_footprint_kg: analysis.carbon_footprint_kg,
+          explanation: analysis.explanation,
+          emoji: analysis.emoji,
+          image_url: imageUrl,
+          caption: caption || null,
+          category: 'general'
+        });
 
       if (error) {
         throw error;

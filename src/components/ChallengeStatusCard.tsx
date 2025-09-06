@@ -86,7 +86,9 @@ const ChallengeStatusCard: React.FC<ChallengeStatusCardProps> = ({
               reward: reward
             }}
             participantId={participantId}
-            onFinish={onComplete}
+            onFinish={() => {
+              if (onComplete) onComplete();
+            }}
           />
         ) : (
           <Button

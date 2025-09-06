@@ -30,22 +30,43 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const handleFileUpload = async (file: File) => {
     if (!file) return;
 
+    // Check file size (limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size too large. Please choose a file smaller than 10MB.');
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file.');
+      return;
+    }
+
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       
       const { data, error } = await supabase.storage
         .from('activity_images')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (error) {
-        toast.error('Failed to upload image');
+        console.error('Upload error:', error);
+        toast.error('Failed to upload image: ' + error.message);
         return;
       }
 
       const { data: { publicUrl } } = supabase.storage
         .from('activity_images')
         .getPublicUrl(data.path);
+
+      if (!publicUrl) {
+        toast.error('Failed to get image URL');
+        return;
+      }
 
       setImageUrl(publicUrl);
       toast.success('Image uploaded successfully!');

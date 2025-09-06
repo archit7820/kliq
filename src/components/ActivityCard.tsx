@@ -155,7 +155,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
           )}
         </CardHeader>
 
-        {activity.image_url && (
+        {imageUrl && (
           <div className="bg-gray-100">
             <img src={imageUrl} alt={activity.activity} className="w-full h-auto object-cover aspect-[4/5] rounded-none" />
           </div>

@@ -72,24 +72,34 @@ export default function CurrentChallenges() {
     }
   };
 
-  // Handle real-world actions
-  const handleRealWorldAction = (challengeTitle: string) => {
-    let actionMessage = "";
+  // Handle real-world actions (for mission logs)
+  const handleRealWorldAction = async (challengeId: string, challengeTitle: string) => {
+    if (!user) return;
     
-    if (challengeTitle.toLowerCase().includes("mission")) {
-      actionMessage = `Mission "${challengeTitle}" accepted! Complete your real-world action and mark as completed.`;
-    } else if (challengeTitle.toLowerCase().includes("streak") || challengeTitle.toLowerCase().includes("action")) {
-      actionMessage = `Action logged for "${challengeTitle}"! Keep up the great work.`;
-    } else if (challengeTitle.toLowerCase().includes("tree") || challengeTitle.toLowerCase().includes("event")) {
-      actionMessage = `Successfully joined event: "${challengeTitle}"! Details will be shared soon.`;
-    } else {
-      actionMessage = `Action taken for "${challengeTitle}"! Progress recorded.`;
+    try {
+      // Insert a mission log activity
+      const { error } = await supabase.from("activities").insert({
+        user_id: user.id,
+        activity: `Accepted mission: ${challengeTitle}`,
+        carbon_footprint_kg: 0,
+        explanation: "Mission accepted and logged to activity feed",
+        emoji: "🚀",
+        category: "mission-log"
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Mission Logged! 🚀",
+        description: `"${challengeTitle}" has been logged to your activity feed. Complete your real-world action and mark as completed.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log mission. Please try again.",
+        variant: "destructive",
+      });
     }
-    
-    toast({
-      title: "Action Recorded! 🎯",
-      description: actionMessage,
-    });
   };
 
   // Get action label based on challenge type
@@ -148,7 +158,7 @@ export default function CurrentChallenges() {
                 if (!joined) {
                   handleJoin(ch.id);
                 } else {
-                  handleRealWorldAction(ch.title);
+                  handleRealWorldAction(ch.id, ch.title);
                 }
               }}
               onComplete={handleCompletionRefresh}
