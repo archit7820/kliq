@@ -105,9 +105,9 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       if (pointsErr) throw pointsErr;
 
       // Invalidate all relevant queries to refresh UI
-      await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-challenges", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["global-challenges"] });
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["activities"] });
       
       toast.success("Challenge completed! Rewarded " + challenge.reward + " Kelp Points.");

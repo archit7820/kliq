@@ -57,7 +57,7 @@ export default function CurrentChallenges() {
       if (error) throw error;
       
       // Invalidate queries to refresh UI
-      await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-challenges", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["global-challenges"] });
       
       toast({
@@ -122,9 +122,9 @@ export default function CurrentChallenges() {
 
   // Handle completion refresh
   const handleCompletionRefresh = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+    await queryClient.invalidateQueries({ queryKey: ["user-challenges", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["global-challenges"] }); 
-    await queryClient.invalidateQueries({ queryKey: ["profile"] });
+    await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["activities"] });
     
     toast({
