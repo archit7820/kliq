@@ -126,6 +126,11 @@ export default function CurrentChallenges() {
     await queryClient.invalidateQueries({ queryKey: ["global-challenges"] }); 
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
     await queryClient.invalidateQueries({ queryKey: ["activities"] });
+    
+    toast({
+      title: "Challenge Status Updated! 🎉",
+      description: "Your challenge progress has been refreshed.",
+    });
   };
 
   // Render

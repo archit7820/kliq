@@ -3,6 +3,11 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Flame, Target, Users, Gift, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface GamifiedEngagementCardsProps {
   profile?: any;
@@ -10,6 +15,79 @@ interface GamifiedEngagementCardsProps {
 
 const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profile }) => {
   const streakCount = profile?.streak_count ?? 0;
+  const navigate = useNavigate();
+  const { user } = useAuthStatus();
+  const queryClient = useQueryClient();
+
+  // Handle Accept Mission action
+  const handleAcceptMission = async () => {
+    if (!user) {
+      toast.error("Please log in to accept missions");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("activities").insert({
+        user_id: user.id,
+        activity: "Daily IRL Mission: Bike to work + pick up 3 pieces of litter",
+        carbon_footprint_kg: -2.0,
+        explanation: "Biked to work instead of driving and picked up litter to help the environment",
+        emoji: "🚴‍♂️",
+        category: "mission-log"
+      });
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["activities"] });
+      toast.success("Mission accepted! 🚀 Complete your real-world action and log it.");
+    } catch (error) {
+      toast.error("Failed to accept mission. Please try again.");
+    }
+  };
+
+  // Handle Log Action
+  const handleLogAction = () => {
+    navigate("/log-activity");
+  };
+
+  // Handle Join Event
+  const handleJoinEvent = async () => {
+    if (!user) {
+      toast.error("Please log in to join events");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("activities").insert({
+        user_id: user.id,
+        activity: "Joined Plant a Tree Weekend community event",
+        carbon_footprint_kg: -40.0,
+        explanation: "Participating in community tree planting event to create habitat and offset CO₂",
+        emoji: "🌱",
+        category: "community-event"
+      });
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["activities"] });
+      toast.success("Event joined! 🌱 Check your community for event details.");
+    } catch (error) {
+      toast.error("Failed to join event. Please try again.");
+    }
+  };
+
+  const getActionHandler = (action: string) => {
+    switch (action) {
+      case "Accept Mission":
+        return handleAcceptMission;
+      case "Log Action":
+        return handleLogAction;
+      case "Join Event":
+        return handleJoinEvent;
+      default:
+        return () => {};
+    }
+  };
   
   const engagementCards = [
     {
@@ -95,6 +173,7 @@ const GamifiedEngagementCards: React.FC<GamifiedEngagementCardsProps> = ({ profi
                     </Badge>
                     <Button 
                       size="sm" 
+                      onClick={getActionHandler(card.action)}
                       className={`text-xs px-3 py-1.5 touch-manipulation ${card.urgent ? 'bg-blue-600 hover:bg-blue-700 text-white border border-blue-500' : 'btn-primary'}`}
                       aria-label={`${card.action} for ${card.title}`}
                     >
