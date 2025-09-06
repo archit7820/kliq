@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Camera, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import heic2any from 'heic2any';
 
 interface ImageUploadSectionProps {
   imageUrl: string | null;
@@ -68,6 +67,9 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       const convertingToast = toast.loading('Converting HEIC to JPG...');
       
       try {
+        // Dynamic import to avoid build issues
+        const heic2any = (await import('heic2any')).default;
+        
         const convertedBlob = await heic2any({
           blob: file,
           toType: 'image/jpeg',
