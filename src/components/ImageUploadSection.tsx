@@ -61,40 +61,11 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 
     let processedFile = file;
 
-    // Auto-convert HEIC files to JPG
+    // Check for HEIC files first (they often have empty MIME type)
     if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
-      console.log('HEIC file detected, converting to JPG...');
-      const convertingToast = toast.loading('Converting HEIC to JPG...');
-      
-      try {
-        // Dynamic import to avoid build issues
-        const heic2any = (await import('heic2any')).default;
-        
-        const convertedBlob = await heic2any({
-          blob: file,
-          toType: 'image/jpeg',
-          quality: 0.8
-        });
-        
-        // heic2any can return array or single blob
-        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-        
-        // Create new file with .jpg extension
-        const newFileName = file.name.replace(/\.heic$/i, '.jpg');
-        processedFile = new File([blob], newFileName, {
-          type: 'image/jpeg',
-          lastModified: Date.now()
-        });
-        
-        console.log('HEIC conversion successful:', processedFile);
-        toast.dismiss(convertingToast);
-        toast.success('HEIC file converted to JPG!');
-      } catch (conversionError) {
-        console.error('HEIC conversion failed:', conversionError);
-        toast.dismiss(convertingToast);
-        toast.error('Failed to convert HEIC file. Please try a different format.');
-        return;
-      }
+      console.log('HEIC file detected');
+      toast.error('HEIC files are not supported. Please convert to JPG or PNG first, or use your phone\'s camera to take a new photo in a compatible format.');
+      return;
     }
 
     // Check file type (allow empty type for files that might be images)
