@@ -42,6 +42,12 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       return;
     }
 
+    // Check for HEIC files which may not display properly in browsers
+    if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+      toast.error('HEIC files are not supported. Please convert to JPG or PNG first.');
+      return;
+    }
+
     // Loading toast
     const loadingToast = toast.loading('Uploading image...');
 

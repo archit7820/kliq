@@ -174,15 +174,19 @@ const EnhancedActivityCard: React.FC<EnhancedActivityCardProps> = ({
           )}
         </CardHeader>
 
-        {activity.image_url && (
-          <div className="bg-gray-100">
-            <img 
-              src={imageUrl} 
-              alt={activity.activity} 
-              className="w-full h-auto object-cover aspect-[4/5] rounded-none" 
-            />
-          </div>
-        )}
+        <div className="bg-gray-100">
+          <img 
+            src={imageUrl} 
+            alt={activity.activity} 
+            className="w-full h-auto object-cover aspect-[4/5] rounded-none"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (target.src !== `https://picsum.photos/seed/${activity.id}/800/1000`) {
+                target.src = `https://picsum.photos/seed/${activity.id}/800/1000`;
+              }
+            }}
+          />
+        </div>
 
         <CardContent className="p-4 bg-white/70 backdrop-blur-xl rounded-b-2xl">
           <div className="flex items-center justify-between mb-3">
