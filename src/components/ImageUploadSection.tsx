@@ -59,17 +59,17 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       return;
     }
 
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      console.log('Invalid file type:', file.type);
-      toast.error('Please select an image file.');
-      return;
-    }
-
-    // Check for HEIC files which may not display properly in browsers
+    // Check for HEIC files first (they often have empty MIME type)
     if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
       console.log('HEIC file detected');
       toast.error('HEIC files are not supported. Please convert to JPG or PNG first.');
+      return;
+    }
+
+    // Check file type (allow empty type for files that might be images)
+    if (file.type && !file.type.startsWith('image/')) {
+      console.log('Invalid file type:', file.type);
+      toast.error('Please select an image file.');
       return;
     }
 
