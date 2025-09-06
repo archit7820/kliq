@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Camera, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import heic2any from 'heic2any';
 
 interface ImageUploadSectionProps {
   imageUrl: string | null;
@@ -59,16 +60,44 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       return;
     }
 
-    // Check for HEIC files first (they often have empty MIME type)
+    let processedFile = file;
+
+    // Auto-convert HEIC files to JPG
     if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
-      console.log('HEIC file detected');
-      toast.error('HEIC files are not supported. Please convert to JPG or PNG first.');
-      return;
+      console.log('HEIC file detected, converting to JPG...');
+      const convertingToast = toast.loading('Converting HEIC to JPG...');
+      
+      try {
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.8
+        });
+        
+        // heic2any can return array or single blob
+        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+        
+        // Create new file with .jpg extension
+        const newFileName = file.name.replace(/\.heic$/i, '.jpg');
+        processedFile = new File([blob], newFileName, {
+          type: 'image/jpeg',
+          lastModified: Date.now()
+        });
+        
+        console.log('HEIC conversion successful:', processedFile);
+        toast.dismiss(convertingToast);
+        toast.success('HEIC file converted to JPG!');
+      } catch (conversionError) {
+        console.error('HEIC conversion failed:', conversionError);
+        toast.dismiss(convertingToast);
+        toast.error('Failed to convert HEIC file. Please try a different format.');
+        return;
+      }
     }
 
     // Check file type (allow empty type for files that might be images)
-    if (file.type && !file.type.startsWith('image/')) {
-      console.log('Invalid file type:', file.type);
+    if (processedFile.type && !processedFile.type.startsWith('image/')) {
+      console.log('Invalid file type:', processedFile.type);
       toast.error('Please select an image file.');
       return;
     }
@@ -78,14 +107,14 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     const loadingToast = toast.loading('Uploading image...');
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = processedFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       console.log('Generated filename:', fileName);
       
       console.log('Uploading to Supabase storage...');
       const { data, error } = await supabase.storage
         .from('activity_images')
-        .upload(fileName, file, {
+        .upload(fileName, processedFile, {
           cacheControl: '3600',
           upsert: false
         });
