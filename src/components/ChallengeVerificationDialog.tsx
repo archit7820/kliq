@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import uploadChallengeSnap from "@/lib/uploadChallengeSnap";
 import { X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Challenge = {
   id: string;
@@ -27,6 +28,7 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
   onFinish
 }) => {
   const { user } = useAuthStatus();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -102,6 +104,12 @@ const ChallengeVerificationDialog: React.FC<ChallengeVerificationDialogProps> = 
       }).eq("id", user.id);
       if (pointsErr) throw pointsErr;
 
+      // Invalidate all relevant queries to refresh UI
+      await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+      await queryClient.invalidateQueries({ queryKey: ["global-challenges"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["activities"] });
+      
       toast.success("Challenge completed! Rewarded " + challenge.reward + " Kelp Points.");
       handleClose();
       if (onFinish) onFinish();

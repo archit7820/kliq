@@ -56,7 +56,10 @@ export default function CurrentChallenges() {
       
       if (error) throw error;
       
+      // Invalidate queries to refresh UI
       await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+      await queryClient.invalidateQueries({ queryKey: ["global-challenges"] });
+      
       toast({
         title: "Challenge Joined! 🎯",
         description: "You've successfully joined the challenge. Start working towards completion!",
@@ -89,6 +92,9 @@ export default function CurrentChallenges() {
 
       if (error) throw error;
 
+      // Invalidate activities query to refresh feed
+      await queryClient.invalidateQueries({ queryKey: ["activities"] });
+      
       toast({
         title: "Mission Logged! 🚀",
         description: `"${challengeTitle}" has been logged to your activity feed. Complete your real-world action and mark as completed.`,
@@ -115,9 +121,11 @@ export default function CurrentChallenges() {
   };
 
   // Handle completion refresh
-  const handleCompletionRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
-    queryClient.invalidateQueries({ queryKey: ["profile"] });
+  const handleCompletionRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["user-challenges"] });
+    await queryClient.invalidateQueries({ queryKey: ["global-challenges"] }); 
+    await queryClient.invalidateQueries({ queryKey: ["profile"] });
+    await queryClient.invalidateQueries({ queryKey: ["activities"] });
   };
 
   // Render

@@ -8,6 +8,7 @@ import { LoaderCircle, Edit3, Check, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ActivityAnalysis } from '@/pages/LogActivityPage';
+import { useQueryClient } from '@tanstack/react-query';
 
 // List of green activity keywords from the migration—update to reflect backend logic:
 const GREEN_ACTIVITY_KEYWORDS = [
@@ -43,6 +44,7 @@ const ActivitySubmissionSection: React.FC<ActivitySubmissionSectionProps> = ({
   setIsSubmitting,
   onSuccess
 }) => {
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(analysis.carbon_footprint_kg.toString());
 
@@ -81,6 +83,9 @@ const ActivitySubmissionSection: React.FC<ActivitySubmissionSectionProps> = ({
         throw error;
       }
 
+      // Invalidate activities query to refresh feed
+      await queryClient.invalidateQueries({ queryKey: ["activities"] });
+      
       toast.success('Activity logged successfully!');
       onSuccess();
     } catch (error) {

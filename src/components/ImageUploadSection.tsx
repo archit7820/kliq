@@ -42,6 +42,9 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       return;
     }
 
+    // Loading toast
+    const loadingToast = toast.loading('Uploading image...');
+
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -55,6 +58,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 
       if (error) {
         console.error('Upload error:', error);
+        toast.dismiss(loadingToast);
         toast.error('Failed to upload image: ' + error.message);
         return;
       }
@@ -64,14 +68,17 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
         .getPublicUrl(data.path);
 
       if (!publicUrl) {
+        toast.dismiss(loadingToast);
         toast.error('Failed to get image URL');
         return;
       }
 
       setImageUrl(publicUrl);
+      toast.dismiss(loadingToast);
       toast.success('Image uploaded successfully!');
     } catch (error) {
       console.error('Upload error:', error);
+      toast.dismiss(loadingToast);
       toast.error('Failed to upload image');
     }
   };
