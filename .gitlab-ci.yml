@@ -11,6 +11,14 @@ android_build:
   stage: build
   image: openjdk:17-slim
   
+  # Add caching for better performance
+  cache:
+    key: android-build-cache
+    paths:
+      - android/.gradle/
+      - node_modules/
+      - /opt/android-sdk/
+  
   before_script:
     # Install required packages
     - apt-get update -qq && apt-get install -y -qq git curl unzip wget nodejs npm
@@ -20,29 +28,41 @@ android_build:
     - export PATH=$JAVA_HOME/bin:$PATH
     - java -version
     
-    # Install Android SDK
+    # Install Android SDK (check if cached first)
     - export ANDROID_SDK_ROOT=/opt/android-sdk
-    - mkdir -p $ANDROID_SDK_ROOT
-    - cd $ANDROID_SDK_ROOT
-    - wget -q https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
-    - unzip -q commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
-    - mkdir -p cmdline-tools/latest
-    - mv cmdline-tools/* cmdline-tools/latest/ || true
+    - |
+      if [ ! -d "$ANDROID_SDK_ROOT/cmdline-tools" ]; then
+        echo "Installing Android SDK..."
+        mkdir -p $ANDROID_SDK_ROOT
+        cd $ANDROID_SDK_ROOT
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
+        unzip -q commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
+        mkdir -p cmdline-tools/latest
+        mv cmdline-tools/* cmdline-tools/latest/ || true
+      else
+        echo "Using cached Android SDK"
+      fi
     - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
     
-    # Accept licenses and install required SDK components
-    - yes | sdkmanager --licenses
-    - sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}"
+    # Accept licenses and install required SDK components (only if not cached)
+    - |
+      if [ ! -d "$ANDROID_SDK_ROOT/platforms/android-${ANDROID_COMPILE_SDK}" ]; then
+        echo "Installing Android SDK components..."
+        yes | sdkmanager --licenses
+        sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}"
+      else
+        echo "Using cached Android SDK components"
+      fi
     
     # Go back to project directory
     - cd $CI_PROJECT_DIR
     
-    # Install Node.js dependencies
+    # Install Node.js dependencies (npm ci uses package-lock.json for faster installs)
     - npm ci
     
-    # Install Fastlane (Ruby)
+    # Install Fastlane (Ruby) - cache gems
     - apt-get install -y ruby ruby-dev build-essential
-    - gem install fastlane
+    - gem install fastlane --no-document
 
   script:
     # Set environment variables for Gradle
