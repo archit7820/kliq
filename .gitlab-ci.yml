@@ -1,0 +1,64 @@
+stages:
+  - build
+
+variables:
+  # Use a Docker image that has both Java 17 and Android SDK
+  ANDROID_COMPILE_SDK: "33"
+  ANDROID_BUILD_TOOLS: "33.0.0"
+  ANDROID_SDK_TOOLS: "9477386"
+
+android_build:
+  stage: build
+  image: openjdk:17-slim
+  
+  before_script:
+    # Install required packages
+    - apt-get update -qq && apt-get install -y -qq git curl unzip wget nodejs npm
+    
+    # Set up Java 17 environment
+    - export JAVA_HOME=/usr/local/openjdk-17
+    - export PATH=$JAVA_HOME/bin:$PATH
+    - java -version
+    
+    # Install Android SDK
+    - export ANDROID_SDK_ROOT=/opt/android-sdk
+    - mkdir -p $ANDROID_SDK_ROOT
+    - cd $ANDROID_SDK_ROOT
+    - wget -q https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
+    - unzip -q commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
+    - mkdir -p cmdline-tools/latest
+    - mv cmdline-tools/* cmdline-tools/latest/ || true
+    - export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+    
+    # Accept licenses and install required SDK components
+    - yes | sdkmanager --licenses
+    - sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}"
+    
+    # Go back to project directory
+    - cd $CI_PROJECT_DIR
+    
+    # Install Node.js dependencies
+    - npm ci
+    
+    # Install Fastlane (Ruby)
+    - apt-get install -y ruby ruby-dev build-essential
+    - gem install fastlane
+
+  script:
+    # Set environment variables for Gradle
+    - export JAVA_HOME=/usr/local/openjdk-17
+    - export ANDROID_SDK_ROOT=/opt/android-sdk
+    - export PATH=$JAVA_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+    
+    # Build the app using Fastlane
+    - fastlane android build
+    
+  artifacts:
+    paths:
+      - android/app/build/outputs/
+    expire_in: 1 week
+    
+  only:
+    - main
+    - develop
+    - merge_requests
