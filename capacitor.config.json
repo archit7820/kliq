@@ -1,0 +1,7 @@
+{
+    "appId": "com.kelp.app",
+    "appName": "Kelp",
+    "webDir": "dist",
+    "bundledWebRuntime": false
+  }
+  
