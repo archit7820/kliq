@@ -177,8 +177,8 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
             </div>
           </div>
 
-          {/* User info overlay - Mobile optimized */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+          {/* User info overlay - Mobile optimized with bottom margin */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 pb-20 z-10">
             <div className="flex items-center gap-2">
               <Avatar className="w-8 h-8 ring-2 ring-white/40">
                 <AvatarImage src={post.profiles?.avatar_url} />
