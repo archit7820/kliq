@@ -53,6 +53,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
   const [showImpactModal, setShowImpactModal] = useState(false);
 
   const handleLike = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setIsLiked(!isLiked);
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
@@ -60,6 +61,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
   };
 
   const handlePass = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     onSwipeLeft();
   };
@@ -92,14 +94,19 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
     }
   };
 
-  // Simplified impact handlers without preventDefault
-  const handleImpactClick = () => {
-    console.log('Impact breakdown clicked, opening modal');
+  const handleImpactClick = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setShowImpactModal(true);
   };
 
-  const handleImpactChipClick = () => {
-    console.log('Impact chip clicked, opening modal');
+  const handleImpactChipClick = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setShowImpactModal(true);
   };
 
@@ -146,14 +153,24 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
                 {displayCategory}
               </Badge>
 
-              {/* Impact Score Chip - Enhanced for mobile with button element */}
+              {/* Impact Score Chip - Enhanced for mobile with better click handling */}
               <button 
-                className="impact-chip flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-3 py-2 cursor-pointer touch-manipulation active:scale-95 transition-transform border-0 outline-none"
-                onClick={handleImpactChipClick}
+                className="impact-chip flex items-center gap-1.5 bg-gradient-to-r from-primary to-primary/90 rounded-full px-3 py-1.5 cursor-pointer touch-manipulation active:scale-95 transition-all duration-200 border border-white/40 shadow-lg outline-none min-w-0"
+                style={{ zIndex: 999 }}
+                onClick={(e) => {
+                  handleImpactChipClick(e);
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleImpactChipClick(e as any);
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                }}
                 type="button"
               >
-                <TrendingUp className="w-3 h-3 text-white" />
-                <span className="text-xs font-bold text-white">
+                <TrendingUp className="w-3.5 h-3.5 text-white flex-shrink-0" />
+                <span className="text-xs font-bold text-white whitespace-nowrap">
                   {impactScore}
                 </span>
               </button>
@@ -194,7 +211,16 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
           {/* Impact Score Breakdown - Enhanced with button for mobile */}
           <button 
             className="impact-section flex-1 mb-2 min-h-0 cursor-pointer touch-manipulation active:scale-[0.98] transition-transform w-full text-left border-0 bg-transparent p-0 outline-none" 
-            onClick={handleImpactClick}
+            onClick={(e) => {
+              handleImpactClick(e);
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              handleImpactClick(e as any);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
             type="button"
           >
             <ImpactScoreBreakdown
@@ -218,6 +244,8 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
               size="sm"
               className="h-10 w-10 rounded-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm border border-red-500/30 touch-manipulation active:scale-95"
               onClick={handlePass}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={handlePass}
             >
               <X className="w-4 h-4 text-red-400" />
             </Button>
@@ -227,6 +255,7 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
               size="sm"
               className="h-8 w-8 rounded-full bg-muted/20 hover:bg-muted/30 backdrop-blur-sm touch-manipulation active:scale-95"
               onClick={handleShare}
+              onTouchStart={(e) => e.stopPropagation()}
             >
               <Share className="w-3 h-3 text-muted-foreground" />
             </Button>
@@ -239,6 +268,8 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
                 "bg-green-500/20 hover:bg-green-500/30 border-green-500/30"
               )}
               onClick={handleLike}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={handleLike}
             >
               <Heart className={cn("w-4 h-4 text-green-400", isLiked && "fill-current")} />
             </Button>
@@ -248,9 +279,12 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
 
       <ImpactScoreModal
         isOpen={showImpactModal}
-        onClose={() => setShowImpactModal(false)}
+        onClose={() => {
+          setShowImpactModal(false);
+        }}
         post={post}
       />
+      
     </>
   );
 };

@@ -65,18 +65,42 @@ const ExplorePage = () => {
 
       if (error) throw error;
       
-      // Transform the data with enhanced gamified scoring
-      const transformedPosts = (data || []).map(activity => {
+      // Fetch real user profiles for posts
+      const userIds = [...new Set((data || []).map(p => p.user_id).filter(Boolean))];
+      let userProfiles = {};
+      
+      if (userIds.length > 0) {
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, full_name')
+          .in('id', userIds);
+        
+        
+        if (profiles) {
+          userProfiles = profiles.reduce((acc, profile) => {
+            acc[profile.id] = profile;
+            return acc;
+          }, {});
+        }
+      }
+
+      // Transform the data with enhanced gamified scoring and real profiles
+      const transformedPosts = (data || []).map((activity, index) => {
         const environmental = Math.floor(Math.random() * 40) + 60;
         const social = Math.floor(Math.random() * 50) + 50;
         const adventure = Math.floor(Math.random() * 60) + 40;
         const economic = Math.floor(Math.random() * 70) + 30;
         const learning = Math.floor(Math.random() * 80) + 20;
         
+        const userProfile = userProfiles[activity.user_id];
+        
         return {
           ...activity,
-          profiles: {
-            display_name: "ImpactMaker" + activity.user_id.slice(-4),
+          profiles: userProfile ? {
+            display_name: userProfile.display_name || userProfile.full_name || `User ${activity.user_id?.slice(-4)}`,
+            avatar_url: userProfile.avatar_url
+          } : {
+            display_name: "EcoHero" + (activity.user_id?.slice(-4) || Math.floor(Math.random() * 1000)),
             avatar_url: undefined
           },
           activity_analysis: {
@@ -126,19 +150,11 @@ const ExplorePage = () => {
   };
 
   const handleSwipeLeft = (post: Post) => {
-    console.log("Passed on:", post.activity);
-    toast({
-      title: "Passed",
-      description: `Skipped "${post.activity}"`,
-    });
+    // Notification removed - no toast on swipe left
   };
 
   const handleSwipeRight = (post: Post) => {
-    console.log("Liked:", post.activity);
-    toast({
-      title: "Liked! 💚",
-      description: `You liked "${post.activity}"`,
-    });
+    // Notification removed - no toast on swipe right
   };
 
   const handleRefresh = () => {
@@ -160,7 +176,7 @@ const ExplorePage = () => {
   }
 
   return (
-    <div className="h-screen bg-background overflow-hidden" style={{ touchAction: 'none' }}>
+    <div className="fixed inset-0 bg-background overflow-hidden" style={{ touchAction: 'none' }}>
       {/* Full Screen Content */}
       {loading ? (
         <div className="w-full h-full flex items-center justify-center">
