@@ -24,7 +24,7 @@ const HomeHeader = () => {
       toast({ title: "Logout Failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      navigate('/login');
+      navigate('/auth');
     }
   };
 

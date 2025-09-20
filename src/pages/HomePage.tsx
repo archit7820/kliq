@@ -37,7 +37,7 @@ const HomePage = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login');
+      navigate('/auth');
     }
   }, [user, authLoading, navigate]);
 

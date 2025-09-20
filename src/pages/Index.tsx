@@ -38,7 +38,7 @@ const Index = () => {
     }
 
     if (!user) {
-      navigate('/login');
+      navigate('/landing');
       return;
     }
 

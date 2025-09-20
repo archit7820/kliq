@@ -79,7 +79,7 @@ const ProfilePage = () => {
             toast({ title: "Logout Failed", description: error.message, variant: "destructive" });
         } else {
             toast({ title: "Logged Out", description: "You have been successfully logged out." });
-            navigate('/login');
+            navigate('/auth');
         }
     };
 
@@ -211,7 +211,7 @@ const ProfilePage = () => {
             <div className="flex flex-col items-center justify-center min-h-screen bg-background p-3 text-center">
                 <p className="text-muted-foreground text-sm">Could not load profile. It might be that you just signed up.</p>
                 <p className="text-muted-foreground text-xs mb-3">Try refreshing the page in a bit.</p>
-                <Button onClick={() => navigate('/login')} size="sm">Go to Login</Button>
+                <Button onClick={() => navigate('/auth')} size="sm">Go to Login</Button>
             </div>
         )
     }
