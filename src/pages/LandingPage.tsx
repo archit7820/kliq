@@ -19,36 +19,39 @@ const LandingPage = () => {
     {
       icon: Globe,
       title: "Track",
-      description: "Monitor your carbon footprint with every action",
+      description: "Monitor your positive impact with every action",
       gradient: "from-blue-500 to-cyan-500"
     },
     {
       icon: Heart,
       title: "Share", 
-      description: "Join thousands making real environmental change",
+      description: "Join thousands making real positive change",
       gradient: "from-pink-500 to-rose-500"
     },
     {
       icon: Trophy,
       title: "Earn",
-      description: "Get rewards for your sustainable lifestyle",
+      description: "Get rewards for your meaningful activities",
       gradient: "from-yellow-500 to-orange-500"
     }
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex flex-col">
+    <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex flex-col relative overflow-hidden">
+      {/* iOS-style glassy background overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-white/20 backdrop-blur-3xl"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-transparent"></div>
       
       {/* Hero Section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative z-10">
         
         {/* App Icon */}
         <div className="relative mb-8">
-          <div className="w-32 h-32 bg-gradient-to-br from-green-500 to-emerald-600 rounded-[2.5rem] flex items-center justify-center shadow-2xl">
-            <Leaf className="w-16 h-16 text-white" />
+          <div className="w-32 h-32 bg-gradient-to-br from-green-500/90 to-emerald-600/90 rounded-[2.5rem] flex items-center justify-center shadow-2xl backdrop-blur-xl border border-white/20 ring-1 ring-white/10">
+            <Leaf className="w-16 h-16 text-white drop-shadow-lg" />
           </div>
-          <div className="absolute -top-3 -right-3 w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-bounce">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="absolute -top-3 -right-3 w-10 h-10 bg-gradient-to-br from-yellow-400/90 to-orange-500/90 rounded-full flex items-center justify-center animate-bounce backdrop-blur-xl border border-white/30 shadow-lg">
+            <Sparkles className="w-5 h-5 text-white drop-shadow-sm" />
           </div>
         </div>
 
@@ -58,10 +61,10 @@ const LandingPage = () => {
             Save the earth with a snap
           </h1>
           <p className="text-xl text-gray-600 font-medium mb-2">
-            Track your carbon footprint
+            Turn your IRL activities in social currency
           </p>
           <p className="text-gray-500 leading-relaxed max-w-sm mx-auto">
-            Turn everyday actions into measurable environmental impact
+            An AI powered first of its kind social media build from India for the globe!
           </p>
         </div>
 
@@ -70,16 +73,16 @@ const LandingPage = () => {
           {features.map((feature, index) => (
             <div 
               key={feature.title}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300"
+              className="bg-white/20 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/30 hover:bg-white/30 hover:shadow-2xl transition-all duration-300 ring-1 ring-white/10"
               style={{ animationDelay: `${index * 200}ms` }}
             >
               <div className="flex items-start space-x-4">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${feature.gradient} shadow-lg`}>
-                  <feature.icon className="w-7 h-7 text-white" />
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${feature.gradient}/90 shadow-lg backdrop-blur-sm border border-white/20`}>
+                  <feature.icon className="w-7 h-7 text-white drop-shadow-sm" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 drop-shadow-sm">{feature.title}</h3>
+                  <p className="text-gray-700 text-sm leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -87,54 +90,49 @@ const LandingPage = () => {
         </div>
 
         {/* Community Impact Stats */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 mb-12 shadow-xl border border-white/50 w-full max-w-md">
+        <div className="bg-white/20 backdrop-blur-xl rounded-2xl p-6 mb-12 shadow-2xl border border-white/30 w-full max-w-md ring-1 ring-white/10">
           <div className="text-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Community Impact</h3>
-          </div>
-          <div className="flex items-center justify-center">
-            <div className="text-center">
-              <div className="flex items-center justify-center space-x-1 mb-2">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-                <span className="text-3xl font-black text-green-600">+12.4k</span>
-              </div>
-              <p className="text-sm text-gray-600 font-medium">Environmental Actions</p>
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <TrendingUp className="w-6 h-6 text-green-600 drop-shadow-sm" />
+              <span className="text-4xl font-black text-green-600 drop-shadow-lg">+12.4k</span>
             </div>
+            <h3 className="text-xl font-bold text-gray-900 drop-shadow-sm">Community Impact</h3>
           </div>
         </div>
 
         {/* Additional Features */}
         <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-12">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <Globe className="w-6 h-6 text-white" />
+          <div className="bg-white/20 backdrop-blur-xl rounded-2xl p-4 shadow-xl border border-white/30 text-center ring-1 ring-white/10 hover:bg-white/30 transition-all duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-400/90 to-emerald-500/90 rounded-xl flex items-center justify-center mx-auto mb-3 backdrop-blur-sm border border-white/20 shadow-lg">
+              <Globe className="w-6 h-6 text-white drop-shadow-sm" />
             </div>
-            <h4 className="font-bold text-gray-900 text-sm mb-1">Real Impact Tracking</h4>
-            <p className="text-xs text-gray-600">Monitor your carbon footprint with every action</p>
+            <h4 className="font-bold text-gray-900 text-sm mb-1 drop-shadow-sm">Real Impact Tracking</h4>
+            <p className="text-xs text-gray-700">Monitor your positive impact with every action</p>
           </div>
           
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 text-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <Users className="w-6 h-6 text-white" />
+          <div className="bg-white/20 backdrop-blur-xl rounded-2xl p-4 shadow-xl border border-white/30 text-center ring-1 ring-white/10 hover:bg-white/30 transition-all duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-400/90 to-pink-500/90 rounded-xl flex items-center justify-center mx-auto mb-3 backdrop-blur-sm border border-white/20 shadow-lg">
+              <Users className="w-6 h-6 text-white drop-shadow-sm" />
             </div>
-            <h4 className="font-bold text-gray-900 text-sm mb-1">Community Driven</h4>
-            <p className="text-xs text-gray-600">Join thousands making real environmental change</p>
+            <h4 className="font-bold text-gray-900 text-sm mb-1 drop-shadow-sm">Community Driven</h4>
+            <p className="text-xs text-gray-700">Join thousands making real positive change</p>
           </div>
         </div>
 
       </div>
 
       {/* Bottom CTA Section */}
-      <div className="px-6 pb-8 pt-4">
+      <div className="px-6 pb-8 pt-4 relative z-10">
         <Button 
           onClick={() => navigate('/auth')}
           size="lg"
-          className="w-full h-14 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-200"
+          className="w-full h-14 rounded-2xl bg-gradient-to-r from-green-500/90 to-emerald-600/90 hover:from-green-600/90 hover:to-emerald-700/90 text-white font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] transition-all duration-200 backdrop-blur-xl border border-white/20 ring-1 ring-white/10"
         >
           Get Started
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
         
-        <p className="text-center text-xs text-gray-500 mt-4">
+        <p className="text-center text-xs text-gray-600 mt-4 drop-shadow-sm">
           Join thousands making real impact on our planet 🌱
         </p>
       </div>

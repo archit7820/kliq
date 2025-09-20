@@ -10,12 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
-import SwipeContainer from "@/components/SwipeContainer";
-import StoryViewer from "@/components/StoryViewer";
 import ShareableCard from "@/components/ShareableCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { toast } from "@/hooks/use-toast";
+import SwipeCard from "@/components/SwipeCard";
 
 interface Post {
   id: string;
@@ -47,8 +46,6 @@ const ExplorePage = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [storyIndex, setStoryIndex] = useState(0);
   const [showShareableCard, setShowShareableCard] = useState(false);
 
   useEffect(() => {
@@ -143,18 +140,14 @@ const ExplorePage = () => {
     }
   };
 
-  const handlePostClick = (post: Post) => {
-    const index = posts.findIndex(p => p.id === post.id);
-    setStoryIndex(index);
-    setSelectedPost(post);
+  const handleLike = (post: Post) => {
+    // Handle like action
+    console.log('Liked post:', post.id);
   };
 
-  const handleSwipeLeft = (post: Post) => {
-    // Notification removed - no toast on swipe left
-  };
-
-  const handleSwipeRight = (post: Post) => {
-    // Notification removed - no toast on swipe right
+  const handlePass = (post: Post) => {
+    // Handle pass action
+    console.log('Passed post:', post.id);
   };
 
   const handleRefresh = () => {
@@ -162,36 +155,38 @@ const ExplorePage = () => {
     fetchPosts();
   };
 
-  if (selectedPost) {
-    return (
-      <StoryViewer
-        posts={posts}
-        initialIndex={storyIndex}
-        onClose={() => setSelectedPost(null)}
-        onUpdate={(updatedPost) => {
-          setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
-        }}
-      />
-    );
-  }
-
   return (
-    <div className="fixed inset-0 bg-background overflow-hidden" style={{ touchAction: 'none' }}>
+    <div className="fixed inset-0 bg-background overflow-hidden">
       {/* Full Screen Content */}
       {loading ? (
         <div className="w-full h-full flex items-center justify-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
-        <SwipeContainer
-          posts={posts}
-          onPostClick={handlePostClick}
-          onSwipeLeft={handleSwipeLeft}
-          onSwipeRight={handleSwipeRight}
-        />
+        <div className="h-full overflow-y-auto snap-y snap-mandatory">
+          {posts.map((post, index) => (
+            <div key={post.id} className="h-full w-full snap-start snap-always">
+              <SwipeCard
+                post={post as any}
+                onSwipeLeft={() => handlePass(post)}
+                onSwipeRight={() => handleLike(post)}
+                onTap={() => {}} // No action on tap - posts stay as posts
+              />
+            </div>
+          ))}
+          
+          {/* End of feed message */}
+          {posts.length > 0 && (
+            <div className="h-full w-full flex items-center justify-center p-4 snap-start">
+              <div className="text-center py-8 max-w-sm mx-auto">
+                <div className="text-5xl mb-4">🎉</div>
+                <h3 className="text-xl font-bold text-foreground mb-2">You're all caught up!</h3>
+                <p className="text-muted-foreground text-sm">Check back later for more posts</p>
+              </div>
+            </div>
+          )}
+        </div>
       )}
-
-   
 
       {/* Shareable Card Modal */}
       {showShareableCard && (
