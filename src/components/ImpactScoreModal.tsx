@@ -80,7 +80,7 @@ const ImpactScoreModal = ({ isOpen, onClose, post }: ImpactScoreModalProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="h-[95vh] sm:h-[90vh] rounded-t-3xl bg-white shadow-2xl border-t-4 border-green-500 max-w-full sm:max-w-lg sm:mx-auto p-0 z-[100]">
         <SheetHeader className="text-left pb-6">
           <div className="flex items-center justify-between">
             <div>

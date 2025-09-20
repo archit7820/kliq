@@ -111,12 +111,12 @@ const SwipeCard = ({ post, onSwipeLeft, onSwipeRight, onTap, style }: SwipeCardP
   return (
     <>
       <div 
-        className="relative w-full h-full bg-card rounded-3xl shadow-xl overflow-hidden cursor-pointer flex flex-col border border-border/20"
+        className="relative w-full h-full bg-black overflow-hidden cursor-pointer"
         onClick={handleCardClick}
         style={style}
       >
-        {/* Background Image/Video - Mobile optimized height */}
-        <div className="image-section relative h-[68%] overflow-hidden rounded-t-3xl">
+        {/* Full Screen Image/Video - Instagram Style */}
+        <div className="image-section relative w-full h-full overflow-hidden">
           {post.image_url && (
             <img 
               src={post.image_url} 

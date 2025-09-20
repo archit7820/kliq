@@ -1,7 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Wallet } from "lucide-react";
-import ChallengeVerificationDialog from "./ChallengeVerificationDialog";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import JoinWithActivityModal from "./JoinWithActivityModal";
 
 type ChallengeParticipant = {
   id: string;
@@ -28,11 +30,35 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
   onVerified,
   highlight
 }) => {
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  
   const isKelpTeam =
     !row.challenge ||
     row.challenge.description?.toLowerCase().includes("kelp team") ||
     row.challenge.title?.toLowerCase().includes("kelp") ||
     row.challenge.reward_kelp_points > 30;
+
+  const handleDirectComplete = async () => {
+    try {
+      // Complete challenge directly without creating activity post
+      const { error } = await supabase
+        .from('challenge_participants')
+        .upsert([
+          {
+            challenge_id: row.challenge.id,
+            user_id: userId, // Assume userId is passed as prop
+            completed: true,
+            completed_at: new Date().toISOString(),
+            completion_activity_id: null // No activity post
+          }
+        ]);
+
+      if (error) throw error;
+      onVerified();
+    } catch (error) {
+      console.error('Error completing challenge:', error);
+    }
+  };
 
   return (
     <div
@@ -68,22 +94,28 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({
       </div>
       <div className="flex flex-row gap-2 items-center sm:mt-0 mt-3 min-w-[120px] justify-end">
         {!row.is_completed ? (
-          <ChallengeVerificationDialog
-            challenge={{
-              id: row.challenge.id,
-              title: row.challenge.title,
-              description: row.challenge.description || "",
-              reward: row.challenge.reward_kelp_points,
-            }}
-            participantId={row.id}
-            onFinish={onVerified}
-          />
+          <Button
+            onClick={() => setShowJoinModal(true)}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold px-4 py-2 rounded-lg"
+          >
+            Complete Challenge
+          </Button>
         ) : (
           <span className="inline-flex items-center text-green-700 text-base px-3 py-1.5 rounded-lg bg-green-50 font-semibold ml-2 transition-all animate-fade-in">
             ✓ Completed!
           </span>
         )}
       </div>
+
+      {/* Join with Activity Modal */}
+      <JoinWithActivityModal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        type="challenge"
+        itemId={row.challenge.id}
+        itemName={row.challenge.title}
+        onDirectJoin={handleDirectComplete}
+      />
     </div>
   );
 };

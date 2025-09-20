@@ -84,13 +84,14 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
 
   // Touch events (primary for mobile)
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
     const touch = e.touches[0];
     handleStart(touch.clientX, touch.clientY);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
     e.preventDefault();
+    e.stopPropagation();
     const touch = e.touches[0];
     handleMove(touch.clientX, touch.clientY);
   };
@@ -146,9 +147,9 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
   };
 
   return (
-    <div className="relative flex-1 flex items-center justify-center px-4 py-2">
-      {/* Card Container - Mobile optimized dimensions */}
-      <div className="relative w-full max-w-sm h-[75vh] max-h-[600px] min-h-[500px]">
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Card Container - Full screen */}
+      <div className="relative w-full h-full">
         {/* Next card (behind) */}
         {nextPost && (
           <div className="absolute inset-0 z-0" style={nextCardStyle}>
@@ -166,7 +167,7 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
           <div
             ref={cardRef}
             className="absolute inset-0 z-10 touch-pan-y"
-            style={cardStyle}
+            style={{ ...cardStyle, touchAction: 'none' }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -185,26 +186,6 @@ const SwipeContainer = ({ posts, onPostClick, onSwipeLeft, onSwipeRight }: Swipe
         )}
       </div>
 
-      {/* Progress indicator - Mobile optimized */}
-      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-        <div className="flex gap-1 bg-black/20 backdrop-blur-sm rounded-full px-2 py-1">
-          {posts.slice(0, Math.min(10, posts.length)).map((_, index) => (
-            <div
-              key={index}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                index <= currentIndex 
-                  ? 'bg-white scale-110' 
-                  : 'bg-white/40'
-              }`}
-            />
-          ))}
-          {posts.length > 10 && (
-            <span className="text-xs text-white/70 ml-1">
-              +{posts.length - 10}
-            </span>
-          )}
-        </div>
-      </div>
     </div>
   );
 };

@@ -68,25 +68,74 @@ const ActivitySubmissionSection: React.FC<ActivitySubmissionSectionProps> = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-        const { error } = await supabase.from('activities').insert({
-          user_id: userId,
-          activity: analysis.activity,
-          carbon_footprint_kg: analysis.carbon_footprint_kg,
-          explanation: analysis.explanation,
-          emoji: analysis.emoji,
-          image_url: imageUrl,
-          caption: caption || null,
-          category: 'general'
-        });
+      // Get URL parameters for community/challenge linking
+      const urlParams = new URLSearchParams(window.location.search);
+      const communityId = urlParams.get('community_id');
+      const challengeId = urlParams.get('challenge_id');
+      const autoJoin = urlParams.get('auto_join') === 'true';
 
-      if (error) {
-        throw error;
+      // Insert the activity
+      const { data: activityData, error } = await supabase.from('activities').insert({
+        user_id: userId,
+        activity: analysis.activity,
+        carbon_footprint_kg: analysis.carbon_footprint_kg,
+        explanation: analysis.explanation,
+        emoji: analysis.emoji,
+        image_url: imageUrl,
+        caption: caption || null,
+        category: 'general',
+        community_id: communityId, // Link to community if joining through activity
+        challenge_id: challengeId   // Link to challenge if completing through activity
+      }).select().single();
+
+      if (error) throw error;
+
+      // Handle community joining through activity
+      if (communityId && autoJoin) {
+        const { error: joinError } = await supabase
+          .from('community_members')
+          .insert([
+            {
+              community_id: communityId,
+              user_id: userId,
+              joined_through_activity: true,
+              activity_id: activityData.id,
+              status: 'approved'
+            }
+          ]);
+
+        if (joinError && joinError.code !== '23505') { // Ignore duplicate key error
+          console.error('Error joining community:', joinError);
+        }
+      }
+
+      // Handle challenge completion through activity
+      if (challengeId && autoJoin) {
+        const { error: challengeError } = await supabase
+          .from('challenge_participants')
+          .upsert([
+            {
+              challenge_id: challengeId,
+              user_id: userId,
+              completed: true,
+              completed_at: new Date().toISOString(),
+              completion_activity_id: activityData.id
+            }
+          ]);
+
+        if (challengeError) {
+          console.error('Error completing challenge:', challengeError);
+        }
       }
 
       // Invalidate activities query to refresh feed
       await queryClient.invalidateQueries({ queryKey: ["activities"] });
       
-      toast.success('Activity logged successfully!');
+      toast.success(
+        communityId || challengeId 
+          ? 'Activity logged and linked successfully!' 
+          : 'Activity logged successfully!'
+      );
       onSuccess();
     } catch (error) {
       console.error('Submission error:', error);

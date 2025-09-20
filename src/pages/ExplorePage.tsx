@@ -160,99 +160,11 @@ const ExplorePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Mobile-First Header */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/50">
-        <div className="px-4 py-3 safe-area-pt">
-          <div className="flex items-center justify-between">
-            {/* Left side - App branding */}
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-primary/20 rounded-xl">
-                <Zap className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-base font-bold text-foreground">Feeds</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">Swipe to explore impact</p>
-              </div>
-            </div>
-            
-            {/* Right side - Actions */}
-            <div className="flex items-center gap-1">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full h-8 w-8"
-                onClick={() => setShowShareableCard(true)}
-              >
-                <Share className="w-4 h-4" />
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full h-8 w-8"
-                onClick={handleRefresh}
-                disabled={loading}
-              >
-                <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 bg-popover/95 backdrop-blur-sm">
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/friends')} 
-                    className="text-sm cursor-pointer"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Friends
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/invite')} 
-                    className="text-sm cursor-pointer"
-                  >
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Invite
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleLogout} 
-                    className="text-sm cursor-pointer text-destructive focus:text-destructive"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content - Mobile Optimized */}
+    <div className="h-screen bg-background overflow-hidden" style={{ touchAction: 'none' }}>
+      {/* Full Screen Content */}
       {loading ? (
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground text-sm">Loading amazing content...</p>
-          </div>
-        </div>
-      ) : posts.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center max-w-sm mx-auto">
-            <div className="text-4xl mb-3">🌱</div>
-            <h3 className="text-lg font-bold mb-2">No Posts Yet</h3>
-            <p className="text-muted-foreground text-sm mb-4">
-              Be the first to share your impact!
-            </p>
-            <Button onClick={handleRefresh} size="sm">
-              Try Again
-            </Button>
-          </div>
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
         <SwipeContainer
@@ -263,17 +175,7 @@ const ExplorePage = () => {
         />
       )}
 
-      {/* Mobile-First Instructions Footer */}
-      <div className="p-3 bg-muted/20 border-t border-border/30 safe-area-pb">
-        <div className="text-center max-w-sm mx-auto">
-          <p className="text-xs text-muted-foreground mb-1">
-            💚 Swipe right or tap ❤️ to like • ❌ Swipe left or tap ✖️ to pass
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Tap on a card to view as story
-          </p>
-        </div>
-      </div>
+   
 
       {/* Shareable Card Modal */}
       {showShareableCard && (

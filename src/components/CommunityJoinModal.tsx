@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Users, Lock, Key, Globe } from "lucide-react";
+import JoinWithActivityModal from "./JoinWithActivityModal";
 
 interface CommunityJoinModalProps {
   community: {
@@ -30,6 +31,7 @@ export default function CommunityJoinModal({
 }: CommunityJoinModalProps) {
   const [loading, setLoading] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
+  const [showJoinWithActivity, setShowJoinWithActivity] = useState(false);
 
   const handleJoin = async () => {
     setLoading(true);
@@ -70,13 +72,14 @@ export default function CommunityJoinModal({
         status = 'pending';
       }
 
-      // Join the community
+      // Join the community directly (no activity post)
       const { error } = await supabase
-        .from('community_memberships')
+        .from('community_members')
         .insert({
           user_id: userId,
           community_id: community.id,
-          status
+          status,
+          joined_through_activity: false
         });
 
       if (error) {
@@ -165,26 +168,33 @@ export default function CommunityJoinModal({
             </div>
           )}
 
-          {/* Enhanced Action Buttons with Green/Blue Theme */}
-          <div className="flex gap-3 pt-4">
+          {/* Join Options */}
+          <div className="space-y-3 pt-4">
             <Button 
-              variant="outline" 
-              onClick={onClose} 
-              className="flex-1 btn-blue-outline btn-pulse btn-glow font-semibold"
-              aria-label="Cancel joining community"
+              onClick={() => setShowJoinWithActivity(true)}
+              className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold"
             >
-              Cancel
+              Join with Activity Post
             </Button>
             <Button 
               onClick={handleJoin} 
               disabled={loading} 
-              className="flex-1 btn-green btn-pulse btn-glow font-semibold"
-              aria-label={community.privacy_type === 'private' ? "Request to join community" : "Join community"}
+              variant="outline"
+              className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 font-semibold"
             >
-              {loading ? "Joining..." : 
-               community.privacy_type === 'private' ? "Request to Join" : "Join"}
+              {loading ? "Joining..." : "Just Join (No Post)"}
             </Button>
           </div>
+
+          {/* Join with Activity Modal */}
+          <JoinWithActivityModal
+            isOpen={showJoinWithActivity}
+            onClose={() => setShowJoinWithActivity(false)}
+            type="community"
+            itemId={community.id}
+            itemName={community.name}
+            onDirectJoin={handleJoin}
+          />
         </div>
       </DialogContent>
     </Dialog>
