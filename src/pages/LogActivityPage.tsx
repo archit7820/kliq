@@ -36,6 +36,7 @@ const LogActivityPage = () => {
   const [analysis, setAnalysis] = useState<ActivityAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [prefilledData, setPrefilledData] = useState<any>(null);
 
   // SEO: dynamic title and description
   useEffect(() => {
@@ -43,6 +44,78 @@ const LogActivityPage = () => {
     const meta = document.querySelector('meta[name="description"]');
     if (meta) {
       meta.setAttribute('content', 'Capture your IRL adventures, get a Kelp Impact Score, and turn effort into social currency.');
+    }
+  }, []);
+
+  // Check for pre-filled data from community/challenge actions
+  useEffect(() => {
+    const storedData = localStorage.getItem('pendingActivityLog');
+    const challengeData = localStorage.getItem('challengeCompletionData');
+    
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        setPrefilledData(data);
+        setCaption(data.prefilledCaption || '');
+        
+        // Create a pre-filled analysis if we have the data
+        if (data.prefilledActivity) {
+          const preAnalysis: ActivityAnalysis = {
+            activity: data.prefilledActivity,
+            explanation: `Great job ${data.actionType === 'challenge' ? 'completing this challenge' : 'joining this community'}! This shows your commitment to positive impact.`,
+            emoji: data.actionType === 'challenge' ? '🏆' : '🤝',
+            carbon_footprint_kg: 0, // No carbon impact for digital actions
+            impact_score: 75,
+            dimensions: {
+              adventure_intensity: data.actionType === 'challenge' ? 80 : 40,
+              social_connection: 90,
+              environmental_impact: 60,
+              economic_impact: 30,
+              learning_growth: 70,
+            }
+          };
+          setAnalysis(preAnalysis);
+        }
+        
+        // Clear the stored data
+        localStorage.removeItem('pendingActivityLog');
+      } catch (error) {
+        console.error('Error parsing pre-filled data:', error);
+        localStorage.removeItem('pendingActivityLog');
+      }
+    }
+    
+    // Handle challenge completion data (with uploaded image)
+    if (challengeData) {
+      try {
+        const data = JSON.parse(challengeData);
+        setImageUrl(data.imageUrl);
+        setCaption(data.caption || '');
+        
+        // Create analysis for challenge completion
+        const challengeAnalysis: ActivityAnalysis = {
+          activity: `Completed challenge verification`,
+          explanation: data.offset 
+            ? `Verified by photo. ${data.offset ? `(Offset: ${-Math.abs(data.offset)} CO₂e kg)` : ""}`
+            : "Verified by photo.",
+          emoji: '🏆',
+          carbon_footprint_kg: data.offset ? -Math.abs(data.offset) : 0,
+          impact_score: 85,
+          dimensions: {
+            adventure_intensity: 85,
+            social_connection: 80,
+            environmental_impact: data.offset ? 90 : 60,
+            economic_impact: 40,
+            learning_growth: 75,
+          }
+        };
+        setAnalysis(challengeAnalysis);
+        
+        // Don't clear challenge data here - let ActivitySubmissionSection handle it
+      } catch (error) {
+        console.error('Error parsing challenge data:', error);
+        localStorage.removeItem('challengeCompletionData');
+      }
     }
   }, []);
 
